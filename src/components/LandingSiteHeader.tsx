@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { SmartBanner } from "smartbanner-tsx";
 import { Logo } from "./logo";
-import irisDefault from "../images/emojis/Iris/Iris_default_1.png";
-import reedDefault from "../images/emojis/Reed/Reed_default_1.png";
+import irisDefault from "../images/emojis/Iris/Iris_idle_return.png";
+import reedDefault from "../images/emojis/Reed/Reed_idle_return.png";
 import "smartbanner-tsx/dist/style.css";
 
 

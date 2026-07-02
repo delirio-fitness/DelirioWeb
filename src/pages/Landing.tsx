@@ -18,17 +18,20 @@ import { LandingSiteFooter } from '../components/LandingSiteFooter';
 import { LandingSiteHeader } from '../components/LandingSiteHeader';
 import LandingBackgroundLines from '../components/LandingBackgroundLines';
 import testFlightIcon from '../images/appleOfficialBadges/testFlight.webp';
-import irisDefault from '../images/emojis/Iris/Iris_default_1.png';
-import irisSpeaking from '../images/emojis/Iris/Iris_botSpeaking_1.png';
-import irisSpeakingAlt from '../images/emojis/Iris/Iris_botSpeaking_2.png';
-import irisConnecting from '../images/emojis/Iris/Iris_connecting_1.png';
-import irisListening from '../images/emojis/Iris/Iris_micLive_1.png';
-import irisLive from '../images/emojis/Iris/Iris_micLive_6.png';
-import reedDefault from '../images/emojis/Reed/Reed_default_1.png';
-import reedSpeaking from '../images/emojis/Reed/Reed_botSpeaking_1.png';
-import reedSpeakingAlt from '../images/emojis/Reed/Reed_botSpeaking_2.png';
-import reedDisconnected from '../images/emojis/Reed/Reed_disconnected_1.png';
-import reedLive from '../images/emojis/Reed/Reed_micLive_2.png';
+import irisIdleReturn from '../images/emojis/Iris/Iris_idle_return.png';
+import irisIdlePhone from '../images/emojis/Iris/Iris_idle_phone.png';
+import irisIdleNotes from '../images/emojis/Iris/Iris_idle_notes.png';
+import irisIdleWatch from '../images/emojis/Iris/Iris_idle_watch.png';
+import irisListeningTilt from '../images/emojis/Iris/Iris_listening_tilt.png';
+import irisThinkingConsider from '../images/emojis/Iris/Iris_thinking_consider.png';
+import irisThinkingEmoji from '../images/emojis/Iris/Iris_thinking_emoji.png';
+import reedIdleReturn from '../images/emojis/Reed/Reed_idle_return.png';
+import reedIdlePhone from '../images/emojis/Reed/Reed_idle_phone.png';
+import reedIdleNotes from '../images/emojis/Reed/Reed_idle_notes.png';
+import reedIdleWatch from '../images/emojis/Reed/Reed_idle_watch.png';
+import reedListeningTilt from '../images/emojis/Reed/Reed_listening_tilt.png';
+import reedThinkingConsider from '../images/emojis/Reed/Reed_thinking_consider.png';
+import reedThinkingEmoji from '../images/emojis/Reed/Reed_thinking_emoji.png';
 import feedbackPushup from '../images/iMocksImages/realtime-feedback-pushup.png';
 import feedbackSquat from '../images/iMocksImages/realtime-feedback-squat.png';
 import messagingLeft from '../images/iMocksImages/blueChat_iMsg_iMock.png';
@@ -101,34 +104,34 @@ type WaveLineMotion = {
 };
 
 const heroNodes: ClusterNode[] = [
-  { src: irisDefault, top: '6%', left: '8%', size: 108, rotate: -2 },
+  { src: irisIdleReturn, top: '6%', left: '8%', size: 108, rotate: -2 },
   { kind: 'text', text: '\u{1F4A1}', top: '4%', left: '29%', size: 28 },
-  { src: irisSpeaking, top: '12%', left: '88%', size: 96, rotate: 2 },
-  { src: reedSpeakingAlt, top: '24%', left: '19%', size: 76, rotate: -5 },
-  { src: irisSpeakingAlt, top: '38%', left: '55%', size: 206, rotate: -1 },
-  { src: reedDefault, top: '52%', left: '5%', size: 68, rotate: 4 },
-  { src: reedLive, top: '50%', left: '96%', size: 68, rotate: -3 },
-  { src: irisConnecting, top: '66%', left: '17%', size: 182, rotate: -3 },
-  { src: reedDisconnected, top: '69%', left: '69%', size: 90, rotate: -2 },
-  { src: irisDefault, top: '82%', left: '6%', size: 78, rotate: -6 },
-  { src: reedSpeaking, top: '83%', left: '94%', size: 96, rotate: -2 },
-  { src: irisLive, top: '92%', left: '44%', size: 130, rotate: 1 },
+  { src: irisThinkingEmoji, top: '12%', left: '88%', size: 96, rotate: 2 },
+  { src: reedThinkingConsider, top: '24%', left: '19%', size: 76, rotate: -5 },
+  { src: irisThinkingConsider, top: '38%', left: '55%', size: 206, rotate: -1 },
+  { src: reedIdleReturn, top: '52%', left: '5%', size: 68, rotate: 4 },
+  { src: reedListeningTilt, top: '50%', left: '96%', size: 68, rotate: -3 },
+  { src: irisIdlePhone, top: '66%', left: '17%', size: 182, rotate: -3 },
+  { src: reedIdleWatch, top: '69%', left: '69%', size: 90, rotate: -2 },
+  { src: irisIdleNotes, top: '82%', left: '6%', size: 78, rotate: -6 },
+  { src: reedThinkingEmoji, top: '83%', left: '94%', size: 96, rotate: -2 },
+  { src: irisIdleWatch, top: '92%', left: '44%', size: 130, rotate: 1 },
 ];
 
 const betaNodes: ClusterNode[] = [
-  { src: reedSpeaking, top: '32%', left: '22%', size: 84, rotate: -4 },
-  { src: irisConnecting, top: '20%', left: '38%', size: 58, rotate: -6 },
+  { src: reedThinkingEmoji, top: '32%', left: '22%', size: 84, rotate: -4 },
+  { src: irisIdlePhone, top: '20%', left: '38%', size: 58, rotate: -6 },
   { kind: 'text', text: '\u{1F4A1}', top: '20%', left: '44%', size: 24 },
-  { src: irisSpeakingAlt, top: '17%', left: '68%', size: 72, rotate: 2 },
-  { src: irisSpeaking, top: '33%', left: '75%', size: 96, rotate: -2 },
-  { src: reedDefault, top: '44%', left: '87%', size: 70, rotate: 6 },
-  { src: reedDisconnected, top: '57%', left: '12%', size: 72, rotate: -6 },
-  { src: irisLive, top: '64%', left: '27%', size: 88, rotate: 5 },
-  { src: irisListening, top: '86%', left: '35%', size: 84, rotate: -7 },
-  { src: reedSpeakingAlt, top: '76%', left: '52%', size: 84, rotate: 1 },
-  { src: irisDefault, top: '78%', left: '81%', size: 74, rotate: -4 },
-  { src: reedLive, top: '94%', left: '90%', size: 94, rotate: -2 },
-  { src: reedDefault, top: '93%', left: '68%', size: 54, rotate: 2 },
+  { src: irisThinkingConsider, top: '17%', left: '68%', size: 72, rotate: 2 },
+  { src: irisThinkingEmoji, top: '33%', left: '75%', size: 96, rotate: -2 },
+  { src: reedIdleNotes, top: '44%', left: '87%', size: 70, rotate: 6 },
+  { src: reedIdleWatch, top: '57%', left: '12%', size: 72, rotate: -6 },
+  { src: irisIdleWatch, top: '64%', left: '27%', size: 88, rotate: 5 },
+  { src: irisListeningTilt, top: '86%', left: '35%', size: 84, rotate: -7 },
+  { src: reedThinkingConsider, top: '76%', left: '52%', size: 84, rotate: 1 },
+  { src: irisIdleReturn, top: '78%', left: '81%', size: 74, rotate: -4 },
+  { src: reedListeningTilt, top: '94%', left: '90%', size: 94, rotate: -2 },
+  { src: reedIdlePhone, top: '93%', left: '68%', size: 54, rotate: 2 },
   { kind: 'text', text: '\u{1F4A1}', top: '88%', left: '72%', size: 30 },
 ];
 
@@ -139,14 +142,14 @@ const coachProfiles: Record<CoachId, CoachProfile> = {
   iris: {
     name: 'Iris',
     accent: 'pink',
-    avatar: irisDefault,
+    avatar: irisIdleReturn,
     blurb: 'Expressive, energetic coaching that keeps momentum high and sessions moving.',
     approach: '',
   },
   reed: {
     name: 'Reed',
     accent: 'blue',
-    avatar: reedDefault,
+    avatar: reedIdleReturn,
     blurb: 'Direct, structured coaching focused on clean execution and practical progression.',
     approach: '',
   },
