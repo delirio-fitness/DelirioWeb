@@ -19,7 +19,7 @@ interface UseTextChatOptions {
 
 export function useTextChat(options: UseTextChatOptions = {}) {
   const {
-    personality = "goat", 
+    personality = "reed",
     userId = generateDiscoveryId(),
     context = "discovery", 
   } = options;

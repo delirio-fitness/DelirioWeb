@@ -17,7 +17,7 @@ interface UseVoiceSessionOptions {
 
 export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
   const {
-    personality = "goat", // within default_app context, "reed" and "iris" are funcitonal 
+    personality = "reed", // within default_app context, "reed" and "iris" are functional
     userId = generateDiscoveryId(),
     context = "discovery", //default_app is funcitonal 
     timeout = 30000,
