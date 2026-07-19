@@ -1,8 +1,8 @@
 import { useCallback, useRef, useState } from "react";
 import { CHAT_ENGINE_URL, generateDiscoveryId } from "../utils/pipecatConfig";
+import { IS_DEV } from "../config/runtime";
 
-const isDev = (import.meta as any).env?.DEV;
-const CHAT_ENDPOINT = isDev
+const CHAT_ENDPOINT = IS_DEV
   ? "/api/chat"                // proxied through Vite dev server (avoids CORS)
   : `${CHAT_ENGINE_URL}/chat`; // direct in production
 
@@ -17,6 +17,38 @@ interface UseTextChatOptions {
   context?: string;
 }
 
+type UnknownRecord = Record<string, unknown>;
+
+function asRecord(value: unknown): UnknownRecord | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? value as UnknownRecord
+    : null;
+}
+
+function deepParse(value: unknown): unknown {
+  if (typeof value === "string") {
+    try {
+      return deepParse(JSON.parse(value) as unknown);
+    } catch {
+      return value;
+    }
+  }
+  if (Array.isArray(value)) return value.map(deepParse);
+  const record = asRecord(value);
+  if (!record) return value;
+  return Object.fromEntries(Object.entries(record).map(([key, entry]) => [key, deepParse(entry)]));
+}
+
+function messageText(value: unknown): string {
+  if (typeof value === "string") return value;
+  const record = asRecord(value);
+  if (!record) return "";
+  for (const key of ["text", "content", "message", "body"]) {
+    if (typeof record[key] === "string") return record[key];
+  }
+  return "";
+}
+
 export function useTextChat(options: UseTextChatOptions = {}) {
   const {
     personality = "reed",
@@ -27,15 +59,19 @@ export function useTextChat(options: UseTextChatOptions = {}) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [failedMessage, setFailedMessage] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   const sendMessage = useCallback(
-    async (text: string) => {
+    async (text: string, appendUserMessage = true) => {
       const trimmed = text.trim();
       if (!trimmed || isLoading) return;
 
       setError(null);
-      setMessages((prev) => [...prev, { role: "user", text: trimmed }]);
+      setFailedMessage(null);
+      if (appendUserMessage) {
+        setMessages((prev) => [...prev, { role: "user", text: trimmed }]);
+      }
       setIsLoading(true);
 
       abortRef.current = new AbortController();
@@ -62,53 +98,31 @@ export function useTextChat(options: UseTextChatOptions = {}) {
         const raw = await res.text();
         console.log("[TextChat] Raw response:", raw);
 
-        let data: any;
+        let data: unknown;
         try { data = JSON.parse(raw); } catch { data = raw; }
         console.log("[TextChat] Full payload:", data);
 
-        // Deep-parse: recursively JSON.parse any string that looks like JSON
-        function deepParse(val: any): any {
-          if (typeof val === "string") {
-            try {
-              const parsed = JSON.parse(val);
-              return deepParse(parsed); // recurse in case of double-encoding
-            } catch { return val; }
-          }
-          if (Array.isArray(val)) return val.map(deepParse);
-          if (val && typeof val === "object") {
-            const out: any = {};
-            for (const k of Object.keys(val)) out[k] = deepParse(val[k]);
-            return out;
-          }
-          return val;
-        }
-
         const parsed = deepParse(data);
         console.log("[TextChat] Deep-parsed payload:", parsed);
-
-        // Extract the text from a single message object
-        function msgText(m: any): string {
-          if (typeof m === "string") return m;
-          if (!m || typeof m !== "object") return "";
-          return String(m.text ?? m.content ?? m.message ?? m.body ?? "");
-        }
+        const parsedRecord = asRecord(parsed);
 
         // Find the messages array and pull out non-user replies
         let botReplies: string[] = [];
 
         // data.messages is the expected shape
-        const msgsArr = parsed?.messages ?? parsed?.data?.messages;
+        const dataRecord = asRecord(parsedRecord?.data);
+        const msgsArr = parsedRecord?.messages ?? dataRecord?.messages;
         if (Array.isArray(msgsArr)) {
           botReplies = msgsArr
-            .filter((m: any) => m.role !== "user")
-            .map(msgText)
+            .filter((message) => asRecord(message)?.role !== "user")
+            .map(messageText)
             .filter((t: string) => t.length > 0);
         }
 
         // Fallback: single-value response keys
         if (botReplies.length === 0) {
           for (const key of ["response", "reply", "answer", "content", "text"]) {
-            const val = parsed?.[key];
+            const val = parsedRecord?.[key];
             if (typeof val === "string" && val) {
               botReplies = [val];
               break;
@@ -140,10 +154,12 @@ export function useTextChat(options: UseTextChatOptions = {}) {
           ...prev,
           ...botReplies.map((t) => ({ role: "assistant" as const, text: t })),
         ]);
+        setFailedMessage(null);
       } catch (err) {
         if ((err as Error).name === "AbortError") return;
         const msg = err instanceof Error ? err.message : "Failed to send message";
         setError(msg);
+        setFailedMessage(trimmed);
       } finally {
         setIsLoading(false);
         abortRef.current = null;
@@ -156,8 +172,22 @@ export function useTextChat(options: UseTextChatOptions = {}) {
     abortRef.current?.abort();
     setMessages([]);
     setError(null);
+    setFailedMessage(null);
     setIsLoading(false);
   }, []);
 
-  return { messages, isLoading, error, sendMessage, clearMessages };
+  const retryLastMessage = useCallback(async () => {
+    if (!failedMessage || isLoading) return;
+    await sendMessage(failedMessage, false);
+  }, [failedMessage, isLoading, sendMessage]);
+
+  return {
+    messages,
+    isLoading,
+    error,
+    failedMessage,
+    sendMessage,
+    retryLastMessage,
+    clearMessages,
+  };
 }

@@ -1,5 +1,7 @@
+/* eslint-disable react/no-unescaped-entities */
 import { useEffect } from "react";
 import { LandingLegalShell } from "./LandingLegalShell";
+import { MONTHLY_PRICE_USD, YEARLY_MONTHLY_EQUIVALENT_USD, YEARLY_PRICE_USD } from "../config/product";
 
 export default function TermsServices() {
   useEffect(() => {
@@ -10,7 +12,7 @@ export default function TermsServices() {
     <LandingLegalShell>
       <div id="terms-of-service" className="max-w-3xl mx-auto px-6 py-10 md:py-16">
         <h1 className="text-4xl font-bold mb-8">Terms of Service</h1>
-          <p className="mb-2 text-sm text-gray-500">Last updated: December 29, 2025</p>
+          <p className="mb-2 text-sm text-gray-500">Last updated: July 12, 2026</p>
 
           <h2 className="text-2xl font-semibold mb-4 mt-8">Agreement to Terms</h2>
           <p className="mb-4">
@@ -78,24 +80,19 @@ export default function TermsServices() {
             <li>You are responsible for using your own judgment when following any AI-generated advice.</li>
           </ul>
 
-          <h2 className="text-2xl font-semibold mb-4 mt-8">Beta Service Terms</h2>
+          <h2 className="text-2xl font-semibold mb-4 mt-8">Subscriptions and Billing</h2>
           <p className="mb-4">
-            The Service is currently in beta. By participating in the beta, you acknowledge and agree that:
+            Delirio offers subscriptions purchased and managed through Apple&rsquo;s App Store. Available plans are:
           </p>
-                <ul className="mb-4 list-disc pl-6">
-            <li>The Service may be unstable, contain bugs, or experience interruptions.</li>
-            <li>Features may be added, modified, or removed without prior notice.</li>
-            <li>
-              We may reset, modify, or delete user data during the beta period for technical or operational reasons.
-            </li>
-            <li>
-              The beta is provided free of charge. Pricing and features may change when the Service exits beta.
-            </li>
-            <li>
-              Your feedback during the beta period helps improve the Service, and we appreciate your patience with any
-              issues.
-            </li>
-                </ul>
+          <ul className="mb-4 list-disc pl-6">
+            <li>${MONTHLY_PRICE_USD} per month, billed monthly.</li>
+            <li>${YEARLY_PRICE_USD} per year, billed annually (equivalent to ${YEARLY_MONTHLY_EQUIVALENT_USD} per month).</li>
+          </ul>
+          <p className="mb-4">
+            Apple processes subscription payments and provides the controls for managing or canceling your subscription.
+            Apple&rsquo;s applicable purchase, renewal, cancellation, and refund terms govern transactions completed through
+            the App Store. We may change pricing or features prospectively as permitted by applicable law and platform rules.
+          </p>
 
           <h2 className="text-2xl font-semibold mb-4 mt-8">Account Registration</h2>
           <p className="mb-4">To use certain features of the Service, you must create an account. You agree to:</p>

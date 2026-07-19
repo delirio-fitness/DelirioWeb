@@ -100,9 +100,9 @@ export default function PrivacyPolicy() {
 
         <h3 className="text-xl font-semibold mb-2 mt-6">Purchases and Subscriptions</h3>
         <p className="mb-4">
-          If you subscribe, we collect information about your subscription, such as its status and plan and an
-          identifier from our payment processor. Your payment card details are collected and processed directly by our
-          payment processor; we do not store your full card number.
+          If you subscribe through Apple&rsquo;s App Store, we receive information about your subscription, such as its
+          status, plan, and a transaction or account identifier supplied by Apple. Apple processes your payment details;
+          we do not receive or store your full payment card number.
         </p>
 
         <h3 className="text-xl font-semibold mb-2 mt-6">Usage, Analytics, and Diagnostics</h3>
@@ -154,7 +154,7 @@ export default function PrivacyPolicy() {
             performance
           </li>
           <li>
-            <strong>A payment processor</strong> for subscriptions and billing
+            <strong>Apple&rsquo;s App Store</strong> for subscriptions and billing
           </li>
           <li>
             <strong>Messaging providers</strong> for SMS and WhatsApp communication

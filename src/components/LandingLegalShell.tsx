@@ -1,58 +1,21 @@
-import { useEffect, useState, type ReactNode } from "react";
-import { LandingSiteFooter } from "./LandingSiteFooter";
-import { LandingSiteHeader } from "./LandingSiteHeader";
-import "../styles/landing-redesign.css";
-
-const TESTFLIGHT_DOWNLOAD_URL = import.meta.env.VITE_TESTFLIGHT_URL || "https://testflight.apple.com/";
-
-function goToHomeSection(sectionId: string) {
-  if (window.location.pathname === "/") {
-    document.getElementById(sectionId)?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-    return;
-  }
-
-  window.location.href = `/#${sectionId}`;
-}
+import type { ReactNode } from "react";
+import { LandingFooter } from "./landing/LandingFooter";
+import { LandingHeader } from "./landing/LandingHeader";
 
 export function LandingLegalShell({
   children,
 }: {
   children: ReactNode;
 }) {
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const onScroll = () => {
-      setIsScrolled(window.scrollY > 24);
-    };
-
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
   return (
-    <div className="landing-shell">
-      <LandingSiteHeader
-        isScrolled={isScrolled}
-        isStripVisible={false}
-        showDownloadStrip={false}
-        onFeaturesClick={() => goToHomeSection("features")}
-        onPersonalitiesClick={() => goToHomeSection("form-feedback")}
-        onTestFlightClick={() => goToHomeSection("contact-capture")}
-        downloadUrl={TESTFLIGHT_DOWNLOAD_URL}
-      />
-
-      <main className="landing-main">
-        <div className="landing-container" style={{ paddingTop: "44px", paddingBottom: "112px" }}>
+    <div className="d3-page d3-legal-page">
+      <LandingHeader sectionPrefix="/" />
+      <main id="main-content" className="d3-legal">
+        <div className="d3-legal-container">
           {children}
         </div>
       </main>
-
-      <LandingSiteFooter />
+      <LandingFooter />
     </div>
   );
 }

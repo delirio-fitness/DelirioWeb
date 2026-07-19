@@ -1,9 +1,44 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { PipecatClient, TransportState } from "@pipecat-ai/client-js";
-import { DailyTransport } from "@pipecat-ai/daily-transport";
+import type { PipecatClient as PipecatClientInstance, TransportState } from "@pipecat-ai/client-js";
 import { generateDiscoveryId, PIPECAT_BACKEND_URL } from "../utils/pipecatConfig";
 
 export type VoiceSessionState = "idle" | "connecting" | "connected" | "error";
+export type VoiceFailureKind =
+  | "permission-denied"
+  | "device-unavailable"
+  | "timeout"
+  | "network"
+  | "connection"
+  | "unknown";
+
+export function classifyVoiceFailure(message: string): VoiceFailureKind {
+  const normalized = message.toLowerCase();
+  if (normalized.includes("notallowed") || normalized.includes("permission") || normalized.includes("denied")) {
+    return "permission-denied";
+  }
+  if (normalized.includes("notfound") || normalized.includes("device") || normalized.includes("microphone")) {
+    return "device-unavailable";
+  }
+  if (normalized.includes("timeout") || normalized.includes("timed out")) {
+    return "timeout";
+  }
+  if (normalized.includes("network") || normalized.includes("failed to fetch")) {
+    return "network";
+  }
+  if (normalized.includes("connection") || normalized.includes("502") || normalized.includes("503")) {
+    return "connection";
+  }
+  return "unknown";
+}
+
+function extractText(data: unknown): string {
+  if (typeof data === "string") return data;
+  if (typeof data === "object" && data !== null && "text" in data) {
+    const text = (data as { text?: unknown }).text;
+    return typeof text === "string" ? text : "";
+  }
+  return "";
+}
 
 interface UseVoiceSessionOptions {
   personality?: string;
@@ -30,14 +65,17 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
   const [isMicMuted, setIsMicMuted] = useState(false);
   const [isSpeakerMuted, setIsSpeakerMuted] = useState(false);
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
+  const [isBotProcessing, setIsBotProcessing] = useState(false);
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
   const [botTranscript, setBotTranscript] = useState("");
   const [botTurns, setBotTurns] = useState<string[]>([]);
   const [userTranscript, setUserTranscript] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [failureKind, setFailureKind] = useState<VoiceFailureKind | null>(null);
+  const [retryAttempt, setRetryAttempt] = useState(0);
   const [transportState, setTransportState] = useState<string>("idle");
 
-  const clientRef = useRef<PipecatClient | null>(null);
+  const clientRef = useRef<PipecatClientInstance | null>(null);
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
   const retryCountRef = useRef(0);
   const isConnectingRef = useRef(false);
@@ -209,9 +247,12 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
   }, [stripStreamingMarkupChunk]);
 
   useEffect(() => {
-    setBotTurns([]);
-    resetPendingBotTurn();
-    resetPendingUserTranscript();
+    const timer = window.setTimeout(() => {
+      setBotTurns([]);
+      resetPendingBotTurn();
+      resetPendingUserTranscript();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [personality, resetPendingBotTurn, resetPendingUserTranscript]);
 
   // Use refs to avoid circular dependency issues with retry logic
@@ -219,6 +260,7 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
 
   const handleConnectionError = useCallback((errorMsg: string, attempt: number) => {
     isConnectingRef.current = false;
+    setIsBotProcessing(false);
 
     // Check if this is a retriable error
     const isRetriable =
@@ -235,12 +277,14 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
       console.log(`[VoiceSession] Retrying in ${delay}ms (attempt ${attempt + 2}/${maxRetries})...`);
 
       retryCountRef.current = attempt + 1;
+      setRetryAttempt(attempt + 1);
       setTimeout(() => {
         connectWithRetryRef.current?.(attempt + 1);
       }, delay);
     } else {
       console.error(`[VoiceSession] Connection failed after ${attempt + 1} attempts: ${errorMsg}`);
       setError(errorMsg);
+      setFailureKind(classifyVoiceFailure(errorMsg));
       setSessionState("error");
       retryCountRef.current = 0;
     }
@@ -252,6 +296,8 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
     isConnectingRef.current = true;
     setSessionState("connecting");
     setError(null);
+    setFailureKind(null);
+    setRetryAttempt(attempt);
 
     // Prime audio element inside user gesture so browsers allow playback
     const audio = getAudioElement();
@@ -265,6 +311,10 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
     console.log(`[VoiceSession] Config: ${sessionTag}`);
 
     try {
+      const [{ PipecatClient }, { DailyTransport }] = await Promise.all([
+        import("@pipecat-ai/client-js"),
+        import("@pipecat-ai/daily-transport"),
+      ]);
       const transport = new DailyTransport();
       const client = new PipecatClient({
         transport,
@@ -282,6 +332,7 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
             commitPendingBotTurn("disconnected");
             setSessionState("idle");
             setIsBotSpeaking(false);
+            setIsBotProcessing(false);
             setIsUserSpeaking(false);
             isConnectingRef.current = false;
           },
@@ -292,6 +343,7 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
           onBotReady: () => {
             console.log(`[VoiceSession] (${ms()}) Bot ready — session fully connected`);
             setSessionState("connected");
+            setFailureKind(null);
             retryCountRef.current = 0;
             isConnectingRef.current = false;
           },
@@ -300,6 +352,7 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
             commitPendingBotTurn("rolled");
             resetPendingBotTurn();
             setIsBotSpeaking(true);
+            setIsBotProcessing(false);
           },
           onBotStoppedSpeaking: () => {
             console.log(`[VoiceSession] (${ms()}) Bot stopped speaking`);
@@ -311,16 +364,16 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
             setIsUserSpeaking(true);
           },
           onUserStoppedSpeaking: () => setIsUserSpeaking(false),
-          onBotLlmText: (data: any) => {
+          onBotLlmText: (data) => {
             // Streaming bot output during the active turn.
-            const text = typeof data === "string" ? data : data?.text ?? "";
+            const text = extractText(data);
             if (text) {
               appendPendingBotTurn("llm", text);
             }
           },
-          onBotTtsText: (data: any) => {
+          onBotTtsText: (data) => {
             // TTS text stream; used when no LLM token stream is available.
-            const text = typeof data === "string" ? data : data?.text ?? "";
+            const text = extractText(data);
             if (text) {
               appendPendingBotTurn("tts", text);
             }
@@ -329,8 +382,9 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
             // Start a fresh turn; preserve any text from an unclosed previous turn.
             commitPendingBotTurn("rolled");
             resetPendingBotTurn();
+            setIsBotProcessing(true);
           },
-          onBotTranscript: (data) => {
+          onBotTranscript: (_data) => {
             // Deprecated fallback — only fires if above events don't
           //  if (data.text) setBotTranscript(data.text);
           },
@@ -371,8 +425,12 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
               id: message?.id,
             });
             const data = message?.data;
+            const nestedMessage =
+              typeof data === "object" && data !== null && "message" in data
+                ? (data as { message?: unknown }).message
+                : null;
             const errorMsg =
-              (typeof data === "object" && data !== null ? (data as any).message : null)
+              (typeof nestedMessage === "string" ? nestedMessage : null)
               ?? (typeof data === "string" ? data : null)
               ?? (typeof message === "string" ? message : JSON.stringify(message))
               ?? "Connection error";
@@ -394,21 +452,6 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
       await client.startBotAndConnect({
         endpoint: connectUrl,
         requestData: requestBody,
-        // TODO: `config` is honored at runtime but missing from APIRequest in @pipecat-ai/client-js typings.
-        // @ts-expect-error -- runtime-supported field not in SDK type definitions
-        config:[
-          {
-            service: "llm", 
-            options:[
-              {
-                name: "messages",
-                 value: [
-                  {role: "system", content: "Always refer to the user as ANDY"}
-                 ]
-              }
-            ]
-          }
-        ]
       });
       console.log("Endpoint in use: ", connectUrl) //logging 
     } catch (err) {
@@ -441,6 +484,8 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
   const connect = useCallback(async () => {
     retryCountRef.current = 0;
     setBotTurns([]);
+    setRetryAttempt(0);
+    setFailureKind(null);
     resetPendingBotTurn();
     resetPendingUserTranscript();
     await connectWithRetry(0);
@@ -459,6 +504,7 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
     clientRef.current = null;
     setSessionState("idle");
     setTransportState("idle");
+    setIsBotProcessing(false);
   }, [commitPendingBotTurn]);
 
   const toggleMic = useCallback(() => {
@@ -502,13 +548,17 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
     isMicMuted,
     isSpeakerMuted,
     isBotSpeaking,
+    isBotProcessing,
     isUserSpeaking,
     botTranscript,
     botTurns,
     userTranscript,
     error,
+    failureKind,
+    retryAttempt,
     connect,
     disconnect,
+    cancelConnect: disconnect,
     toggleMic,
     toggleSpeakerMute,
     updateMic,
