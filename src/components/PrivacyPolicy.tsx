@@ -10,7 +10,7 @@ export default function PrivacyPolicy() {
     <LandingLegalShell>
       <div className="max-w-3xl mx-auto px-6 py-10 md:py-16 min-h-screen bg-white text-black">
         <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
-        <p className="mb-2 text-sm text-gray-500">Last updated: July 1, 2026</p>
+        <p className="mb-2 text-sm text-gray-500">Last updated: July 22, 2026</p>
         <p className="mb-4">
           Delirio (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) provides an AI-powered fitness coaching
           mobile application. This Privacy Policy explains what information we collect, how we use and share it, and the
@@ -193,8 +193,8 @@ export default function PrivacyPolicy() {
         </p>
         <p className="mb-4">
           If you cannot access the app, you can also request deletion by emailing us at{" "}
-          <a href="mailto:amir7alsad@gmail.com" className="text-blue-600 underline">
-            amir7alsad@gmail.com
+          <a href="mailto:contact@delirio.fit" className="text-blue-600 underline">
+            contact@delirio.fit
           </a>
           . We may need to verify your identity before completing the request.
         </p>
@@ -225,8 +225,8 @@ export default function PrivacyPolicy() {
         </ul>
         <p className="mb-4">
           To exercise these rights, contact us at{" "}
-          <a href="mailto:amir7alsad@gmail.com" className="text-blue-600 underline">
-            amir7alsad@gmail.com
+          <a href="mailto:contact@delirio.fit" className="text-blue-600 underline">
+            contact@delirio.fit
           </a>
           .
         </p>
@@ -247,8 +247,8 @@ export default function PrivacyPolicy() {
         <p className="mb-4">If you have questions about this Privacy Policy or our data practices, please contact us at:</p>
         <p className="mb-4">
           <strong>Email:</strong>{" "}
-          <a href="mailto:amir7alsad@gmail.com" className="text-blue-600 underline">
-            amir7alsad@gmail.com
+          <a href="mailto:contact@delirio.fit" className="text-blue-600 underline">
+            contact@delirio.fit
           </a>
         </p>
 
