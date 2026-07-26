@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react';
+import postWorkoutText from '../../images/appScreenshots/postWorkoutText.png';
+import { PhoneScreenshotFrame } from './PhoneScreenshotFrame';
 
 const proofPoints = [
   ['01', 'IN-APP MESSAGE', 'Full context, coach identity, and the complete thread.'],
@@ -20,7 +22,6 @@ export function MessagingThreadSection() {
   return (
     <section className="d3-messaging" aria-labelledby="messaging-title">
       <div className="d3-messaging-editorial">
-        <p className="d3-messaging-kicker">MESSAGING / IN APP + SMS</p>
         <h2 id="messaging-title">ONE COACHING<br />THREAD. TWO PLACES<br />TO TYPE.</h2>
         <p className="d3-messaging-body">Use the full conversation inside Delirio, or opt in to SMS for a quick follow-up when opening the app is inconvenient. The coaching relationship stays recognizable across both surfaces.</p>
         <div className="d3-messaging-rule" aria-hidden="true" />
@@ -47,17 +48,10 @@ export function MessagingThreadSection() {
         </div>
 
         <div className="d3-message-device is-sms">
-          <PhoneChrome>
-            <div className="d3-sms-thread">
-              <small>SMS / OPTED IN</small>
-              <header><span>‹</span><div><b>DELIRIO COACH</b><small>AUTOMATED COACHING MESSAGES</small></div></header>
-              <div className="d3-sms-bubble">Tomorrow’s lower-body session has been adjusted after today’s knee feedback.</div>
-              <div className="d3-sms-bubble is-user">Can I swap squats for another movement?</div>
-              <div className="d3-sms-bubble">Yes. I replaced them with supported split squats. Open Delirio to review the updated plan.</div>
-              <p className="d3-sms-optout">DELIRIO • REPLY STOP TO OPT OUT</p>
-              <div className="d3-thread-composer"><span>Text Message</span><b>↑</b></div>
-            </div>
-          </PhoneChrome>
+          <PhoneScreenshotFrame
+            src={postWorkoutText}
+            alt="Post-workout coaching conversation with Iris in Delirio"
+          />
         </div>
       </div>
     </section>

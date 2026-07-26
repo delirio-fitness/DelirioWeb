@@ -17,8 +17,9 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/src/test/setup.ts'],
   testEnvironment: 'jsdom',
   testPathIgnorePatterns: ['/node_modules/', '/build/'],
+  transformIgnorePatterns: ['/node_modules/(?!(msw|@mswjs|@open-draft|rettime|until-async)/)'],
   transform: {
-    '^.+\\.(t|j)sx?$': [
+    '^.+\\.(t|j)sx?$|^.+\\.mjs$': [
       '@swc/jest',
       {
         jsc: {

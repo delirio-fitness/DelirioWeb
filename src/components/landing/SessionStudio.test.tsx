@@ -37,6 +37,7 @@ function renderStudio({ selectedCoach = 'reed' as 'reed' | 'iris' | null, mode =
         messages: [],
         input: '',
         isLoading: false,
+        connectionState: 'idle',
         error: null,
         failedMessage: null,
         onInputChange: jest.fn(),
@@ -49,22 +50,35 @@ function renderStudio({ selectedCoach = 'reed' as 'reed' | 'iris' | null, mode =
 }
 
 describe('SessionStudio', () => {
-  it('explains microphone use before an explicit start', async () => {
-    const user = userEvent.setup();
-    const { onStart } = renderStudio();
+  it('shows automatic voice readiness without a manual start action', () => {
+    renderStudio();
     expect(screen.getByRole('status')).toHaveTextContent(/ready to connect/i);
-    await user.click(screen.getByRole('button', { name: /start voice session/i }));
-    expect(onStart).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: /start voice session/i })).not.toBeInTheDocument();
+  });
+
+  it('keeps retry attempts behind a single connecting state', () => {
+    renderStudio({ state: 'connecting' });
+    expect(screen.getByRole('status')).toHaveTextContent('…CONNECTING');
+    expect(screen.queryByRole('button', { name: /try again/i })).not.toBeInTheDocument();
+  });
+
+  it('offers manual retry only after automatic connection attempts fail', () => {
+    renderStudio({ state: 'error', failureKind: 'connection' });
+    expect(screen.getByRole('button', { name: /try again/i })).toBeInTheDocument();
   });
 
   it('keeps the selected coach centered in voice mode', () => {
     renderStudio({ selectedCoach: 'reed', mode: 'voice' });
-    expect(screen.getByRole('img', { name: 'Reed, selected AI fitness coach' })).toBeInTheDocument();
+    const portrait = screen.getByRole('img', { name: 'Reed, selected AI fitness coach' });
+    expect(portrait).toBeInTheDocument();
+    expect(portrait.parentElement).toHaveClass('coach-trial__stage--voice', 'coach-trial__mode-content');
   });
 
   it('keeps the selected coach visible in text mode', () => {
     renderStudio({ selectedCoach: 'iris', mode: 'text' });
-    expect(screen.getByRole('img', { name: 'Iris, selected AI fitness coach' })).toBeInTheDocument();
+    const portrait = screen.getByRole('img', { name: 'Iris, selected AI fitness coach' });
+    expect(portrait).toBeInTheDocument();
+    expect(portrait.closest('.coach-trial__stage')).toHaveClass('coach-trial__stage--text', 'coach-trial__mode-content');
   });
 
   it('switches coach through the Figma coach controls', async () => {
@@ -98,10 +112,10 @@ describe('SessionStudio', () => {
         mode="text"
         onModeChange={jest.fn()}
         voice={{ sessionState: 'idle', isMicMuted: false, isSpeakerMuted: false, isBotSpeaking: false, isBotProcessing: false, isUserSpeaking: false, botTranscript: '', botTurns: [], userTranscript: '', failureKind: null, retryAttempt: 0, hasEnded: false, onStart: jest.fn(), onCancel: jest.fn(), onEnd: jest.fn(), onToggleMic: jest.fn(), onToggleSpeaker: jest.fn() }}
-        text={{ messages: [{ role: 'user', text: 'Help me train' }], input: '', isLoading: false, error: 'Network error', failedMessage: 'Help me train', onInputChange: jest.fn(), onSubmit: jest.fn(), onRetry }}
+        text={{ messages: [{ role: 'user', text: 'Help me train' }], input: '', isLoading: false, connectionState: 'idle', error: 'Network error', failedMessage: 'Help me train', onInputChange: jest.fn(), onSubmit: jest.fn(), onRetry }}
       />,
     );
-    expect(screen.getByRole('alert')).toHaveTextContent(/message failed/i);
+    expect(screen.getByRole('alert')).toHaveTextContent(/connection failed/i);
     await user.click(screen.getByRole('button', { name: /retry/i }));
     expect(onRetry).toHaveBeenCalledTimes(1);
   });

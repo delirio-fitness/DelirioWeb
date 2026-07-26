@@ -10,10 +10,12 @@ const lanes: readonly { screen: ProductScreen; className: string }[] = [
 ];
 
 export function ProductMomentsSection() {
+  const showProductRiver = false;
+
   return (
     <>
       <PlanToLiveGuidance />
-      <section className="d3-product-river" aria-labelledby="product-river-title">
+      {showProductRiver && <section className="d3-product-river" aria-labelledby="product-river-title">
       <p className="d3-river-kicker">APP EXPERIENCE / CONTINUOUS COACHING LOOP</p>
       <h2 id="product-river-title">A RIVER OF<br />REAL PRODUCT<br />MOMENTS.</h2>
       <div className="d3-river-intro"><p>Plan. Train. Rest. Progress. The interface keeps moving because the coaching relationship does too.</p><small>SLOW VERTICAL MARQUEE / ALTERNATING DIRECTION</small></div>
@@ -28,7 +30,7 @@ export function ProductMomentsSection() {
       </div>
       <div className="d3-river-fade is-top" aria-hidden="true" />
       <div className="d3-river-fade is-bottom" aria-hidden="true" />
-      </section>
+      </section>}
     </>
   );
 }

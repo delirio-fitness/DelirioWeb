@@ -11,6 +11,7 @@
             "@radix-ui/react-slot": "^1.1.2",
             "class-variance-authority": "^0.7.1",
             "clsx": "^2.1.1",
+            "firebase-admin": "^14.2.0",
             "lucide-react": "^0.487.0",
             "react": "^18.3.1",
             "react-dom": "^18.3.1",
@@ -19,12 +20,14 @@
       },
       "devDependencies": {
             "@eslint/js": "^9.39.4",
+            "@netlify/functions": "^5.3.0",
             "@swc/core": "^1.15.43",
             "@swc/jest": "^0.2.39",
             "@testing-library/jest-dom": "^6.9.1",
             "@testing-library/react": "^16.3.2",
             "@testing-library/user-event": "^14.6.1",
             "@types/jest": "^30.0.0",
+            "@types/jest-axe": "^3.5.9",
             "@types/node": "^20.10.0",
             "@types/react": "^18.3.28",
             "@types/react-dom": "^18.3.7",
@@ -35,11 +38,13 @@
             "jest": "^30.4.2",
             "jest-axe": "^10.0.0",
             "jest-environment-jsdom": "^30.4.1",
+            "msw": "^2.15.0",
             "playwright": "^1.59.1",
             "prettier": "^3.8.3",
             "typescript": "^6.0.3",
             "typescript-eslint": "^8.59.2",
-            "vite": "6.3.5"
+            "vite": "6.3.5",
+            "whatwg-fetch": "^3.6.20"
       },
       "scripts": {
             "dev": "vite",
@@ -49,6 +54,7 @@
             "lint": "eslint src",
             "format": "prettier --write src",
             "test": "jest --runInBand",
+            "test:master": "bash scripts/test-master.sh",
             "test:watch": "jest --watch",
             "test:coverage": "jest --coverage --runInBand"
       }

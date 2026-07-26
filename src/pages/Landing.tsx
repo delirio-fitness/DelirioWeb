@@ -6,6 +6,7 @@ import irisAvatar from '../images/emojis/Iris/Iris_idle_return.png';
 import reedAvatar from '../images/emojis/Reed/Reed_idle_return.png';
 import { APP_STORE_URL, MONTHLY_PRICE_USD, YEARLY_MONTHLY_EQUIVALENT_USD, YEARLY_PRICE_USD } from '../config/product';
 import { ConfirmDialog } from '../components/landing/ConfirmDialog';
+import { FeedbackSection } from '../components/landing/FeedbackSection';
 import { LandingFooter } from '../components/landing/LandingFooter';
 import { MessagingThreadSection } from '../components/landing/MessagingThreadSection';
 import { ProductMomentsSection } from '../components/landing/ProductMomentsSection';
@@ -139,12 +140,19 @@ export default function Landing() {
   }
 
   function handleModeChange(nextMode: SessionMode) {
-    if (nextMode === 'text' && (voice.sessionState === 'connected' || voice.sessionState === 'connecting')) {
+    if (nextMode === 'text' && mode === 'voice') {
       void voice.disconnect();
       setHasVoiceEnded(true);
+    } else if (nextMode === 'voice' && mode !== 'voice') {
+      setHasVoiceEnded(false);
     }
     setMode(nextMode);
   }
+
+  useEffect(() => {
+    if (!selectedCoach || mode !== 'voice' || hasVoiceEnded || voice.sessionState !== 'idle') return;
+    void voice.connect();
+  }, [hasVoiceEnded, mode, selectedCoach, voice.connect, voice.sessionState]);
 
   function handleChatSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -212,14 +220,16 @@ export default function Landing() {
         <section className="d3-hero" aria-labelledby="hero-title">
           <video className="d3-hero-video" autoPlay loop muted playsInline preload="auto" aria-hidden="true"><source src={heroVideo} type="video/mp4" /></video>
           <div className="d3-hero-contrast" aria-hidden="true" />
-          <div className="d3-hero-copy">
-            <p className="d3-kicker">LIVE SESSION / ADAPTIVE COACHING</p>
-            <h1 id="hero-title">YOUR TRAINING.<br />ADAPTED IN REAL TIME.</h1>
-            <p className="d3-hero-support">One coach notices the work as it happens—and remembers what should change next.</p>
-          </div>
-          <div className="d3-hero-action-group">
-            <a className="d3-hero-action" href="#coaches">SEE COACHES <span aria-hidden="true">→</span></a>
-            <p className="d3-hero-capabilities">FORM / REPS / REST / SESSION MEMORY</p>
+          <div className="d3-hero-content">
+            <div className="d3-hero-copy">
+              <p className="d3-kicker">LIVE SESSION / ADAPTIVE COACHING</p>
+              <h1 id="hero-title">YOUR TRAINING.<br />ADAPTED IN REAL TIME.</h1>
+              <p className="d3-hero-support">One coach notices the work as it happens—and remembers what should change next.</p>
+            </div>
+            <div className="d3-hero-action-group">
+              <a className="d3-hero-action" href="#coaches">SEE COACHES <span aria-hidden="true">→</span></a>
+              <p className="d3-hero-capabilities">FORM / REPS / REST / SESSION MEMORY</p>
+            </div>
           </div>
         </section>
 
@@ -236,7 +246,7 @@ export default function Landing() {
             selectedCoach={selectedCoach} onSelectCoach={requestCoach}
             mode={mode} onModeChange={handleModeChange}
             voice={{ sessionState: voice.sessionState, isMicMuted: voice.isMicMuted, isSpeakerMuted: voice.isSpeakerMuted, isBotSpeaking: voice.isBotSpeaking, isBotProcessing: voice.isBotProcessing, isUserSpeaking: voice.isUserSpeaking, botTranscript: voice.botTranscript, botTurns: voice.botTurns, userTranscript: voice.userTranscript, failureKind: voice.failureKind, retryAttempt: voice.retryAttempt, hasEnded: hasVoiceEnded, onStart: () => { setHasVoiceEnded(false); void voice.connect(); }, onCancel: () => { setHasVoiceEnded(true); void voice.cancelConnect(); }, onEnd: () => { setHasVoiceEnded(true); void voice.disconnect(); }, onToggleMic: voice.toggleMic, onToggleSpeaker: voice.toggleSpeakerMute }}
-            text={{ messages: text.messages, input: chatInput, isLoading: text.isLoading, error: text.error, failedMessage: text.failedMessage, onInputChange: setChatInput, onSubmit: handleChatSubmit, onRetry: () => { void text.retryLastMessage(); } }}
+            text={{ messages: text.messages, input: chatInput, isLoading: text.isLoading, connectionState: text.connectionState, error: text.error, failedMessage: text.failedMessage, onInputChange: setChatInput, onSubmit: handleChatSubmit, onRetry: () => { void text.retryLastMessage(); } }}
           />
           <ProductMomentsSection />
         </section>
@@ -247,6 +257,10 @@ export default function Landing() {
           <div className="d3-memory-intro"><h2 id="memory-title">MOST APPS STOP AT<br />THE PLAN. WE STAY<br />IN THE FRAME.</h2><p>The system is not a straight handoff. Every session feeds the next decision.</p></div>
           <div className="d3-loop">
             <div className="d3-memory-core">COACHING<br />MEMORY</div>
+            <i className="d3-memory-node is-top" aria-hidden="true" />
+            <i className="d3-memory-node is-right" aria-hidden="true" />
+            <i className="d3-memory-node is-bottom" aria-hidden="true" />
+            <i className="d3-memory-node is-left" aria-hidden="true" />
             {memorySteps.map(([number, title, copy], index) => <article className={`step-${index + 1}`} key={number}><span>{number}</span><div><h3>{title}</h3><p>{copy}</p></div></article>)}
           </div>
           <div className="d3-memory-close"><h3>THE NEXT PLAN IS BUILT FROM WHAT ACTUALLY HAPPENED.</h3><p>Not from a static template. Not from guesswork.</p></div>
@@ -259,6 +273,8 @@ export default function Landing() {
             <PlanCard kind="annual" />
           </div>
         </section>
+
+        <FeedbackSection />
 
         <section id="faq" className="d3-faq-wrap" aria-labelledby="faq-title">
           <div ref={faqPanelRef} className="d3-faq">

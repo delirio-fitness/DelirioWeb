@@ -7,7 +7,7 @@ jest.mock('@pipecat-ai/daily-transport', () => ({ DailyTransport: jest.fn() }));
 
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { PipecatClient } from '@pipecat-ai/client-js';
-import { classifyVoiceFailure, useVoiceSession } from './useVoiceSession';
+import { classifyVoiceFailure, useVoiceSession, VOICE_CONNECTION_STABILITY_MS } from './useVoiceSession';
 
 type Callback = (...args: never[]) => void;
 
@@ -68,6 +68,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  jest.useRealTimers();
   jest.restoreAllMocks();
 });
 
@@ -86,6 +87,7 @@ describe('classifyVoiceFailure', () => {
 
 describe('useVoiceSession', () => {
   it('connects, responds to transport callbacks, and controls session devices', async () => {
+    jest.useFakeTimers();
     const { result, unmount } = renderHook(() => useVoiceSession({
       personality: 'iris',
       userId: 'user-42',
@@ -109,6 +111,8 @@ describe('useVoiceSession', () => {
       callbacks.onBotReady();
     });
 
+    expect(result.current.sessionState).toBe('connecting');
+    act(() => jest.advanceTimersByTime(VOICE_CONNECTION_STABILITY_MS));
     expect(result.current.sessionState).toBe('connected');
     expect(result.current.transportState).toBe('ready');
 
@@ -141,6 +145,7 @@ describe('useVoiceSession', () => {
   });
 
   it('assembles bot and user transcript streams without markup or duplicate sources', async () => {
+    jest.useFakeTimers();
     const { result } = renderHook(() => useVoiceSession({ maxRetries: 1 }));
 
     await act(async () => {
@@ -149,6 +154,7 @@ describe('useVoiceSession', () => {
 
     act(() => {
       callbacks.onBotReady();
+      jest.advanceTimersByTime(VOICE_CONNECTION_STABILITY_MS);
       callbacks.onBotLlmStarted();
       callbacks.onBotLlmText({ text: '<voice>Hello ' } as never);
       callbacks.onBotLlmText({ text: 'there</voice>' } as never);

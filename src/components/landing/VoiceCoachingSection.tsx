@@ -10,7 +10,6 @@ export function VoiceCoachingSection({ onStartVoice }: { onStartVoice: () => voi
   return (
     <section className="d3-voice-product" aria-labelledby="voice-product-title">
       <div className="d3-voice-editorial">
-        <p className="d3-voice-kicker">VOICE COACHING / INSIDE DELIRIO</p>
         <h2 id="voice-product-title">WHEN A SET FEELS<br />WRONG, TALK IT<br />THROUGH.</h2>
         <p className="d3-voice-body">Start a live voice coaching session without leaving the workout. Ask what changed, hear the adjustment, and return to the set with a clear next move.</p>
         <a className="d3-voice-cta" href="#coaches" onClick={onStartVoice}>START VOICE SESSION</a>

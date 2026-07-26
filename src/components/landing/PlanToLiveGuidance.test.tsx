@@ -7,27 +7,27 @@ describe('PlanToLiveGuidance', () => {
     jest.useRealTimers();
   });
 
-  it('keeps the vertical menu, capture, content, and bottom timeline synchronized', async () => {
+  it('keeps the vertical menu, capture, and content synchronized', async () => {
     const user = userEvent.setup();
     render(<PlanToLiveGuidance />);
 
-    await user.click(screen.getByRole('button', { name: /03 see the rep read the movement/i }));
+    await user.click(screen.getByRole('button', { name: /03 see the rep coach the movement/i }));
 
-    expect(screen.getByRole('heading', { name: 'Index 2' })).toBeInTheDocument();
-    expect(screen.getByText('LIVE MOVEMENT GUIDANCE')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /03 see the rep read the movement/i })).toHaveAttribute('aria-pressed', 'true');
-    expect(screen.getByRole('tab', { name: /03 see the rep/i })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('heading', { name: 'EVERY REP BECOMES SIGNAL.' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: 'SEE THE REP: LIVE REPS + REST' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /03 see the rep coach the movement/i })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.queryByRole('tablist', { name: /product experience sequence/i })).not.toBeInTheDocument();
   });
 
   it('auto-advances every three seconds', () => {
     jest.useFakeTimers();
     render(<PlanToLiveGuidance />);
 
-    expect(screen.getByRole('heading', { name: 'Index 0' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'BUILT FOR YOU. READY WHEN YOU ARE.' })).toBeInTheDocument();
     act(() => jest.advanceTimersByTime(3000));
-    expect(screen.getByRole('heading', { name: 'Index 1' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'FROM PLAN TO MOTION.' })).toBeInTheDocument();
     act(() => jest.advanceTimersByTime(6000));
-    expect(screen.getByRole('heading', { name: 'Index 3' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'THE WORKOUT ENDS. THE COACHING DOESN’T.' })).toBeInTheDocument();
   });
 
   it('resets the three-second interval after manual selection', async () => {
@@ -36,11 +36,11 @@ describe('PlanToLiveGuidance', () => {
     render(<PlanToLiveGuidance />);
 
     act(() => jest.advanceTimersByTime(2000));
-    await user.click(screen.getByRole('button', { name: /04 keep going build the next move/i }));
+    await user.click(screen.getByRole('button', { name: /04 keep going carry it forward/i }));
     act(() => jest.advanceTimersByTime(2999));
-    expect(screen.getByRole('heading', { name: 'Index 3' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'THE WORKOUT ENDS. THE COACHING DOESN’T.' })).toBeInTheDocument();
     act(() => jest.advanceTimersByTime(1));
-    expect(screen.getByRole('heading', { name: 'Index 0' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'BUILT FOR YOU. READY WHEN YOU ARE.' })).toBeInTheDocument();
   });
 
   it('does not start automatic progression when reduced motion is requested', () => {
@@ -61,6 +61,6 @@ describe('PlanToLiveGuidance', () => {
 
     render(<PlanToLiveGuidance />);
     act(() => jest.advanceTimersByTime(9000));
-    expect(screen.getByRole('heading', { name: 'Index 0' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'BUILT FOR YOU. READY WHEN YOU ARE.' })).toBeInTheDocument();
   });
 });

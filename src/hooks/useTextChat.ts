@@ -11,6 +11,8 @@ export interface ChatMessage {
   text: string;
 }
 
+export type TextConnectionState = "idle" | "connecting" | "responding";
+
 interface UseTextChatOptions {
   personality?: string;
   userId?: string;
@@ -58,6 +60,7 @@ export function useTextChat(options: UseTextChatOptions = {}) {
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [connectionState, setConnectionState] = useState<TextConnectionState>("idle");
   const [error, setError] = useState<string | null>(null);
   const [failedMessage, setFailedMessage] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -73,6 +76,7 @@ export function useTextChat(options: UseTextChatOptions = {}) {
         setMessages((prev) => [...prev, { role: "user", text: trimmed }]);
       }
       setIsLoading(true);
+      setConnectionState("connecting");
 
       abortRef.current = new AbortController();
 
@@ -94,6 +98,8 @@ export function useTextChat(options: UseTextChatOptions = {}) {
           const body = await res.text().catch(() => "");
           throw new Error(body || `Server error ${res.status}`);
         }
+
+        setConnectionState("responding");
 
         const raw = await res.text();
         console.log("[TextChat] Raw response:", raw);
@@ -162,6 +168,7 @@ export function useTextChat(options: UseTextChatOptions = {}) {
         setFailedMessage(trimmed);
       } finally {
         setIsLoading(false);
+        setConnectionState("idle");
         abortRef.current = null;
       }
     },
@@ -174,6 +181,7 @@ export function useTextChat(options: UseTextChatOptions = {}) {
     setError(null);
     setFailedMessage(null);
     setIsLoading(false);
+    setConnectionState("idle");
   }, []);
 
   const retryLastMessage = useCallback(async () => {
@@ -184,6 +192,7 @@ export function useTextChat(options: UseTextChatOptions = {}) {
   return {
     messages,
     isLoading,
+    connectionState,
     error,
     failedMessage,
     sendMessage,

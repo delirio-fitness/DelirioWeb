@@ -7,7 +7,7 @@ export function LandingFooter({ sectionPrefix = '/' }: { sectionPrefix?: '' | '/
   return (
     <footer className="d3-footer">
       <div className="d3-footer-feature">
-        <div className="d3-footer-copy"><small>JUST RELEASED / IOS</small><h2>THE COACHES NOW<br />IN YOUR POCKET.</h2><p>Delirio is now available on iPhone. Train, talk, and adapt wherever the work happens.</p></div>
+        <div className="d3-footer-copy"><h2>THE COACHES NOW<br />IN YOUR POCKET.</h2><p>Delirio is now available on iPhone. Train, talk, and adapt wherever the work happens.</p></div>
         <div className="d3-app-card">
           <div className="d3-app-icon"><Logo color="white" width="72" height="100" /></div>
           <a className="d3-app-badge" href={APP_STORE_URL} target="_blank" rel="noreferrer"><img src={appStoreBadge} alt="Download on the App Store" /></a>

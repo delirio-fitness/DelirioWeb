@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
 const disconnect = jest.fn();
+const connect = jest.fn();
 const clearMessages = jest.fn();
 
 jest.mock('../utils/pipecatConfig', () => ({
@@ -22,7 +23,7 @@ jest.mock('../hooks/useVoiceSession', () => ({
     userTranscript: '',
     failureKind: null,
     retryAttempt: 0,
-    connect: jest.fn(),
+    connect,
     disconnect,
     cancelConnect: disconnect,
     toggleMic: jest.fn(),
@@ -34,6 +35,7 @@ jest.mock('../hooks/useTextChat', () => ({
   useTextChat: () => ({
     messages: [{ role: 'user', text: 'Existing preview' }],
     isLoading: false,
+    connectionState: 'idle',
     error: null,
     failedMessage: null,
     sendMessage: jest.fn(),
@@ -45,14 +47,25 @@ jest.mock('../hooks/useTextChat', () => ({
 import Landing from './Landing';
 
 describe('Landing journey', () => {
-  it('requires coach choice and opens the selected coach preview', async () => {
+  it('starts voice automatically after the initial coach choice', async () => {
     const user = userEvent.setup();
     render(<MemoryRouter><Landing /></MemoryRouter>);
 
     expect(screen.getByRole('heading', { name: /choose a coach.*then talk or type/i })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /reed.*select coach/i }));
     expect(screen.getByAltText(/reed, selected ai fitness coach/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /start voice session/i })).toBeInTheDocument();
+    expect(connect).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('button', { name: /start voice session/i })).not.toBeInTheDocument();
+  });
+
+  it('disconnects voice when switching to text', async () => {
+    const user = userEvent.setup();
+    render(<MemoryRouter><Landing /></MemoryRouter>);
+
+    await user.click(screen.getByRole('button', { name: /reed.*select coach/i }));
+    disconnect.mockClear();
+    await user.click(screen.getByRole('button', { name: 'TEXT' }));
+    expect(disconnect).toHaveBeenCalledTimes(1);
   });
 
   it('confirms a destructive coach switch while preserving the mode controls', async () => {

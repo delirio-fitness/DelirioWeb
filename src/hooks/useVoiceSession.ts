@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { PipecatClient as PipecatClientInstance, TransportState } from "@pipecat-ai/client-js";
 import { generateDiscoveryId, PIPECAT_BACKEND_URL } from "../utils/pipecatConfig";
 
+export const VOICE_CONNECTION_STABILITY_MS = 1000;
+
 export type VoiceSessionState = "idle" | "connecting" | "connected" | "error";
 export type VoiceFailureKind =
   | "permission-denied"
@@ -46,7 +48,7 @@ interface UseVoiceSessionOptions {
   context?: string;
   /** Connection timeout in ms (default: 30000) */
   timeout?: number;
-  /** Max retry attempts on connection failure (default: 3) */
+  /** Maximum automatic connection attempts before exposing manual retry (default: 5) */
   maxRetries?: number;
 }
 
@@ -56,7 +58,7 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
     userId = generateDiscoveryId(),
     context = "discovery", //default_app is funcitonal 
     timeout = 30000,
-    maxRetries = 3,
+    maxRetries = 5,
 
   } = options; 
 
@@ -79,6 +81,9 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
   const retryCountRef = useRef(0);
   const isConnectingRef = useRef(false);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stabilityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const connectionFailurePendingRef = useRef(false);
   const pendingBotTurnRef = useRef("");
   const pendingBotTurnSourceRef = useRef<"none" | "llm" | "tts">("none");
   const botMarkupTagOpenRef = useRef(false);
@@ -98,6 +103,8 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+      if (stabilityTimerRef.current) clearTimeout(stabilityTimerRef.current);
       if (audioElementRef.current) {
         audioElementRef.current.pause();
         audioElementRef.current.srcObject = null;
@@ -260,6 +267,7 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
 
   const handleConnectionError = useCallback((errorMsg: string, attempt: number) => {
     isConnectingRef.current = false;
+    connectionFailurePendingRef.current = true;
     setIsBotProcessing(false);
 
     // Check if this is a retriable error
@@ -278,7 +286,8 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
 
       retryCountRef.current = attempt + 1;
       setRetryAttempt(attempt + 1);
-      setTimeout(() => {
+      retryTimerRef.current = setTimeout(() => {
+        retryTimerRef.current = null;
         connectWithRetryRef.current?.(attempt + 1);
       }, delay);
     } else {
@@ -294,6 +303,7 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
     if (clientRef.current?.connected || isConnectingRef.current) return;
 
     isConnectingRef.current = true;
+    connectionFailurePendingRef.current = false;
     setSessionState("connecting");
     setError(null);
     setFailureKind(null);
@@ -330,6 +340,16 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
           onDisconnected: () => {
             console.warn(`[VoiceSession] (${ms()}) Disconnected — ${sessionTag}`);
             commitPendingBotTurn("disconnected");
+            if (stabilityTimerRef.current) {
+              clearTimeout(stabilityTimerRef.current);
+              stabilityTimerRef.current = null;
+            }
+            clientRef.current = null;
+            if (connectionFailurePendingRef.current) return;
+            if (isConnectingRef.current) {
+              handleConnectionError("Connection dropped before becoming stable", attempt);
+              return;
+            }
             setSessionState("idle");
             setIsBotSpeaking(false);
             setIsBotProcessing(false);
@@ -341,11 +361,17 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
             setTransportState(state);
           },
           onBotReady: () => {
-            console.log(`[VoiceSession] (${ms()}) Bot ready — session fully connected`);
-            setSessionState("connected");
-            setFailureKind(null);
-            retryCountRef.current = 0;
-            isConnectingRef.current = false;
+            console.log(`[VoiceSession] (${ms()}) Bot ready — verifying connection stability`);
+            if (stabilityTimerRef.current) clearTimeout(stabilityTimerRef.current);
+            stabilityTimerRef.current = setTimeout(() => {
+              stabilityTimerRef.current = null;
+              if (clientRef.current !== client) return;
+              console.log(`[VoiceSession] (${ms()}) Connection stable`);
+              setSessionState("connected");
+              setFailureKind(null);
+              retryCountRef.current = 0;
+              isConnectingRef.current = false;
+            }, VOICE_CONNECTION_STABILITY_MS);
           },
           onBotStartedSpeaking: () => {
             console.log(`[VoiceSession] (${ms()}) Bot started speaking`);
@@ -493,7 +519,16 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
 
   const disconnect = useCallback(async () => {
     isConnectingRef.current = false;
+    connectionFailurePendingRef.current = false;
     retryCountRef.current = 0;
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
+    if (stabilityTimerRef.current) {
+      clearTimeout(stabilityTimerRef.current);
+      stabilityTimerRef.current = null;
+    }
     commitPendingBotTurn("disconnected");
     if (!clientRef.current) return;
     try {
