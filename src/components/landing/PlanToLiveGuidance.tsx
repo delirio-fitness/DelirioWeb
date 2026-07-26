@@ -7,24 +7,24 @@ import { PhoneScreenshotFrame } from './PhoneScreenshotFrame';
 
 const sequence = [
   {
-    number: '01', label: 'PLAN', detail: 'BUILD THE DAY', capture: 'PERSONALIZED TRAINING PLAN', image: workoutPlan,
-    eyebrow: '01 / YOUR PLAN', heading: ['BUILT FOR YOU.', 'READY WHEN YOU ARE.'],
-    body: 'Iris turns your goals, schedule, and training history into a clear workout you can act on—not another generic template.',
+    number: '01', label: 'PLAN', detail: 'BUILD THE WEEK', capture: 'YOUR TRAINING PLAN', image: workoutPlan,
+    eyebrow: '01 / YOUR PLAN', heading: ['A PLAN FOR', 'THE WEEK YOU HAVE.'],
+    body: 'Your schedule, experience, equipment, and available time shape a clear workout you can review and change.',
   },
   {
     number: '02', label: 'START', detail: 'ENTER THE WORKOUT', capture: 'EXERCISES + SESSION START', image: clickStart,
-    eyebrow: '02 / START TRAINING', heading: ['FROM PLAN', 'TO MOTION.'],
-    body: 'Open the workout, see what is ahead, and begin in one tap. The plan becomes a coached session without breaking your focus.',
+    eyebrow: '02 / START TRAINING', heading: ['SEE WHAT’S AHEAD.', 'START WHEN READY.'],
+    body: 'Open the workout, understand what is planned, and begin when you are ready. The plan becomes a guided session without adding more decisions.',
   },
   {
     number: '03', label: 'SEE THE REP', detail: 'COACH THE MOVEMENT', capture: 'LIVE REPS + REST', image: inSession,
-    eyebrow: '03 / LIVE GUIDANCE', heading: ['EVERY REP', 'BECOMES SIGNAL.'],
-    body: 'Delirio follows the movement as it happens—tracking reps, rest, and session progress so guidance stays grounded in the work you actually do.',
+    eyebrow: '03 / LIVE GUIDANCE', heading: ['SEE WHAT CHANGED.', 'KNOW WHAT COMES NEXT.'],
+    body: 'Delirio follows supported movement details, reps, and rest as the session unfolds, then explains what mattered and what you can adjust.',
   },
   {
     number: '04', label: 'KEEP GOING', detail: 'CARRY IT FORWARD', capture: 'POST-WORKOUT COACHING', image: postWorkoutPlanning,
-    eyebrow: '04 / CONTINUOUS COACHING', heading: ['THE WORKOUT ENDS.', 'THE COACHING DOESN’T.'],
-    body: 'Iris carries the session into the next conversation, helping you reflect, adjust, and know exactly what to do when you are ready to train again.',
+    eyebrow: '04 / CONTINUOUS COACHING', heading: ['THE WORKOUT ENDS.', 'THE CONTEXT CONTINUES.'],
+    body: 'Your coach carries the session forward so you can review what happened, adjust the plan, and return without starting over.',
   },
 ] as const;
 
@@ -104,9 +104,9 @@ export function PlanToLiveGuidance() {
           </h2>
           <p className="d3-plan-live-body">{sequence[activeIndex].body}</p>
         </div>
-        <p className="d3-plan-live-archive">REAL DELIRIO PRODUCT CAPTURES / ARCHIVE 04.16.26</p>
+        <p className="d3-plan-live-archive">REAL DELIRIO PRODUCT SCREENS</p>
         <div className="d3-plan-live-rule" aria-hidden="true" />
-        <p className="d3-plan-live-note">The screens are shown as product evidence. Preserve their interface, proportions, and visual hierarchy in implementation.</p>
+        <p className="d3-plan-live-note">See how planning, live guidance, and follow-up connect inside Delirio.</p>
       </div>
 
     </section>

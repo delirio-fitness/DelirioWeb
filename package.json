@@ -6,7 +6,7 @@
       "dependencies": {
             "@pipecat-ai/client-js": "^1.6.0",
             "@pipecat-ai/daily-transport": "^1.6.0",
-            "firebase-admin": "^14.2.0",
+            "firebase": "^12.16.0",
             "lucide-react": "^0.487.0",
             "react": "^18.3.1",
             "react-dom": "^18.3.1",
@@ -14,7 +14,6 @@
       },
       "devDependencies": {
             "@eslint/js": "^9.39.4",
-            "@netlify/functions": "^5.3.0",
             "@swc/core": "^1.15.43",
             "@swc/jest": "^0.2.39",
             "@testing-library/jest-dom": "^6.9.1",

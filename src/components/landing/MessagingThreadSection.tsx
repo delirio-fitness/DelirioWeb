@@ -1,29 +1,19 @@
-import type { ReactNode } from 'react';
+import coachIMessageThread from '../../images/appScreenshots/coachIMessageThread.png';
 import postWorkoutText from '../../images/appScreenshots/postWorkoutText.png';
 import { PhoneScreenshotFrame } from './PhoneScreenshotFrame';
 
 const proofPoints = [
-  ['01', 'IN-APP MESSAGE', 'Full context, coach identity, and the complete thread.'],
-  ['02', 'SMS FOLLOW-UP', 'Short, consented reminders and plan changes.'],
-  ['03', 'RETURN TO THE APP', 'Sensitive detail and full plan review live in Delirio.'],
+  ['01', 'FULL CONTEXT IN APP', 'Review the complete thread and the reason behind a change.'],
+  ['02', 'OPTIONAL SMS', 'Receive short reminders and follow-ups only when you opt in.'],
+  ['03', 'YOU CONTROL THE CHANNEL', 'Pause messages or return to the app whenever you prefer.'],
 ] as const;
-
-function PhoneChrome({ children }: { children: ReactNode }) {
-  return (
-    <div className="d3-message-phone-shell">
-      <div className="d3-message-status"><span>9:41</span><span>••• 100%</span></div>
-      <span className="d3-message-island" aria-hidden="true" />
-      {children}
-    </div>
-  );
-}
 
 export function MessagingThreadSection() {
   return (
     <section className="d3-messaging" aria-labelledby="messaging-title">
       <div className="d3-messaging-editorial">
-        <h2 id="messaging-title">ONE COACHING<br />THREAD. TWO PLACES<br />TO TYPE.</h2>
-        <p className="d3-messaging-body">Use the full conversation inside Delirio, or opt in to SMS for a quick follow-up when opening the app is inconvenient. The coaching relationship stays recognizable across both surfaces.</p>
+        <h2 id="messaging-title">ONE COACH.<br />PICK UP WHEREVER<br />YOU ARE.</h2>
+        <p className="d3-messaging-body">Keep the full conversation inside Delirio, or opt in to SMS for a brief follow-up when opening the app is inconvenient. Your context carries forward, and you control where messages appear.</p>
         <div className="d3-messaging-rule" aria-hidden="true" />
         <div className="d3-messaging-proofs">
           {proofPoints.map(([number, title, copy]) => (
@@ -34,17 +24,10 @@ export function MessagingThreadSection() {
 
       <div className="d3-messaging-visuals" aria-label="The same coaching conversation in Delirio and over SMS">
         <div className="d3-message-device is-app">
-          <PhoneChrome>
-            <div className="d3-app-thread">
-              <small>IN-APP MESSAGE</small>
-              <header><span className="d3-thread-avatar">I</span><div><b>IRIS</b><small>ACTIVE NOW</small></div></header>
-              <div className="d3-chat-bubble is-user">My knee feels off on the last set.</div>
-              <div className="d3-chat-bubble">Stop the set. Lower the load and shorten the depth. Tell me if the discomfort changes.</div>
-              <div className="d3-chat-bubble is-user">Better now.</div>
-              <div className="d3-chat-bubble">Logged. I’ll adjust the next session.</div>
-              <div className="d3-thread-composer"><span>Message Iris…</span><b>→</b></div>
-            </div>
-          </PhoneChrome>
+          <PhoneScreenshotFrame
+            src={coachIMessageThread}
+            alt="iMessage coaching conversation with Iris about returning to overhead pressing"
+          />
         </div>
 
         <div className="d3-message-device is-sms">

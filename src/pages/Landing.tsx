@@ -19,19 +19,19 @@ import { useVoiceSession } from '../hooks/useVoiceSession';
 import { generateDiscoveryId } from '../utils/pipecatConfig';
 
 const movements = [
-  ['01', 'LEARN', 'Starts with goals, training history, constraints, and available equipment.'],
-  ['02', 'COACH', 'Reads form, repetitions, selected load, total volume, and actual rest while you train.'],
-  ['03', 'ADAPT', 'Explains what changed, then turns the session into a better next plan.'],
+  ['01', 'LEARN', 'Starts with your schedule, experience, equipment, and what feels manageable this week.'],
+  ['02', 'COACH', 'Notices reps, pace, rest, and the movement details it can assess while you train.'],
+  ['03', 'ADAPT', 'Explains what mattered and adjusts the next session—with you in control.'],
 ] as const;
 
 const memorySteps = [
-  ['01', 'TEST THE EXPECTED', 'We test the coaching across everyday training situations, from starting a session to adapting the next set.'],
-  ['02', 'PRESSURE THE EDGES', 'We stress-test interruptions, unclear inputs, changing pace, incomplete reps, and the moments when certainty matters most.'],
-  ['03', 'CHECK THE COACHING', 'We evaluate whether guidance is relevant, consistent, understandable, and appropriate for what is actually happening.'],
-  ['04', 'LEARN FROM FAILURES', 'When the system misses, that failure becomes another case to test before the coaching moves forward.'],
+  ['01', 'TEST EVERY MODE', 'Evaluate how the AI coaches plan, respond through text and voice, interpret live movement, and adjust what happens next.'],
+  ['02', 'CHECK THE GUIDANCE', 'Review whether suggestions are relevant, understandable, within fitness scope, and appropriately cautious when context is incomplete.'],
+  ['03', 'TUNE WITH CONTROL', 'Selected failure patterns become controlled cases for training and fine-tuning the AI coaches—not automatic lessons from a single conversation.'],
+  ['04', 'RETEST EVERY CHANGE', 'After the AI coaches are trained or fine-tuned, run the full evaluation suite again across text, voice, planning, and live sessions.'],
 ] as const;
 
-const benefits = ['Adaptive fitness plan', 'Iris or Reed', 'Voice + text coach', 'Live form feedback', 'Exercise directory', 'SMS coach access'];
+const benefits = ['Plan that adjusts with your week', 'Choose Iris or Reed', 'Voice + text coaching', 'Supported movement feedback', 'Strength exercise library', 'Optional SMS follow-up'];
 
 type FaqCategory = 'AI' | 'COACHING' | 'PRODUCT' | 'PRICE';
 
@@ -46,41 +46,41 @@ const faqCategories: FaqCategory[] = ['AI', 'COACHING', 'PRODUCT', 'PRICE'];
 
 const faqSections: Record<FaqCategory, readonly (readonly [string, string])[]> = {
   AI: [
-    ['Is this actually a real AI or just a chatbot with canned responses?', "It's a real AI. Reed and Iris have distinct personalities, remember your history, and respond to what you actually say - not from a script. The conversations are live, whether you're texting between workouts or talking mid-session."],
-    ['Can the AI actually see my form?', 'Yes. Your phone camera runs real-time pose estimation to track your body during exercises. Your coach gives you feedback on what it sees - not generic tips, corrections specific to your reps.'],
-    ['Is this going to feel weird?', 'Honestly, for about two minutes. Then your coach says something that actually makes sense for what you just did, and it clicks. Most people adjust faster than they expect.'],
-    ['Is the voice coaching awkward? Like talking to Siri?', "No. The voice is natural, the responses are contextual, and your coach is reacting to what you're actually doing - not running through a script. It's closer to having a trainer in your ear than talking to a voice assistant."],
+    ['Is this actually AI or a set of canned responses?', 'Delirio uses live AI to respond to your conversation and the workout context available to it. Responses are not selected from a fixed script, but AI can still misunderstand or make mistakes. You remain in control of important training decisions.'],
+    ['What can Delirio assess through the camera?', 'With the camera on, Delirio uses pose estimation to assess supported movements and visible movement details. Camera angle, lighting, clothing, and whether your full body is visible can limit what it can assess. It provides fitness guidance, not injury assessment or medical diagnosis.'],
+    ['What if talking to an AI coach feels unfamiliar?', 'Start with whichever format feels more comfortable: text or voice. You can switch modes, pause a conversation, or train without the camera. There is no requirement to use every coaching feature.'],
+    ['How does voice coaching work?', 'Voice mode supports live back-and-forth during a session, using the conversation and available workout context. You can end the session at any time, and microphone access is requested only when you start voice mode.'],
   ],
   COACHING: [
-    ["What's the difference between Reed and Iris?", "Reed is direct and structured - good if you want someone who keeps things focused and practical. Iris is expressive and energetic - good if you want someone who brings momentum. You pick the coach that fits how you like to be coached, and they're yours from that point on. They remember your history, your goals, and what you talked about last Tuesday."],
-    ['Can this actually replace a personal trainer?', "For most people, yes. You get form correction, programming, accountability, and someone to talk to between sessions. What you don't get is someone physically spotting you on a heavy bench press. If that's what you need, we're not pretending to be that."],
-    ['What happens between workouts?', "Your coach texts you. Check-ins, reminders, follow-ups on things you mentioned. You can text back whenever. It's not a notification machine - it's a conversation that continues."],
-    ['How is this different from a fitness app?', "It's not a fitness app. Fitness apps give you content - videos, plans, timers - and leave you to figure it out. Delirio gives you a coach. Someone who knows your name, checks in on you between sessions, watches your form while you train, and remembers that you tweaked your shoulder two weeks ago. The difference is relationship, not features."],
-    ['How is this different from online coaching?', "Most online coaches give you a Google Sheet and check in once a week. Your Delirio coach is available every day and watches your form live. The tradeoff is that it's AI, not a human - but for most people, daily AI coaching beats waiting on weekly check-ins."],
+    ["What's the difference between Reed and Iris?", 'Reed is focused and structured. Iris is attentive and encouraging. Choose the style that helps you feel clear and supported; you can switch coaches later. Both use the training context available in Delirio.'],
+    ['Does Delirio replace a personal trainer?', 'Delirio can support planning, workout guidance, reflection, and follow-up. It is not a certified personal trainer or medical professional, cannot physically spot you, and does not diagnose pain or injury. You can also use it alongside a human trainer.'],
+    ['What happens between workouts?', 'If you opt in, your coach can send reminders, check-ins, and follow-ups through your selected messaging channel. You control those preferences and can pause messages at any time.'],
+    ['How is this different from a typical fitness app?', 'Most fitness apps provide plans, videos, and timers as separate tools. Delirio connects the plan, the session, what happened, and what should change next so you have a clearer way to continue.'],
+    ['How is this different from online coaching?', 'Delirio provides automated guidance and conversation when you choose to use it, rather than relying on a scheduled human check-in. A human coach can offer judgment, physical assistance, and expertise that AI cannot, so the right choice depends on the support you need.'],
     ['Do I need to work out every day for this to be worth it?', "No. Your coach meets you where you are. Whether that's five days a week or two, the value is that someone is paying attention to your consistency and adjusting with you - not judging you for missing a day."],
-    ['Will my coach push me too hard?', "Your coach adapts to you, not the other way around. If you're consistent and progressing, they'll push you. If you're recovering or having a rough week, they'll meet you there. That's what coaching is."],
-    ['Can my coach change my program mid-week if something comes up?', "Yes. If you're traveling, sore, short on time, or just not feeling it, tell your coach. They'll adjust on the spot. The program serves you, not the other way around."],
-    ['Can I talk to my coach about stuff outside of workouts?', "Your coach is a fitness coach, not a therapist. But the best trainers know that life affects training. If you're stressed, traveling, or going through something, your coach factors that in."],
+    ['Will my coach push me too hard?', 'You stay in control. Pause, stop, take more rest, or change the plan when you need to. Delirio can recommend a progression, but you decide whether it fits how you feel today.'],
+    ['Can my coach change my program mid-week if something comes up?', 'Yes. Tell your coach when your schedule, available equipment, or energy changes. Delirio can recommend a shorter session, a substitution, or an updated week for you to review.'],
+    ['Can I talk to my coach about things outside of workouts?', 'You can share life context that affects training, such as travel, stress, or limited time. Delirio uses that context for fitness guidance; it does not provide therapy or medical advice.'],
   ],
   PRODUCT: [
     ['Can I text my coach or do I have to use the app?', "Both. You can message your coach through the app, over SMS, or on WhatsApp. Same coach, same conversation, whatever's convenient. Most people end up texting their coach the same way they'd text anyone else."],
     ['Does this work at a gym or only at home?', 'Both. You need your phone camera visible while you train, and space to move. That works in a living room, a garage, a park, or a gym floor.'],
     ['Do I need special equipment?', 'No. You need your phone and enough space to move. Your coach programs around whatever you have access to - bodyweight at home, a full gym, a hotel room with nothing.'],
-    ['Do I have to use the camera every time?', "No. The camera gives your coach eyes on your form, so it's better when you use it. But you can still text, voice chat, and follow your program without it."],
+    ['Do I have to use the camera every time?', 'No. The camera provides additional movement context when you choose to use it. You can still follow your plan and use text or voice without camera access.'],
     ['What kind of workouts can I do?', 'Strength training is the core focus. Your coach builds your splits, programs your progression, and watches your form through your camera. Activities like walks, runs, and mobility work fit alongside your strength plan.'],
     ['How long are the workouts?', "That depends on you. Your coach builds around the time you have. If you've got 30 minutes, you get a 30-minute session. If you've got an hour, you get an hour. No filler."],
-    ['What if I already have a workout plan?', "Your coach can work with it or build you a new one. Either way, the value isn't just the plan - it's having someone watching your form and keeping you accountable to whatever plan you're following."],
-    ["What if I'm a complete beginner?", "That's actually where this helps most. You don't have to walk into a gym knowing what to do. Your coach builds your program, walks you through the movements, and corrects your form in real time. No prerequisite knowledge needed."],
-    ["What if I already know what I'm doing?", "Then you're not paying for education - you're paying for accountability and a second pair of eyes on your form. Even experienced lifters benefit from having someone watching their reps and keeping their programming honest."],
+    ['What if I already have a workout plan?', 'Your coach can work with it or help you build a new one. The value extends beyond the plan: clearer session guidance, useful reflection, and follow-through when your week changes.'],
+    ["What if I'm a complete beginner?", 'You do not need to arrive knowing every exercise. Delirio can build a starting plan, explain movements, and offer guidance on the movement details it can assess. Start with manageable sessions and ask whenever something is unclear.'],
+    ["What if I already know what I'm doing?", 'Experienced users can use Delirio for programming context, rep and rest support, session reflection, and plan adjustments. You decide which recommendations to keep, change, or skip.'],
     ["What if I don't like my coach?", 'You can switch. But give it a few sessions - the coaching gets more personal as your coach learns how you train, what motivates you, and what your patterns are.'],
     ['What happens if I stop for a while and come back?', 'Your coach remembers you. They know what you were working on, where you left off, and what was going on when you paused. No starting from scratch, no re-explaining your situation.'],
     ['Can I use this alongside a human trainer?', "Sure. Some people use Delirio for the days they're not with their trainer. Your coach picks up where your in-person sessions leave off."],
-    ['Is my data private?', "Yes. Your workout data, video, and conversations stay with us - we don't share or sell any of it to third parties."],
-    ["I've tried a bunch of stuff and nothing sticks. Why would this be different?", "Probably because the other stuff left you on your own. Plans don't fail because they're bad plans - they fail because nobody's there to keep you going when it gets boring or life gets in the way. That's the whole point of having a coach."],
-    ['Does this work for weight loss specifically?', 'Yes. Your coach can build programming around weight loss goals and check in on the habits that actually drive progress - not just the workouts, but everything around them.'],
+    ['Is my data private?', 'Delirio does not sell your personal information. We use service providers to operate features such as AI coaching, analytics, and messaging, as described in the Privacy Policy. You control camera, microphone, messaging, and available in-app data preferences.'],
+    ["I've tried a bunch of things and nothing sticks. Why would this be different?", 'Delirio is designed for the moments when consistency usually breaks: busy weeks, missed sessions, changing equipment, and uncertainty about what to do next. It cannot guarantee a habit, but it can make returning clearer and require less replanning.'],
+    ['Can Delirio support a weight-related goal?', 'Delirio can support a realistic strength routine alongside a weight-related goal, including when your body or schedule is changing. It does not provide medical or nutrition treatment. If you use prescription medication, follow the guidance of your prescribing clinician.'],
   ],
   PRICE: [
-    [`Why pay $${MONTHLY_PRICE_USD}/month?`, `A single trainer session can cost $50-150. Delirio is $${MONTHLY_PRICE_USD} billed monthly, or $${YEARLY_PRICE_USD} billed annually - equivalent to $${YEARLY_MONTHLY_EQUIVALENT_USD} per month - for ongoing access to your AI coach, programming, form feedback, and conversation between sessions.`],
+    [`Why pay $${MONTHLY_PRICE_USD}/month?`, `Delirio is $${MONTHLY_PRICE_USD} billed monthly, or $${YEARLY_PRICE_USD} billed annually—equivalent to $${YEARLY_MONTHLY_EQUIVALENT_USD} per month—for adaptive planning, workout guidance, form feedback where supported, and conversation between sessions.`],
     ['Can I cancel anytime?', 'Yes. No contracts, no cancellation fees.'],
   ],
 };
@@ -213,7 +213,7 @@ export default function Landing() {
           <a href="#coaches" onClick={() => setMenuOpen(false)}>Coaches</a>
           <a href="#pricing" onClick={() => setMenuOpen(false)}>Pricing</a>
         </nav>
-        <a className="d3-header-cta" href="#coaches" tabIndex={headerAtTop ? -1 : undefined} aria-hidden={headerAtTop}>Start training</a>
+        <a className="d3-header-cta" href="#coaches" tabIndex={headerAtTop ? -1 : undefined} aria-hidden={headerAtTop}>Build my plan</a>
         <button className="d3-menu" type="button" aria-label={menuOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X /> : <Menu />}</button>
       </header>
 
@@ -222,7 +222,7 @@ export default function Landing() {
 
         <section id="product" className="d3-system" aria-labelledby="system-title">
           <div className="d3-section-intro">
-            <div><h2 id="system-title">ONE SYSTEM.<br />THREE MOVEMENTS.</h2></div>
+            <div><h2 id="system-title">ONE COACH.<br />FROM PLAN TO<br />PROGRESS.</h2></div>
             <div className="d3-coach-pair"><div><img src={irisAvatar} alt="Iris" /><img src={reedAvatar} alt="Reed" /></div><p>IRIS / REED<br />ONE SHARED MEMORY</p></div>
           </div>
           <div id="how-it-works" className="d3-movements">
@@ -241,21 +241,25 @@ export default function Landing() {
         <MessagingThreadSection />
 
         <section className="d3-memory" aria-labelledby="memory-title">
-          <div className="d3-memory-intro"><h2 id="memory-title">WE DON'T SHIP AI<br />ON A PROMISE. WE<br />PRESSURE-TEST IT.</h2><p>Trust is earned before the coach reaches your workout. Controlled studies published in <a href="https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2825395" target="_blank" rel="noreferrer">JAMA</a> and <a href="https://www.nature.com/articles/s41586-025-08869-4" target="_blank" rel="noreferrer">Nature</a> have shown rigorously evaluated AI outperforming physicians on specific diagnostic tasks. The lesson is not blind trust—it is that reliability comes from focused testing and clear limits.</p></div>
+          <div className="d3-memory-intro"><h2 id="memory-title">CLEAR ABOUT WHAT<br />IS KNOWN. CLEAR ABOUT<br />WHAT ISN'T.</h2><p>The AI coaches do more than count reps. They can help shape a plan, respond through text or voice, interpret a live session, and suggest what should happen next. Every mode is evaluated for relevance, consistency, scope, and uncertainty before and after the AI coaches are trained or fine-tuned.</p></div>
           <div className="d3-loop">
-            <div className="d3-memory-core">TESTED<br />COACHING</div>
+            <div className="d3-memory-core">TEST<br />TUNE<br />RETEST</div>
             <i className="d3-memory-node is-top" aria-hidden="true" />
             <i className="d3-memory-node is-right" aria-hidden="true" />
             <i className="d3-memory-node is-bottom" aria-hidden="true" />
             <i className="d3-memory-node is-left" aria-hidden="true" />
             {memorySteps.map(([number, title, copy], index) => <article className={`step-${index + 1}`} key={number}><span>{number}</span><div><h3>{title}</h3><p>{copy}</p></div></article>)}
           </div>
-          <div className="d3-memory-close"><h3>THE GOAL ISN'T AI THAT SOUNDS CONFIDENT. IT'S COACHING THAT EARNS CONFIDENCE.</h3><p>Clear when it knows. Careful when it doesn't. Consistent when training gets messy.</p></div>
+          <div className="d3-memory-close"><h3>THE STANDARD ISN'T WHETHER AN AI COACH CAN ANSWER. IT'S WHETHER THE GUIDANCE DESERVES TO BE USED.</h3><p>Relevant in text. Composed in voice. Grounded during training. Clear about limits everywhere.</p></div>
         </section>
 
         <section id="pricing" className="d3-pricing-wrap" aria-labelledby="pricing-title">
           <div className="d3-pricing">
-            <div className="d3-pricing-intro"><h2 id="pricing-title">TWO WAYS IN.<br />ONE COACH.</h2><p>Both plans include the same coaching system. The difference is how long you choose to commit.</p></div>
+            <div className="d3-pricing-intro">
+              <h2 id="pricing-title">ONE COACH.<br />CHOOSE WHAT FITS.</h2>
+              <p>Monthly and annual plans include the same coaching experience. Choose the billing option that fits your plans.</p>
+              <p className="d3-pricing-contact">Contact <a href="mailto:contact@delirio.fit">contact@delirio.fit</a> for more information.</p>
+            </div>
             <PlanCard kind="monthly" />
             <PlanCard kind="annual" />
           </div>
@@ -267,9 +271,9 @@ export default function Landing() {
           <div ref={faqPanelRef} className="d3-faq">
             <div className="d3-faq-left">
               <div className="d3-faq-intro">
-                <h2 id="faq-title">QUESTIONS THAT<br />BLOCK THE YES.</h2>
-                <p>Direct answers to the worries most likely to stop someone from starting.</p>
-                <small>BEST USE / FINAL PRE-CTA</small>
+                <h2 id="faq-title">CLEAR ANSWERS<br />BEFORE YOU START.</h2>
+                <p>Understand what Delirio can do, where its limits are, and what stays in your control.</p>
+                <small>CHOOSE A TOPIC</small>
               </div>
               <div className="d3-faq-categories" role="group" aria-label="FAQ categories">
                 {faqCategories.map((category) => <button key={category} type="button" aria-pressed={faqCategory === category} onClick={() => selectFaqCategory(category)}>{faqCategoryLabels[category]}</button>)}

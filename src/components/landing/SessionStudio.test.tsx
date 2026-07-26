@@ -65,14 +65,14 @@ describe('SessionStudio', () => {
 
   it('keeps the selected coach centered in voice mode', () => {
     renderStudio({ selectedCoach: 'reed', mode: 'voice' });
-    const portrait = screen.getByRole('img', { name: 'Reed, selected AI fitness coach' });
+    const portrait = screen.getByRole('img', { name: 'Reed, selected Delirio coach' });
     expect(portrait).toBeInTheDocument();
     expect(portrait.parentElement).toHaveClass('coach-trial__stage--voice', 'coach-trial__mode-content');
   });
 
   it('keeps the selected coach visible in text mode', () => {
     renderStudio({ selectedCoach: 'iris', mode: 'text' });
-    const portrait = screen.getByRole('img', { name: 'Iris, selected AI fitness coach' });
+    const portrait = screen.getByRole('img', { name: 'Iris, selected Delirio coach' });
     expect(portrait).toBeInTheDocument();
     expect(portrait.closest('.coach-trial__stage')).toHaveClass('coach-trial__stage--text', 'coach-trial__mode-content');
   });

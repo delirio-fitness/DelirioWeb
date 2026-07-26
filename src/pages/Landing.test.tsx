@@ -48,9 +48,9 @@ describe('Landing journey', () => {
     const user = userEvent.setup();
     render(<MemoryRouter><Landing /></MemoryRouter>);
 
-    expect(screen.getByRole('heading', { name: /choose a coach.*then talk or type/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /choose how you.*want to be coached/i })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /reed.*select coach/i }));
-    expect(screen.getByAltText(/reed, selected ai fitness coach/i)).toBeInTheDocument();
+    expect(screen.getByAltText(/reed, selected delirio coach/i)).toBeInTheDocument();
     expect(connect).toHaveBeenCalledTimes(1);
     expect(screen.queryByRole('button', { name: /start voice session/i })).not.toBeInTheDocument();
   });
@@ -73,7 +73,7 @@ describe('Landing journey', () => {
     await user.click(screen.getByRole('button', { name: 'IRIS' }));
     expect(screen.getByRole('alertdialog')).toHaveTextContent(/switch to iris/i);
     await user.click(screen.getByRole('button', { name: /switch coach/i }));
-    expect(screen.getByAltText(/iris, selected ai fitness coach/i)).toBeInTheDocument();
+    expect(screen.getByAltText(/iris, selected delirio coach/i)).toBeInTheDocument();
     expect(disconnect).toHaveBeenCalled();
     expect(clearMessages).toHaveBeenCalled();
   });
@@ -82,10 +82,15 @@ describe('Landing journey', () => {
     const user = userEvent.setup();
     render(<MemoryRouter><Landing /></MemoryRouter>);
 
-    expect(screen.getByRole('button', { name: /is this actually a real ai/i })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('button', { name: /is this actually ai or a set of canned responses/i })).toHaveAttribute('aria-expanded', 'true');
     await user.click(screen.getByRole('button', { name: 'About the price' }));
     expect(screen.getByRole('button', { name: /why pay \$30\/month/i })).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByRole('button', { name: /can i cancel anytime/i })).toHaveAttribute('aria-expanded', 'false');
     expect(screen.queryByRole('button', { name: /can the ai actually see my form/i })).not.toBeInTheDocument();
+  });
+
+  it('offers a direct pricing contact option', () => {
+    render(<MemoryRouter><Landing /></MemoryRouter>);
+    expect(screen.getByRole('link', { name: 'contact@delirio.fit' })).toHaveAttribute('href', 'mailto:contact@delirio.fit');
   });
 });

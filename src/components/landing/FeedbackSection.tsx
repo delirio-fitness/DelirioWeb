@@ -1,21 +1,22 @@
 import { useEffect, useRef, useState } from 'react';
 import { getBrowserFeedbackId } from '../../utils/browserFeedbackId';
+import { submitFeedbackToFirestore } from '../../services/feedbackSubmission';
 
 const feedbackQuestions = [
   {
     id: 'wish',
-    prompt: 'What do you wish Delirio could help you do?',
-    options: ['Build a personalized workout plan', 'Improve my form while I train', 'Stay consistent and accountable', 'Understand my progress better'],
+    prompt: 'What would make strength training easier to continue?',
+    options: ['A plan that adjusts around my schedule', 'Clear guidance while I train', 'An easier return after missing time', 'Less planning between workouts'],
   },
   {
     id: 'coachingUsefulness',
-    prompt: 'What would make the coaching experience more useful to you?',
-    options: ['More personalized guidance', 'Faster feedback during workouts', 'Better adjustments after each session', 'More motivation and accountability'],
+    prompt: 'What kind of guidance would help you feel most confident?',
+    options: ['Clearer movement explanations', 'Knowing what changed and why', 'Adjustments when life shifts', 'Clear limits when Delirio is uncertain'],
   },
   {
     id: 'nextBuild',
     prompt: 'What should we build or improve next?',
-    options: ['Smarter workout planning', 'Deeper progress insights', 'More ways to talk with your coach', 'More exercise and form support'],
+    options: ['More flexible weekly plans', 'Clearer progress insights', 'Easier voice, text, and SMS', 'More exercise and movement support'],
   },
 ] as const;
 
@@ -56,13 +57,7 @@ export function FeedbackSection() {
     try {
       setError(null);
       setStatus('submitting');
-      const response = await fetch('/api/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ browserId: getBrowserFeedbackId(), ...submissionAnswers, website: '' }),
-      });
-      const result = await response.json().catch(() => null) as { error?: string } | null;
-      if (!response.ok) throw new Error(result?.error || 'Unable to submit feedback right now.');
+      await submitFeedbackToFirestore(getBrowserFeedbackId(), submissionAnswers);
       setStatus('success');
     } catch (submissionError) {
       setError(submissionError instanceof Error ? submissionError.message : 'Unable to submit feedback right now.');

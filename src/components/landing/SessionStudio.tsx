@@ -60,8 +60,8 @@ export function SessionStudio({ selectedCoach, onSelectCoach, mode, onModeChange
     <section id="session" className={`coach-trial coach-trial--${mode}`} aria-labelledby="coach-trial-title">
       <span id="coaches" className="coach-trial__anchor" aria-hidden="true" />
       <div className="coach-trial__intro">
-        <h2 id="coach-trial-title">CHOOSE A COACH.<br />THEN TALK OR TYPE.</h2>
-        <p className="coach-trial__body">Start with the relationship, not a control panel. Pick Iris or Reed first. Delirio then shows one communication mode at a time.</p>
+        <h2 id="coach-trial-title">CHOOSE HOW YOU<br />WANT TO BE COACHED.</h2>
+        <p className="coach-trial__body">Choose the coaching style that helps you feel clear and supported. Talk by voice or text, and switch anytime.</p>
       </div>
 
       <div className={`coach-trial__panel ${coach ? '' : 'coach-trial__panel--choose'}`}>
@@ -125,7 +125,7 @@ function VoiceStage({ coach, voice }: { coach: (typeof coachProfiles)[CoachId]; 
     {(voice.sessionState === 'connecting' || voice.sessionState === 'connected') && <div className="coach-trial__voice-presence" aria-hidden="true">
       <VoiceFrequencyWaveform levels={voice.frequencyLevels} isListening={voice.isFrequencyListening} />
     </div>}
-    <img className="coach-trial__stage-portrait" src={coach.avatar} alt={`${coach.name}, selected AI fitness coach`} />
+    <img className="coach-trial__stage-portrait" src={coach.avatar} alt={`${coach.name}, selected Delirio coach`} />
     <div className="coach-trial__voice-content">
       <p className="coach-trial__session-label">{coach.name.toUpperCase()} / VOICE SESSION</p>
       <h3 role={voice.sessionState === 'error' ? 'alert' : 'status'}>{status}</h3>
@@ -144,11 +144,11 @@ function TextStage({ coach, text, chatRef }: { coach: (typeof coachProfiles)[Coa
   return <div className="coach-trial__stage coach-trial__stage--text coach-trial__mode-content">
     <div className="coach-trial__text-content">
       <div className="coach-trial__text-header">
-        <img className="coach-trial__stage-portrait" src={coach.avatar} alt={`${coach.name}, selected AI fitness coach`} />
+        <img className="coach-trial__stage-portrait" src={coach.avatar} alt={`${coach.name}, selected Delirio coach`} />
         <p className="coach-trial__session-label">{coach.name.toUpperCase()} / WEB CHAT</p>
       </div>
       <div className="coach-trial__message-viewport">
-        <p className={`coach-trial__chat-ghost ${text.messages.length ? 'is-hidden' : ''}`} aria-hidden={text.messages.length > 0}>...coaches are here to support, guide, and instruct. Ask anything…</p>
+        <p className={`coach-trial__chat-ghost ${text.messages.length ? 'is-hidden' : ''}`} aria-hidden={text.messages.length > 0}>Your coach can help you plan, adjust, and continue. Ask about today’s training…</p>
         {text.messages.length || hasConnectionStatus ? <div ref={chatRef} className="coach-trial__messages" aria-live="polite">
           {text.messages.map((message, index) => <p className={message.role} key={`${message.role}-${index}`}><b>{message.role === 'user' ? 'YOU' : coach.name.toUpperCase()}</b>{message.text}</p>)}
           {text.error ? <p className="coach-trial__connection-status is-error" role="alert">CONNECTION FAILED · <button type="button" onClick={text.onRetry}>RETRY</button></p> : text.connectionState === 'responding' ? <p className="coach-trial__connection-status">{coach.name.toUpperCase()} IS RESPONDING…</p> : text.connectionState === 'connecting' ? <p className="coach-trial__connection-status">CONNECTING…</p> : null}

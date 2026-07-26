@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { HeroExperiment } from './HeroExperiment';
+import { HeroWorkoutScoreboard } from './unused/HeroWorkoutScoreboard';
 
 describe('HeroExperiment', () => {
   afterEach(() => window.history.replaceState({}, '', '/'));
@@ -14,7 +15,7 @@ describe('HeroExperiment', () => {
     window.history.replaceState({}, '', `/${search}`);
     render(<HeroExperiment />);
     expect(screen.getByRole('heading')).toHaveAttribute('id', headingId);
-    expect(screen.getByRole('link', { name: /see coaches/i })).toHaveAttribute('href', '#coaches');
+    expect(screen.getByRole('link')).toHaveAttribute('href', '#coaches');
   });
 
   it.each(['?hero=v1', '?hero=v2.3', '?hero=v3'])(
@@ -38,14 +39,19 @@ describe('HeroExperiment', () => {
     expect(screen.getByRole('complementary', { name: /live workout tactical strip/i })).toHaveTextContent(/form quality.*calories burned.*rest/i);
   });
 
-  it('renders the live workout scoreboard in Hero V3', () => {
+  it('keeps the default Hero V3 focused and free of the workout scoreboard', () => {
     window.history.replaceState({}, '', '/?hero=v3');
     render(<HeroExperiment />);
+    expect(screen.queryByRole('complementary', { name: /live workout scoreboard/i })).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/schedule shift detected.*today’s plan adapted/i)).toBeInTheDocument();
+  });
+
+  it('preserves the unused workout scoreboard for future sections', () => {
+    render(<HeroWorkoutScoreboard />);
     const scoreboard = screen.getByRole('complementary', { name: /live workout scoreboard/i });
     expect(scoreboard).toHaveTextContent(/set.*form.*calories.*rest/i);
     expect(screen.getByLabelText(/form quality 94 percent/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/calories burned 286 kilocalories/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/rest 42 seconds/i)).toBeInTheDocument();
   });
-
 });

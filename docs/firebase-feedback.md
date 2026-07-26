@@ -1,12 +1,41 @@
 # Feedback submission setup
 
-The landing-page feedback form posts to the Netlify Function at `/api/feedback`. The function validates the payload and creates a document in the Firestore `warmNetwork` collection.
+The questionnaire writes directly from the Firebase Web SDK to the Firestore
+`webQuestionaire` collection. Before writing, Firebase Authentication creates or
+restores an anonymous user. Firestore creates a unique document ID, and each
+document records both that Firebase UID and the browser's first-party UUID.
 
-Configure one of these server-only environment variable options in Netlify:
+## Required Firebase console setup
 
-1. `FIREBASE_SERVICE_ACCOUNT_JSON` containing the complete Firebase service-account JSON, or
-2. all three of `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, and `FIREBASE_PRIVATE_KEY`.
+1. Enable the Anonymous provider under Firebase Authentication.
+2. Deploy `firestore.rules` (`firebase deploy --only firestore:rules`).
+3. Register the web app with App Check using reCAPTCHA Enterprise, set
+   `FIREBASE_APPCHECK_SITE_KEY`, monitor metrics, and then enable Firestore
+   enforcement.
 
-Do not prefix these variables with `VITE_`; Vite variables are exposed to the browser bundle.
+The rules allow authenticated clients to create validated feedback documents
+only. Client reads, updates, and deletes are denied.
 
-The function limits each IP to five submissions per minute, validates the browser UUID and answer sizes, and silently discards honeypot submissions. Each browser gets a first-party random UUID in local storage, while Firestore separately creates a unique document ID for every submission. It uses Firebase Admin credentials, so the Firestore collection does not need public client-write rules.
+## Configuration boundary
+
+Development reads the gitignored `secrets/firebase.js` file at Vite startup.
+Production never reads that file and instead requires these Netlify build
+variables: `FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_PROJECT_ID`,
+`FIREBASE_STORAGE_BUCKET`, `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_APP_ID`,
+and optionally `FIREBASE_MEASUREMENT_ID` and `FIREBASE_APPCHECK_SITE_KEY`.
+
+These values are Firebase Web configuration, not service-account credentials.
+Never expose a service-account private key to the browser.
+
+## Local MSW credential integration
+
+`./scripts/test-master.sh msw` reads `secrets/firebase.js`, extracts only
+`apiKey`, `appId`, and `projectId`, constructs the real project-specific
+Firestore REST URL, and verifies its request shape through MSW. The secret file
+is gitignored and its values are never printed or snapshotted. When the file is
+not present (for example in CI), this local credential test is skipped.
+The loader also returns no credentials when `NODE_ENV=production`.
+
+Because MSW intercepts the request before it reaches Google, this confirms local
+config loading and client request shape—not deployed Authentication, App Check,
+or Firestore Rules configuration.

@@ -1,0 +1,55 @@
+{
+  "heroTextV1": {
+    "kicker": "LIVE SESSION / ADAPTIVE COACHING",
+    "heading": {
+      "accessibleText": "Your training. Adapted in real time.",
+      "lines": [
+        {
+          "prefix": "YOUR ",
+          "animatedWords": ["TRAINING.", "PLAN.", "WORKOUT."]
+        },
+        { "text": "ADAPTED" },
+        { "text": "IN REAL TIME." }
+      ]
+    },
+    "support": "One coach notices the work as it happens—and remembers what should change next.",
+    "invitation": "MEET THE COACH WHO TRAINS WITH CONTEXT",
+    "cta": {
+      "label": "SEE COACHES",
+      "href": "#coaches",
+      "icon": "→"
+    },
+    "capabilities": "FORM / REPS / REST / SESSION MEMORY",
+    "coachingSignal": {
+      "ariaLabel": "Form shift detected. Next set adapted.",
+      "eyebrow": "FORM SHIFT DETECTED",
+      "message": "NEXT SET ADAPTED"
+    }
+  },
+  "heroTextV2": {
+    "kicker": "BUILT FOR THE WEEK YOU ACTUALLY HAVE",
+    "heading": {
+      "accessibleText": "Your week changes. Your training adjusts.",
+      "lines": [
+        { "text": "YOUR WEEK CHANGES." },
+        {
+          "prefix": "YOUR TRAINING ",
+          "animatedWords": ["ADJUSTS.", "RESPONDS.", "CONTINUES."]
+        }
+      ]
+    },
+    "support": "Delirio adapts around changing schedules, available equipment, and the time you have today.",
+    "invitation": "START WITH THE WEEK YOU ACTUALLY HAVE",
+    "cta": {
+      "label": "BUILD MY PLAN",
+      "href": "#coaches",
+      "icon": "→"
+    },
+    "capabilities": "SCHEDULE / EQUIPMENT / TIME / SESSION CONTEXT",
+    "coachingSignal": {
+      "ariaLabel": "Schedule shift detected. Today’s plan adapted.",
+      "eyebrow": "SCHEDULE SHIFT DETECTED",
+      "message": "TODAY’S PLAN ADAPTED"
+    }
+  }
+}

@@ -13,7 +13,7 @@ describe('PlanToLiveGuidance', () => {
 
     await user.click(screen.getByRole('button', { name: /03 see the rep coach the movement/i }));
 
-    expect(screen.getByRole('heading', { name: 'EVERY REP BECOMES SIGNAL.' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'SEE WHAT CHANGED. KNOW WHAT COMES NEXT.' })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: 'SEE THE REP: LIVE REPS + REST' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /03 see the rep coach the movement/i })).toHaveAttribute('aria-pressed', 'true');
     expect(screen.queryByRole('tablist', { name: /product experience sequence/i })).not.toBeInTheDocument();
@@ -23,11 +23,11 @@ describe('PlanToLiveGuidance', () => {
     jest.useFakeTimers();
     render(<PlanToLiveGuidance />);
 
-    expect(screen.getByRole('heading', { name: 'BUILT FOR YOU. READY WHEN YOU ARE.' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'A PLAN FOR THE WEEK YOU HAVE.' })).toBeInTheDocument();
     act(() => jest.advanceTimersByTime(3000));
-    expect(screen.getByRole('heading', { name: 'FROM PLAN TO MOTION.' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'SEE WHAT’S AHEAD. START WHEN READY.' })).toBeInTheDocument();
     act(() => jest.advanceTimersByTime(6000));
-    expect(screen.getByRole('heading', { name: 'THE WORKOUT ENDS. THE COACHING DOESN’T.' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'THE WORKOUT ENDS. THE CONTEXT CONTINUES.' })).toBeInTheDocument();
   });
 
   it('resets the three-second interval after manual selection', async () => {
@@ -38,9 +38,9 @@ describe('PlanToLiveGuidance', () => {
     act(() => jest.advanceTimersByTime(2000));
     await user.click(screen.getByRole('button', { name: /04 keep going carry it forward/i }));
     act(() => jest.advanceTimersByTime(2999));
-    expect(screen.getByRole('heading', { name: 'THE WORKOUT ENDS. THE COACHING DOESN’T.' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'THE WORKOUT ENDS. THE CONTEXT CONTINUES.' })).toBeInTheDocument();
     act(() => jest.advanceTimersByTime(1));
-    expect(screen.getByRole('heading', { name: 'BUILT FOR YOU. READY WHEN YOU ARE.' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'A PLAN FOR THE WEEK YOU HAVE.' })).toBeInTheDocument();
   });
 
   it('does not start automatic progression when reduced motion is requested', () => {
@@ -61,6 +61,6 @@ describe('PlanToLiveGuidance', () => {
 
     render(<PlanToLiveGuidance />);
     act(() => jest.advanceTimersByTime(9000));
-    expect(screen.getByRole('heading', { name: 'BUILT FOR YOU. READY WHEN YOU ARE.' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'A PLAN FOR THE WEEK YOU HAVE.' })).toBeInTheDocument();
   });
 });

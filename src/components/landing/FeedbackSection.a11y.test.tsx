@@ -16,8 +16,8 @@ describe('FeedbackSection accessibility', () => {
     const user = userEvent.setup();
     const { container } = render(<FeedbackSection />);
 
-    await user.click(screen.getByRole('radio', { name: 'Build a personalized workout plan' }));
-    await screen.findByRole('radio', { name: 'More personalized guidance' });
+    await user.click(screen.getByRole('radio', { name: 'A plan that adjusts around my schedule' }));
+    await screen.findByRole('radio', { name: 'Clearer movement explanations' });
 
     expect(await axe(container)).toHaveNoViolations();
   });

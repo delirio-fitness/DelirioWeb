@@ -54,7 +54,7 @@ run_suite() {
       run_jest --testPathPatterns='\.a11y\.test\.tsx$'
       ;;
     msw|integration)
-      run_jest --runTestsByPath src/components/landing/FeedbackSection.test.tsx
+      run_jest --runTestsByPath src/components/landing/FeedbackSection.test.tsx src/test/firebaseCredentials.msw.test.ts
       ;;
     unit)
       run_jest --testPathPatterns='src/(hooks|utils)/.*\.test\.(ts|tsx)$'

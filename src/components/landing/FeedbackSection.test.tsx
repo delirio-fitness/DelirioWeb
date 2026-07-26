@@ -1,26 +1,25 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { http, HttpResponse } from 'msw';
-import { setupServer } from 'msw/node';
+import { submitFeedbackToFirestore } from '../../services/feedbackSubmission';
 import { FeedbackSection } from './FeedbackSection';
 
-const server = setupServer();
+jest.mock('../../services/feedbackSubmission', () => ({
+  submitFeedbackToFirestore: jest.fn(),
+}));
+
+const submitFeedbackMock = jest.mocked(submitFeedbackToFirestore);
 
 describe('FeedbackSection', () => {
-  beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
-
   afterEach(() => {
     jest.restoreAllMocks();
-    server.resetHandlers();
+    submitFeedbackMock.mockReset();
     window.localStorage.clear();
   });
-
-  afterAll(() => server.close());
 
   it('renders the first product question immediately', () => {
     render(<FeedbackSection />);
 
-    expect(screen.getByRole('radio', { name: 'Build a personalized workout plan' })).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'A plan that adjusts around my schedule' })).toBeInTheDocument();
     expect(screen.getByLabelText('Question 1 of 3')).toBeInTheDocument();
     expect(screen.queryByLabelText(/email|phone/i)).not.toBeInTheDocument();
   });
@@ -29,28 +28,24 @@ describe('FeedbackSection', () => {
     const user = userEvent.setup();
     render(<FeedbackSection />);
 
-    await user.click(screen.getByRole('radio', { name: 'Build a personalized workout plan' }));
-    expect(screen.getByRole('radio', { name: 'Build a personalized workout plan' })).toBeChecked();
-    expect(screen.queryByRole('radio', { name: 'More personalized guidance' })).not.toBeInTheDocument();
-    expect(await screen.findByRole('radio', { name: 'More personalized guidance' })).toBeInTheDocument();
+    await user.click(screen.getByRole('radio', { name: 'A plan that adjusts around my schedule' }));
+    expect(screen.getByRole('radio', { name: 'A plan that adjusts around my schedule' })).toBeChecked();
+    expect(screen.queryByRole('radio', { name: 'Clearer movement explanations' })).not.toBeInTheDocument();
+    expect(await screen.findByRole('radio', { name: 'Clearer movement explanations' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /back/i }));
-    expect(screen.getByRole('radio', { name: 'Build a personalized workout plan' })).toBeChecked();
+    expect(screen.getByRole('radio', { name: 'A plan that adjusts around my schedule' })).toBeChecked();
   });
 
   it('posts valid feedback and reports persistence success', async () => {
     const user = userEvent.setup();
-    let submittedPayload: Record<string, unknown> | null = null;
-    server.use(http.post('/api/feedback', async ({ request }) => {
-      submittedPayload = await request.json() as Record<string, unknown>;
-      return HttpResponse.json({ ok: true }, { status: 201 });
-    }));
+    submitFeedbackMock.mockResolvedValue('firestore-document-id');
     window.localStorage.setItem('delirio_feedback_browser_id', 'browser_id_1234567890');
     render(<FeedbackSection />);
 
     for (const [answer, groupName] of [
-      ['Build a personalized workout plan', 'wish'],
-      ['More personalized guidance', 'coachingUsefulness'],
-      ['Smarter workout planning', 'nextBuild'],
+      ['A plan that adjusts around my schedule', 'wish'],
+      ['Clearer movement explanations', 'coachingUsefulness'],
+      ['More flexible weekly plans', 'nextBuild'],
     ] as const) {
       const selectedOption = await screen.findByRole('radio', { name: answer });
       const questionOptions = screen.getAllByRole('radio');
@@ -61,13 +56,12 @@ describe('FeedbackSection', () => {
       expect(screen.getAllByRole('radio').filter((option) => (option as HTMLInputElement).checked)).toHaveLength(1);
     }
 
-    await waitFor(() => expect(submittedPayload).not.toBeNull());
-    expect(submittedPayload).toEqual(expect.objectContaining({
-      browserId: 'browser_id_1234567890',
-      wish: 'Build a personalized workout plan',
-      coachingUsefulness: 'More personalized guidance',
-      nextBuild: 'Smarter workout planning',
-    }));
+    await waitFor(() => expect(submitFeedbackMock).toHaveBeenCalledTimes(1));
+    expect(submitFeedbackMock).toHaveBeenCalledWith('browser_id_1234567890', {
+      wish: 'A plan that adjusts around my schedule',
+      coachingUsefulness: 'Clearer movement explanations',
+      nextBuild: 'More flexible weekly plans',
+    });
     expect(await screen.findByRole('status')).toHaveTextContent(/thank you/i);
   });
 });

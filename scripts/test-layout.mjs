@@ -131,9 +131,10 @@ async function testHeroVariant(browser, viewport, variant) {
   const action = await box(page, '.d3-hero-action');
   assert.ok(content.y >= hero.y && content.y + content.height <= hero.y + hero.height, `${viewport.name}/${variant}: hero content must remain inside the frame`);
   assert.ok(action.x >= hero.x && action.x + action.width <= hero.x + hero.width, `${viewport.name}/${variant}: CTA must remain horizontally visible`);
-  if (variant === 'v3' && viewport.name === 'desktop') {
-    const scoreboard = await box(page, '.d3-hero-scoreboard');
-    assert.ok(scoreboard.y + scoreboard.height <= viewport.height, `${viewport.name}/${variant}: scoreboard must be visible before scrolling`);
+  if (variant === 'v3') {
+    const signal = await box(page, '.d3-hero-coaching-signal');
+    assert.ok(Math.abs(hero.height - viewport.height) <= 1, `${viewport.name}/${variant}: default hero must match the initial viewport height`);
+    assert.ok(signal.y >= hero.y && signal.y + signal.height <= viewport.height, `${viewport.name}/${variant}: coaching signal must be visible before scrolling`);
   }
   await page.close();
   process.stdout.write(`✓ ${viewport.name} hero ${variant}\n`);
