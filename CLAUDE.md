@@ -99,7 +99,6 @@ Never write playwright artifacts to the repo root or anywhere else under version
 ```
 VITE_CHAT_ENGINE_URL       # Pipecat chat backend (default: chat-engine-staging.up.railway.app)
 VITE_PIPECAT_BACKEND_URL   # Pipecat voice backend (default: voice-engine-staging.up.railway.app)
-VITE_TRIGGER_API_KEY       # Pipecat backend trigger key (default: "password")
 VITE_APP_STORE_URL         # Production listing (temporary fallback: https://apps.apple.com/)
 ```
 

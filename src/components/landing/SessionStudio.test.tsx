@@ -16,8 +16,6 @@ function renderStudio({ selectedCoach = 'reed' as 'reed' | 'iris' | null, mode =
       onModeChange={onModeChange}
       voice={{
         sessionState: state,
-        isMicMuted: false,
-        isSpeakerMuted: false,
         isBotSpeaking: false,
         isBotProcessing: false,
         isUserSpeaking: false,
@@ -25,13 +23,12 @@ function renderStudio({ selectedCoach = 'reed' as 'reed' | 'iris' | null, mode =
         botTurns: [],
         userTranscript: '',
         failureKind,
-        retryAttempt: 0,
+        frequencyLevels: Array(16).fill(0),
+        isFrequencyListening: false,
         hasEnded: false,
         onStart,
         onCancel: jest.fn(),
         onEnd: jest.fn(),
-        onToggleMic: jest.fn(),
-        onToggleSpeaker: jest.fn(),
       }}
       text={{
         messages: [],
@@ -39,7 +36,6 @@ function renderStudio({ selectedCoach = 'reed' as 'reed' | 'iris' | null, mode =
         isLoading: false,
         connectionState: 'idle',
         error: null,
-        failedMessage: null,
         onInputChange: jest.fn(),
         onSubmit: jest.fn(),
         onRetry,
@@ -111,8 +107,8 @@ describe('SessionStudio', () => {
         onSelectCoach={jest.fn()}
         mode="text"
         onModeChange={jest.fn()}
-        voice={{ sessionState: 'idle', isMicMuted: false, isSpeakerMuted: false, isBotSpeaking: false, isBotProcessing: false, isUserSpeaking: false, botTranscript: '', botTurns: [], userTranscript: '', failureKind: null, retryAttempt: 0, hasEnded: false, onStart: jest.fn(), onCancel: jest.fn(), onEnd: jest.fn(), onToggleMic: jest.fn(), onToggleSpeaker: jest.fn() }}
-        text={{ messages: [{ role: 'user', text: 'Help me train' }], input: '', isLoading: false, connectionState: 'idle', error: 'Network error', failedMessage: 'Help me train', onInputChange: jest.fn(), onSubmit: jest.fn(), onRetry }}
+        voice={{ sessionState: 'idle', isBotSpeaking: false, isBotProcessing: false, isUserSpeaking: false, botTranscript: '', botTurns: [], userTranscript: '', failureKind: null, frequencyLevels: Array(16).fill(0), isFrequencyListening: false, hasEnded: false, onStart: jest.fn(), onCancel: jest.fn(), onEnd: jest.fn() }}
+        text={{ messages: [{ role: 'user', text: 'Help me train' }], input: '', isLoading: false, connectionState: 'idle', error: 'Network error', onInputChange: jest.fn(), onSubmit: jest.fn(), onRetry }}
       />,
     );
     expect(screen.getByRole('alert')).toHaveTextContent(/connection failed/i);

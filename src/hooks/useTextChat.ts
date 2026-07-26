@@ -102,14 +102,11 @@ export function useTextChat(options: UseTextChatOptions = {}) {
         setConnectionState("responding");
 
         const raw = await res.text();
-        console.log("[TextChat] Raw response:", raw);
 
         let data: unknown;
         try { data = JSON.parse(raw); } catch { data = raw; }
-        console.log("[TextChat] Full payload:", data);
 
         const parsed = deepParse(data);
-        console.log("[TextChat] Deep-parsed payload:", parsed);
         const parsedRecord = asRecord(parsed);
 
         // Find the messages array and pull out non-user replies
@@ -140,8 +137,6 @@ export function useTextChat(options: UseTextChatOptions = {}) {
         if (botReplies.length === 0) {
           botReplies = [raw];
         }
-
-        console.log("[TextChat] Bot replies:", botReplies);
 
         // Sanitize: if a reply parses into a JSON object, replace with fallback
         botReplies = botReplies.map((reply) => {

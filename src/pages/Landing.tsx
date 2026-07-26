@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronDown, ChevronRight, Headset, Menu, X } from 'lucide-react';
-import heroVideo from '../assets/videos/hero-prototype.mp4';
 import irisAvatar from '../images/emojis/Iris/Iris_idle_return.png';
 import reedAvatar from '../images/emojis/Reed/Reed_idle_return.png';
 import { APP_STORE_URL, MONTHLY_PRICE_USD, YEARLY_MONTHLY_EQUIVALENT_USD, YEARLY_PRICE_USD } from '../config/product';
 import { ConfirmDialog } from '../components/landing/ConfirmDialog';
 import { FeedbackSection } from '../components/landing/FeedbackSection';
+import { HeroExperiment } from '../components/landing/HeroExperiment';
 import { LandingFooter } from '../components/landing/LandingFooter';
 import { MessagingThreadSection } from '../components/landing/MessagingThreadSection';
 import { ProductMomentsSection } from '../components/landing/ProductMomentsSection';
@@ -25,10 +25,10 @@ const movements = [
 ] as const;
 
 const memorySteps = [
-  ['01', 'BEFORE THE FIRST REP', 'Learns goals, history, constraints, available equipment, and why the user wants to change.'],
-  ['02', 'DURING THE SET', 'Tracks form, repetitions, selected load, total volume, exercise progress, and actual rest time.'],
-  ['03', 'AFTER THE SESSION', 'Explains what mattered: where form changed, whether the load fit, and what the break behavior suggests.'],
-  ['04', 'BEFORE THE NEXT SESSION', 'Adjusts the plan from observed behavior instead of repeating the same static program.'],
+  ['01', 'TEST THE EXPECTED', 'We test the coaching across everyday training situations, from starting a session to adapting the next set.'],
+  ['02', 'PRESSURE THE EDGES', 'We stress-test interruptions, unclear inputs, changing pace, incomplete reps, and the moments when certainty matters most.'],
+  ['03', 'CHECK THE COACHING', 'We evaluate whether guidance is relevant, consistent, understandable, and appropriate for what is actually happening.'],
+  ['04', 'LEARN FROM FAILURES', 'When the system misses, that failure becomes another case to test before the coaching moves forward.'],
 ] as const;
 
 const benefits = ['Adaptive fitness plan', 'Iris or Reed', 'Voice + text coach', 'Live form feedback', 'Exercise directory', 'SMS coach access'];
@@ -101,8 +101,9 @@ export default function Landing() {
 
   const activePersonality = selectedCoach ?? 'reed';
   const voice = useVoiceSession({ personality: activePersonality, userId: sessionUserId, context: 'default_app' });
+  const { connect: connectVoice, disconnect: disconnectVoice, sessionState: voiceSessionState } = voice;
   const text = useTextChat({ personality: activePersonality, userId: sessionUserId, context: 'default_app' });
-  const hasDestructiveContext = voice.sessionState === 'connected' || voice.sessionState === 'connecting' || text.messages.length > 0;
+  const hasDestructiveContext = voiceSessionState === 'connected' || voiceSessionState === 'connecting' || text.messages.length > 0;
 
   useEffect(() => {
     let frame = 0;
@@ -125,13 +126,13 @@ export default function Landing() {
 
   const applyCoach = useCallback((coach: CoachId) => {
     if (coach !== selectedCoach) {
-      void voice.disconnect();
+      void disconnectVoice();
       text.clearMessages();
       setChatInput('');
       setHasVoiceEnded(false);
       setSelectedCoach(coach);
     }
-  }, [selectedCoach, text, voice]);
+  }, [disconnectVoice, selectedCoach, text]);
 
   function requestCoach(coach: CoachId) {
     if (coach === selectedCoach) return;
@@ -141,7 +142,7 @@ export default function Landing() {
 
   function handleModeChange(nextMode: SessionMode) {
     if (nextMode === 'text' && mode === 'voice') {
-      void voice.disconnect();
+      void disconnectVoice();
       setHasVoiceEnded(true);
     } else if (nextMode === 'voice' && mode !== 'voice') {
       setHasVoiceEnded(false);
@@ -150,9 +151,9 @@ export default function Landing() {
   }
 
   useEffect(() => {
-    if (!selectedCoach || mode !== 'voice' || hasVoiceEnded || voice.sessionState !== 'idle') return;
-    void voice.connect();
-  }, [hasVoiceEnded, mode, selectedCoach, voice.connect, voice.sessionState]);
+    if (!selectedCoach || mode !== 'voice' || hasVoiceEnded || voiceSessionState !== 'idle') return;
+    void connectVoice();
+  }, [connectVoice, hasVoiceEnded, mode, selectedCoach, voiceSessionState]);
 
   function handleChatSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -217,21 +218,7 @@ export default function Landing() {
       </header>
 
       <main id="main-content">
-        <section className="d3-hero" aria-labelledby="hero-title">
-          <video className="d3-hero-video" autoPlay loop muted playsInline preload="auto" aria-hidden="true"><source src={heroVideo} type="video/mp4" /></video>
-          <div className="d3-hero-contrast" aria-hidden="true" />
-          <div className="d3-hero-content">
-            <div className="d3-hero-copy">
-              <p className="d3-kicker">LIVE SESSION / ADAPTIVE COACHING</p>
-              <h1 id="hero-title">YOUR TRAINING.<br />ADAPTED IN REAL TIME.</h1>
-              <p className="d3-hero-support">One coach notices the work as it happens—and remembers what should change next.</p>
-            </div>
-            <div className="d3-hero-action-group">
-              <a className="d3-hero-action" href="#coaches">SEE COACHES <span aria-hidden="true">→</span></a>
-              <p className="d3-hero-capabilities">FORM / REPS / REST / SESSION MEMORY</p>
-            </div>
-          </div>
-        </section>
+        <HeroExperiment />
 
         <section id="product" className="d3-system" aria-labelledby="system-title">
           <div className="d3-section-intro">
@@ -245,8 +232,8 @@ export default function Landing() {
           <SessionStudio
             selectedCoach={selectedCoach} onSelectCoach={requestCoach}
             mode={mode} onModeChange={handleModeChange}
-            voice={{ sessionState: voice.sessionState, isMicMuted: voice.isMicMuted, isSpeakerMuted: voice.isSpeakerMuted, isBotSpeaking: voice.isBotSpeaking, isBotProcessing: voice.isBotProcessing, isUserSpeaking: voice.isUserSpeaking, botTranscript: voice.botTranscript, botTurns: voice.botTurns, userTranscript: voice.userTranscript, failureKind: voice.failureKind, retryAttempt: voice.retryAttempt, hasEnded: hasVoiceEnded, onStart: () => { setHasVoiceEnded(false); void voice.connect(); }, onCancel: () => { setHasVoiceEnded(true); void voice.cancelConnect(); }, onEnd: () => { setHasVoiceEnded(true); void voice.disconnect(); }, onToggleMic: voice.toggleMic, onToggleSpeaker: voice.toggleSpeakerMute }}
-            text={{ messages: text.messages, input: chatInput, isLoading: text.isLoading, connectionState: text.connectionState, error: text.error, failedMessage: text.failedMessage, onInputChange: setChatInput, onSubmit: handleChatSubmit, onRetry: () => { void text.retryLastMessage(); } }}
+            voice={{ sessionState: voiceSessionState, isBotSpeaking: voice.isBotSpeaking, isBotProcessing: voice.isBotProcessing, isUserSpeaking: voice.isUserSpeaking, botTranscript: voice.botTranscript, botTurns: voice.botTurns, userTranscript: voice.userTranscript, failureKind: voice.failureKind, frequencyLevels: voice.frequencyLevels, isFrequencyListening: voice.isFrequencyListening, hasEnded: hasVoiceEnded, onStart: () => { setHasVoiceEnded(false); void connectVoice(); }, onCancel: () => { setHasVoiceEnded(true); void voice.cancelConnect(); }, onEnd: () => { setHasVoiceEnded(true); void disconnectVoice(); } }}
+            text={{ messages: text.messages, input: chatInput, isLoading: text.isLoading, connectionState: text.connectionState, error: text.error, onInputChange: setChatInput, onSubmit: handleChatSubmit, onRetry: () => { void text.retryLastMessage(); } }}
           />
           <ProductMomentsSection />
         </section>
@@ -254,16 +241,16 @@ export default function Landing() {
         <MessagingThreadSection />
 
         <section className="d3-memory" aria-labelledby="memory-title">
-          <div className="d3-memory-intro"><h2 id="memory-title">MOST APPS STOP AT<br />THE PLAN. WE STAY<br />IN THE FRAME.</h2><p>The system is not a straight handoff. Every session feeds the next decision.</p></div>
+          <div className="d3-memory-intro"><h2 id="memory-title">WE DON'T SHIP AI<br />ON A PROMISE. WE<br />PRESSURE-TEST IT.</h2><p>Trust is earned before the coach reaches your workout. Controlled studies published in <a href="https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2825395" target="_blank" rel="noreferrer">JAMA</a> and <a href="https://www.nature.com/articles/s41586-025-08869-4" target="_blank" rel="noreferrer">Nature</a> have shown rigorously evaluated AI outperforming physicians on specific diagnostic tasks. The lesson is not blind trust—it is that reliability comes from focused testing and clear limits.</p></div>
           <div className="d3-loop">
-            <div className="d3-memory-core">COACHING<br />MEMORY</div>
+            <div className="d3-memory-core">TESTED<br />COACHING</div>
             <i className="d3-memory-node is-top" aria-hidden="true" />
             <i className="d3-memory-node is-right" aria-hidden="true" />
             <i className="d3-memory-node is-bottom" aria-hidden="true" />
             <i className="d3-memory-node is-left" aria-hidden="true" />
             {memorySteps.map(([number, title, copy], index) => <article className={`step-${index + 1}`} key={number}><span>{number}</span><div><h3>{title}</h3><p>{copy}</p></div></article>)}
           </div>
-          <div className="d3-memory-close"><h3>THE NEXT PLAN IS BUILT FROM WHAT ACTUALLY HAPPENED.</h3><p>Not from a static template. Not from guesswork.</p></div>
+          <div className="d3-memory-close"><h3>THE GOAL ISN'T AI THAT SOUNDS CONFIDENT. IT'S COACHING THAT EARNS CONFIDENCE.</h3><p>Clear when it knows. Careful when it doesn't. Consistent when training gets messy.</p></div>
         </section>
 
         <section id="pricing" className="d3-pricing-wrap" aria-labelledby="pricing-title">

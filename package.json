@@ -6,17 +6,11 @@
       "dependencies": {
             "@pipecat-ai/client-js": "^1.6.0",
             "@pipecat-ai/daily-transport": "^1.6.0",
-            "@radix-ui/react-checkbox": "^1.1.4",
-            "@radix-ui/react-label": "^2.1.2",
-            "@radix-ui/react-slot": "^1.1.2",
-            "class-variance-authority": "^0.7.1",
-            "clsx": "^2.1.1",
             "firebase-admin": "^14.2.0",
             "lucide-react": "^0.487.0",
             "react": "^18.3.1",
             "react-dom": "^18.3.1",
-            "react-router-dom": "^7.11.0",
-            "tailwind-merge": "^3.5.0"
+            "react-router-dom": "^7.11.0"
       },
       "devDependencies": {
             "@eslint/js": "^9.39.4",
@@ -54,6 +48,7 @@
             "lint": "eslint src",
             "format": "prettier --write src",
             "test": "jest --runInBand",
+            "test:layout": "node scripts/test-layout.mjs",
             "test:master": "bash scripts/test-master.sh",
             "test:watch": "jest --watch",
             "test:coverage": "jest --coverage --runInBand"

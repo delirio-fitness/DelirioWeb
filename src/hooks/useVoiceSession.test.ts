@@ -17,10 +17,7 @@ let callbacks: Record<string, Callback>;
 let mockClient: {
   connected: boolean;
   disconnect: jest.Mock<Promise<void>, []>;
-  enableMic: jest.Mock;
   startBotAndConnect: jest.Mock<Promise<void>, [unknown]>;
-  updateMic: jest.Mock;
-  updateSpeaker: jest.Mock;
 };
 let mockAudio: {
   autoplay: boolean;
@@ -35,10 +32,7 @@ beforeEach(() => {
   mockClient = {
     connected: false,
     disconnect: jest.fn().mockResolvedValue(undefined),
-    enableMic: jest.fn(),
     startBotAndConnect: jest.fn().mockResolvedValue(undefined),
-    updateMic: jest.fn(),
-    updateSpeaker: jest.fn(),
   };
   mockAudio = {
     autoplay: false,
@@ -62,9 +56,6 @@ beforeEach(() => {
     return mockClient;
   }) as never);
 
-  jest.spyOn(console, 'log').mockImplementation(() => undefined);
-  jest.spyOn(console, 'warn').mockImplementation(() => undefined);
-  jest.spyOn(console, 'error').mockImplementation(() => undefined);
 });
 
 afterEach(() => {
@@ -86,7 +77,7 @@ describe('classifyVoiceFailure', () => {
 });
 
 describe('useVoiceSession', () => {
-  it('connects, responds to transport callbacks, and controls session devices', async () => {
+  it('connects, responds to bot readiness, and disconnects cleanly', async () => {
     jest.useFakeTimers();
     const { result, unmount } = renderHook(() => useVoiceSession({
       personality: 'iris',
@@ -107,29 +98,12 @@ describe('useVoiceSession', () => {
     expect(mockAudio.play).toHaveBeenCalled();
 
     act(() => {
-      callbacks.onTransportStateChanged('ready' as never);
       callbacks.onBotReady();
     });
 
     expect(result.current.sessionState).toBe('connecting');
     act(() => jest.advanceTimersByTime(VOICE_CONNECTION_STABILITY_MS));
     expect(result.current.sessionState).toBe('connected');
-    expect(result.current.transportState).toBe('ready');
-
-    act(() => result.current.toggleMic());
-    expect(result.current.isMicMuted).toBe(true);
-    expect(mockClient.enableMic).toHaveBeenCalledWith(false);
-
-    act(() => result.current.toggleSpeakerMute());
-    expect(result.current.isSpeakerMuted).toBe(true);
-    expect(mockAudio.muted).toBe(true);
-
-    act(() => {
-      result.current.updateMic('mic-2');
-      result.current.updateSpeaker('speaker-2');
-    });
-    expect(mockClient.updateMic).toHaveBeenCalledWith('mic-2');
-    expect(mockClient.updateSpeaker).toHaveBeenCalledWith('speaker-2');
 
     await act(async () => {
       await result.current.disconnect();
@@ -203,7 +177,6 @@ describe('useVoiceSession', () => {
     act(() => callbacks.onError({ data: { message: 'Permission denied' } } as never));
     await waitFor(() => expect(result.current.sessionState).toBe('error'));
     expect(result.current.failureKind).toBe('permission-denied');
-    expect(result.current.error).toBe('Permission denied');
   });
 
   it('classifies rejected connection attempts and supports cancellation before a client exists', async () => {
@@ -216,7 +189,6 @@ describe('useVoiceSession', () => {
 
     expect(result.current.sessionState).toBe('error');
     expect(result.current.failureKind).toBe('network');
-    expect(result.current.retryAttempt).toBe(0);
 
     await act(async () => {
       await result.current.cancelConnect();

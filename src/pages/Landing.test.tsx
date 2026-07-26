@@ -13,8 +13,6 @@ jest.mock('../utils/pipecatConfig', () => ({
 jest.mock('../hooks/useVoiceSession', () => ({
   useVoiceSession: () => ({
     sessionState: 'idle',
-    isMicMuted: false,
-    isSpeakerMuted: false,
     isBotSpeaking: false,
     isBotProcessing: false,
     isUserSpeaking: false,
@@ -22,12 +20,11 @@ jest.mock('../hooks/useVoiceSession', () => ({
     botTurns: [],
     userTranscript: '',
     failureKind: null,
-    retryAttempt: 0,
+    frequencyLevels: Array(16).fill(0),
+    isFrequencyListening: false,
     connect,
     disconnect,
     cancelConnect: disconnect,
-    toggleMic: jest.fn(),
-    toggleSpeakerMute: jest.fn(),
   }),
 }));
 

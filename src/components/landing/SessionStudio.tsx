@@ -2,6 +2,7 @@ import { useEffect, useRef, type FormEvent, type RefObject } from 'react';
 import type { ChatMessage, TextConnectionState } from '../../hooks/useTextChat';
 import type { VoiceFailureKind, VoiceSessionState } from '../../hooks/useVoiceSession';
 import { coachProfiles, type CoachId } from '../../content/landingContent';
+import { VoiceFrequencyWaveform } from './VoiceFrequencyWaveform';
 
 export type SessionMode = 'voice' | 'text';
 
@@ -21,8 +22,6 @@ type Props = {
   onModeChange: (mode: SessionMode) => void;
   voice: {
     sessionState: VoiceSessionState;
-    isMicMuted: boolean;
-    isSpeakerMuted: boolean;
     isBotSpeaking: boolean;
     isBotProcessing: boolean;
     isUserSpeaking: boolean;
@@ -30,13 +29,12 @@ type Props = {
     botTurns: string[];
     userTranscript: string;
     failureKind: VoiceFailureKind | null;
-    retryAttempt: number;
+    frequencyLevels: readonly number[];
+    isFrequencyListening: boolean;
     hasEnded: boolean;
     onStart: () => void;
     onCancel: () => void;
     onEnd: () => void;
-    onToggleMic: () => void;
-    onToggleSpeaker: () => void;
   };
   text: {
     messages: ChatMessage[];
@@ -44,7 +42,6 @@ type Props = {
     isLoading: boolean;
     connectionState: TextConnectionState;
     error: string | null;
-    failedMessage: string | null;
     onInputChange: (value: string) => void;
     onSubmit: (event: FormEvent<HTMLFormElement>) => void;
     onRetry: () => void;
@@ -60,7 +57,7 @@ export function SessionStudio({ selectedCoach, onSelectCoach, mode, onModeChange
   }, [text.messages, text.isLoading]);
 
   return (
-    <section id="session" className="coach-trial" aria-labelledby="coach-trial-title">
+    <section id="session" className={`coach-trial coach-trial--${mode}`} aria-labelledby="coach-trial-title">
       <span id="coaches" className="coach-trial__anchor" aria-hidden="true" />
       <div className="coach-trial__intro">
         <h2 id="coach-trial-title">CHOOSE A COACH.<br />THEN TALK OR TYPE.</h2>
@@ -117,14 +114,17 @@ function VoiceStage({ coach, voice }: { coach: (typeof coachProfiles)[CoachId]; 
     if (voice.isUserSpeaking) status = 'LISTENING TO YOU';
     else if (voice.isBotSpeaking) status = `${coach.name.toUpperCase()} IS SPEAKING`;
     else if (voice.isBotProcessing) status = 'THINKING';
-    else status = voice.isMicMuted ? 'MICROPHONE MUTED' : 'CONNECTED';
+    else status = 'CONNECTED';
   }
   if (voice.sessionState === 'error') status = failureMessages[voice.failureKind ?? 'unknown'];
   if (voice.hasEnded && voice.sessionState === 'idle') status = 'SESSION ENDED';
 
   const transcript = [...voice.botTurns, voice.botTranscript].filter(Boolean).at(-1) || voice.userTranscript;
 
-  return <div className="coach-trial__stage coach-trial__stage--voice coach-trial__mode-content">
+  return <div className={`coach-trial__stage coach-trial__stage--voice coach-trial__mode-content ${voice.isBotSpeaking ? 'is-coach-speaking' : ''}`}>
+    {(voice.sessionState === 'connecting' || voice.sessionState === 'connected') && <div className="coach-trial__voice-presence" aria-hidden="true">
+      <VoiceFrequencyWaveform levels={voice.frequencyLevels} isListening={voice.isFrequencyListening} />
+    </div>}
     <img className="coach-trial__stage-portrait" src={coach.avatar} alt={`${coach.name}, selected AI fitness coach`} />
     <div className="coach-trial__voice-content">
       <p className="coach-trial__session-label">{coach.name.toUpperCase()} / VOICE SESSION</p>
@@ -148,7 +148,7 @@ function TextStage({ coach, text, chatRef }: { coach: (typeof coachProfiles)[Coa
         <p className="coach-trial__session-label">{coach.name.toUpperCase()} / WEB CHAT</p>
       </div>
       <div className="coach-trial__message-viewport">
-        <p className={`coach-trial__chat-ghost ${text.messages.length ? 'is-hidden' : ''}`} aria-hidden={text.messages.length > 0}>Coaches are here to support, guide, and instruct. <br/> Ask anything…</p>
+        <p className={`coach-trial__chat-ghost ${text.messages.length ? 'is-hidden' : ''}`} aria-hidden={text.messages.length > 0}>...coaches are here to support, guide, and instruct. Ask anything…</p>
         {text.messages.length || hasConnectionStatus ? <div ref={chatRef} className="coach-trial__messages" aria-live="polite">
           {text.messages.map((message, index) => <p className={message.role} key={`${message.role}-${index}`}><b>{message.role === 'user' ? 'YOU' : coach.name.toUpperCase()}</b>{message.text}</p>)}
           {text.error ? <p className="coach-trial__connection-status is-error" role="alert">CONNECTION FAILED · <button type="button" onClick={text.onRetry}>RETRY</button></p> : text.connectionState === 'responding' ? <p className="coach-trial__connection-status">{coach.name.toUpperCase()} IS RESPONDING…</p> : text.connectionState === 'connecting' ? <p className="coach-trial__connection-status">CONNECTING…</p> : null}

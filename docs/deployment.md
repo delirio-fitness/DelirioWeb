@@ -11,7 +11,9 @@
 - `VITE_APP_STORE_URL` — production Delirio App Store listing. The code temporarily falls back to `https://apps.apple.com/`; replacing that placeholder is a release blocker.
 - `VITE_CHAT_ENGINE_URL` — production text-chat engine.
 - `VITE_PIPECAT_BACKEND_URL` — production voice engine.
-- `VITE_TRIGGER_API_KEY` — Pipecat trigger key.
+
+The live voice waveform uses the remote audio track already delivered by
+Pipecat and requires no additional environment variable or websocket endpoint.
 
 Vite inlines `VITE_*` variables at build time, so changes require a rebuild and redeploy.
 
@@ -21,7 +23,7 @@ Vite inlines `VITE_*` variables at build time, so changes require a rebuild and 
 - Verify `/`, `/terms-of-service`, `/privacy-policy`, and `/data-deletion`.
 - Verify `/terms` and `/privacy` still return their configured redirects.
 - Run `npm test`, `npm run typecheck`, `npm run lint`, and `npm run build`.
-- Test coach selection, text error/retry, microphone permission, voice connect/mute/end/retry, FAQ deep links, and pricing.
+- Test coach selection, text error/retry, microphone permission, voice connect/mute/end/retry, the live coach-audio waveform, FAQ deep links, and pricing.
 - Check 390×844, 820×1180, 1440×900, and 320px reflow.
 - Confirm the static release does not contain the prototype MP4.
 

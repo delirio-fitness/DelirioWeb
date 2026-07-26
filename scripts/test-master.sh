@@ -12,7 +12,7 @@ usage() {
 Usage: ./scripts/test-master.sh [suite ...]
 
 Suites:
-  all          Jest + accessibility + MSW + types + lint + build (default)
+  all          Jest + accessibility + MSW + types + lint + build + layout (default)
   jest         All Jest tests
   ui           React Testing Library component and page tests
   a11y         jest-axe accessibility tests
@@ -21,6 +21,7 @@ Suites:
   types        TypeScript validation
   lint         ESLint validation
   build        Production build
+  layout       Playwright spacing, overlap, and overflow contracts
   quality      Types + lint
   file PATH    Run one specific Jest test file
   list         Show available suites
@@ -41,6 +42,7 @@ run_suite() {
       npx tsc --noEmit --pretty false
       npx eslint src --quiet
       npx vite build --logLevel error
+      node scripts/test-layout.mjs
       ;;
     jest)
       run_jest
@@ -65,6 +67,9 @@ run_suite() {
       ;;
     build)
       npx vite build --logLevel error
+      ;;
+    layout|ux|spacing)
+      node scripts/test-layout.mjs
       ;;
     quality)
       npx tsc --noEmit --pretty false

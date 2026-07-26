@@ -31,7 +31,7 @@ export default [
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       // Cosmetic; literal quotes/apostrophes render fine in React JSX.
-      'react/no-unescaped-entities': 'warn',
+      'react/no-unescaped-entities': 'off',
       // New in eslint-plugin-react-hooks v7; existing patterns are intentional and out of scope to refactor here.
       'react-hooks/set-state-in-effect': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',

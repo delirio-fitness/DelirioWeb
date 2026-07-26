@@ -22,7 +22,7 @@ Shared coach data lives in `src/content/landingContent.ts`. Production pricing a
 
 ### Voice
 
-`useVoiceSession` wraps Pipecat with Daily transport. It exposes transport state, classified failures, retry attempt, mic/speaker mute, bot processing/speaking, user speaking, transcripts, connect, cancel/disconnect, and device updates. The UI derives user-facing states only from observable hook values.
+`useVoiceSession` wraps Pipecat with Daily transport. It exposes classified failures, retry state, bot processing/speaking, user speaking, transcripts, and connection controls. The UI derives user-facing states only from observable hook values. Remote coach audio also feeds the browser-side frequency listener described in [Pipecat voice waveform](./voice-waveform.md).
 
 ### Text
 
