@@ -18,7 +18,7 @@ describe('HeroExperiment', () => {
     expect(screen.getByRole('link')).toHaveAttribute('href', '#coaches');
   });
 
-  it.each(['?hero=v1', '?hero=v2.3', '?hero=v3'])(
+  it.each(['?hero=v1', '?hero=v2.3'])(
     'makes the %s background video eligible for autoplay',
     (search) => {
       window.history.replaceState({}, '', `/${search}`);
@@ -32,6 +32,12 @@ describe('HeroExperiment', () => {
       expect(video).toHaveAttribute('preload', 'auto');
     },
   );
+
+  it('uses a static background image for the default Hero V3', () => {
+    const { container } = render(<HeroExperiment />);
+    expect(container.querySelector('.d3-hero-image')).toBeInstanceOf(HTMLImageElement);
+    expect(container.querySelector('video')).not.toBeInTheDocument();
+  });
 
   it('renders the minimal tactical strip in Hero V2.3', () => {
     window.history.replaceState({}, '', '/?hero=v2.3');

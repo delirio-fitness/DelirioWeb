@@ -4,8 +4,6 @@ const proofItems = [
   ['03', 'CHOOSE THE NEXT MOVE', 'Continue, adjust, or stop when you need to.'],
 ] as const;
 
-const waveHeights = [18, 38, 60, 32, 74, 46, 24, 55, 34, 68, 42, 20];
-
 export function VoiceCoachingSection({ onStartVoice }: { onStartVoice: () => void }) {
   return (
     <section className="d3-voice-product" aria-labelledby="voice-product-title">
@@ -32,19 +30,15 @@ export function VoiceCoachingSection({ onStartVoice }: { onStartVoice: () => voi
           <div><strong>NEXT MOVE</strong><p><b>20 seconds more rest</b><b>Keep or reduce the load</b><b>Continue when ready</b></p></div>
         </div>
 
-        <div className="d3-voice-phone" aria-label="Illustration of an in-app voice coaching session with Iris">
-          <div className="d3-phone-shell">
-            <div className="d3-phone-island" aria-hidden="true" />
-            <span className="d3-phone-time">9:41</span><span className="d3-phone-status">••• 100%</span>
-            <p className="d3-phone-kicker">VOICE COACHING / IN APP</p>
-            <div className="d3-phone-avatar">I</div>
-            <h3>IRIS</h3><small>LIVE COACHING SESSION</small><strong className="d3-phone-duration">12:48</strong>
-            <div className="d3-phone-wave" aria-hidden="true">{waveHeights.map((height, index) => <i key={index} style={{ height }} />)}</div>
-            <div className="d3-phone-actions"><span>MUTE</span><span>AUDIO</span><span className="is-end">END</span></div>
-            <p className="d3-phone-permission">MICROPHONE ACCESS ONLY AFTER START</p>
-          </div>
+        <div className="d3-voice-phone">
+          <PhoneScreenshotFrame
+            src={midSetVoiceCoaching}
+            alt="Delirio coaching during a rest period, showing the next set, coach guidance, and rest timer"
+          />
         </div>
       </div>
     </section>
   );
 }
+import midSetVoiceCoaching from '../../images/appScreenshots/midSetVoiceCoaching.png';
+import { PhoneScreenshotFrame } from './PhoneScreenshotFrame';

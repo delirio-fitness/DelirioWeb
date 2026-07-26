@@ -1,4 +1,4 @@
-import heroVideo from '../../assets/videos/hero-prototype.mp4';
+import heroImage from '../../assets/images/7200586.jpg';
 import heroText from '../../content/heroText.json';
 import { HeroTypewriterWord } from './HeroTypewriterWord';
 
@@ -7,7 +7,7 @@ const content = heroText.heroTextV2;
 /** V3 — focused adaptive-coaching promise without secondary tracking UI. */
 export function HeroV3() {
   return <section className="d3-hero d3-hero--v3" aria-labelledby="hero-v3-title">
-    <video className="d3-hero-video" autoPlay loop muted playsInline preload="auto" aria-hidden="true"><source src={heroVideo} type="video/mp4" /></video>
+    <img className="d3-hero-image" src={heroImage} alt="" aria-hidden="true" />
     <div className="d3-hero-contrast" aria-hidden="true" />
     <div className="d3-hero-content">
       <div className="d3-hero-copy">

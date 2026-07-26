@@ -33,6 +33,7 @@ html, body, #root { margin:0; padding:0; width:100%; }
 .d3-hero.d3-hero--v3 { height:100vh; height:100dvh; min-height:0; }
 .d3-hero::after { background:linear-gradient(180deg,rgba(13,13,13,0) 0%,rgba(13,13,13,.22) 35%,rgba(13,13,13,.68) 72%,#0d0d0d 100%); bottom:0; content:''; height:190px; left:0; pointer-events:none; position:absolute; right:0; z-index:1; }
 .d3-hero-video { height:100%; inset:0; object-fit:cover; position:absolute; width:100%; z-index:-1; }
+.d3-hero-image { height:100%; inset:0; object-fit:cover; object-position:center; position:absolute; width:100%; z-index:-1; }
 .d3-hero-contrast { background:linear-gradient(90deg,rgba(0,0,0,.78) 0%,rgba(0,0,0,.62) 35%,rgba(0,0,0,.2) 68%,rgba(0,0,0,.06) 100%); inset:0; pointer-events:none; position:absolute; z-index:0; }
 .d3-hero-content { display:flex; flex-direction:column; gap:calc(2rem + 2.5vh); left:clamp(48px,6.25vw,90px); position:absolute; right:clamp(48px,6.25vw,90px); top:20vh; z-index:2; }
 .d3-hero-copy { align-items:flex-start; display:flex; flex-direction:column; gap:calc(1rem + .8vw); max-width:calc(45rem + 10vw); text-align:left; width:100%; }
@@ -123,8 +124,8 @@ html, body, #root { margin:0; padding:0; width:100%; }
 .d3-voice-proofs article>strong { font:700 18px/22px 'Space Grotesk',sans-serif; }
 .d3-voice-proofs h3 { font:700 11px/14px 'DM Sans',sans-serif; letter-spacing:1.2px; margin:2px 0 14px; }
 .d3-voice-proofs p { color:#b5ad9c; font-size:12px; line-height:18px; margin:0; }
-.d3-voice-visuals { align-items:flex-start; display:flex; flex:0 0 630px; gap:28px; justify-content:space-between; }
-.d3-live-context { background:transparent; border:0; color:#12130f; height:486px; margin-top:170px; padding:19px 17px; width:232px; }
+.d3-voice-visuals { align-items:flex-start; display:flex; flex:0 0 630px; gap:28px; justify-content:center; }
+.d3-live-context { background:transparent; border:0; color:#12130f; display:none; height:486px; margin-top:170px; padding:19px 17px; width:232px; }
 .d3-live-context h3 { color:rgba(18,19,15,.65); font:700 10px/14px 'DM Sans',sans-serif; letter-spacing:1.3px; margin:0 0 33px; }
 .d3-live-context>div { padding-bottom:25px; position:relative; }
 .d3-live-context>div::after { background:rgba(18,19,15,.3); bottom:0; content:""; height:1px; left:0; position:absolute; right:-45px; }
@@ -136,6 +137,7 @@ html, body, #root { margin:0; padding:0; width:100%; }
 .d3-live-context p { color:#12130f; font-size:14px; line-height:21px; margin:0; }
 .d3-live-context p b { display:block; font-size:12px; line-height:20px; }
 .d3-voice-phone { height:797px; margin-top:72px; width:370px; }
+.d3-voice-phone .d3-iphone-frame { height:100%; width:100%; }
 .d3-phone-shell { background:#090909; border:1px solid #57544d; border-radius:42px; color:#f4f0e7; height:560px; overflow:hidden; position:relative; transform:scale(1.423); transform-origin:top left; width:260px; }
 .d3-phone-island { background:#040404; border-radius:12px; height:23px; left:85px; position:absolute; top:10px; width:70px; }
 .d3-phone-time,.d3-phone-status { font-size:6px; font-weight:700; position:absolute; top:14px; }.d3-phone-time { left:12px; }.d3-phone-status { right:12px; }
@@ -243,6 +245,7 @@ html, body, #root { margin:0; padding:0; width:100%; }
 .d3-plan-live-menu button span { display:block; }.d3-plan-live-menu strong { display:block; font:700 12px/17px 'DM Sans'; letter-spacing:.2px; }.d3-plan-live-menu small { color:#6b695e; display:block; font:400 10px/15px 'DM Sans'; margin-top:18px; }.d3-plan-live-menu button.is-active small { color:#dbd6c9; }
 .d3-plan-live-stage { align-items:center; background:transparent; display:flex; height:850px; justify-content:center; left:280px; overflow:hidden; position:absolute; top:132px; width:640px; }
 .d3-plan-live-capture { animation:d3-sequence-content-in 280ms ease both; height:661px; width:307px; }
+.d3-plan-live-capture .d3-iphone-screen img { height:calc(100% + 12px); object-position:center top; transform:translateY(-12px); }
 .d3-iphone-frame { background:linear-gradient(115deg,#303136 0%,#242529 45%,#18191c 100%); border:1px solid #111216; border-radius:52px; box-shadow:0 18px 38px rgba(0,0,0,.2); box-sizing:border-box; height:100%; padding:5px; position:relative; width:100%; }
 .d3-iphone-screen { background:#000; border:7px solid #08090a; border-radius:46px; box-sizing:border-box; height:100%; overflow:hidden; position:relative; width:100%; }
 .d3-iphone-screen img { display:block; height:100%; object-fit:cover; width:100%; }
