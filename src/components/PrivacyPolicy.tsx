@@ -131,6 +131,25 @@ export default function PrivacyPolicy() {
           during workouts &mdash; is sent to those services to make these features work. Before these features are first
           used, we ask for your consent.
         </p>
+        <p className="mb-4">We currently use the following AI providers:</p>
+        <ul className="mb-4 list-disc pl-6">
+          <li>
+            <strong>ElevenLabs</strong> &mdash; receives your microphone audio during voice coaching, to understand what
+            you say and to generate your coach&rsquo;s voice.
+          </li>
+          <li>
+            <strong>OpenAI</strong> &mdash; receives your conversations with your coach, in both voice and text, to
+            generate your coach&rsquo;s responses.
+          </li>
+          <li>
+            <strong>Google (Gemini)</strong> &mdash; receives short clips of your workout video, as the vision step
+            inside our own form-analysis pipeline, which turns the result into your coach&rsquo;s feedback.
+          </li>
+        </ul>
+        <p className="mb-4">
+          These providers process your data on our behalf to deliver the features described above. If we change AI
+          providers, we will update this policy and the in-app disclosure before the change takes effect.
+        </p>
         <p className="mb-4">
           You can review what is shared and withdraw or re-grant your consent at any time in the app under{" "}
           <strong>Settings → Data &amp; AI</strong>. Withdrawing consent turns off camera form feedback.
@@ -148,6 +167,7 @@ export default function PrivacyPolicy() {
           </li>
           <li>
             <strong>AI service providers</strong> for voice conversations, camera form analysis, and text coaching
+            (named individually under <strong>AI Features and Your Consent</strong> above)
           </li>
           <li>
             <strong>Analytics and diagnostics providers</strong> to understand usage and diagnose crashes and
