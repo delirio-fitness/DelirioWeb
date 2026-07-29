@@ -53,6 +53,7 @@ describe('HeroExperiment', () => {
     expect(screen.getByRole('heading', { name: /your energy shifts.*your coach adapts.*get fit.*stay fit.*keep going/i })).toBeInTheDocument();
     expect(screen.getAllByText(/^YOU$/)).toHaveLength(1);
     expect(screen.getAllByText('TAKE A QUIZ')).toHaveLength(2);
+    expect(screen.getByText('SEE HOW DELIRIO CAN HELP YOU')).toBeInTheDocument();
     expect(screen.getByText('ADAPTIVE PLANS / LIVE GUIDANCE / CHECK-INS / CONTINUITY')).toBeInTheDocument();
     expect(screen.getByLabelText(/context updated.*next step ready/i)).toBeInTheDocument();
   });

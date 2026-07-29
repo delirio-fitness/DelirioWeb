@@ -160,7 +160,7 @@ describe('FeedbackSection', () => {
     window.localStorage.setItem('delirio_feedback_browser_id', 'browser_id_1234567890');
     const user = await openQuestionnaire();
 
-    for (const answer of [
+    const questionnaireAnswers = [
       'No',
       'Not really',
       'I stay active, but planning it takes too much effort',
@@ -170,14 +170,23 @@ describe('FeedbackSection', () => {
       'When planning the week',
       'It gets pushed to later',
       'Wasting the limited time I have',
-    ]) {
+    ];
+
+    for (const [index, answer] of questionnaireAnswers.entries()) {
       const selectedOption = await screen.findByRole('radio', { name: answer });
       expect(screen.getAllByRole('radio').length).toBeLessThanOrEqual(4);
       await user.click(selectedOption);
-      expect(
-        screen.getAllByRole('radio').filter((option) => (option as HTMLInputElement).checked),
-      ).toHaveLength(1);
+      if (index < questionnaireAnswers.length - 1) {
+        expect(
+          screen.getAllByRole('radio').filter((option) => (option as HTMLInputElement).checked),
+        ).toHaveLength(1);
+      }
     }
+
+    expect(screen.getByRole('status')).toHaveTextContent(
+      /consulting the committee about what will work for you/i,
+    );
+    expect(screen.queryByText(/saving your answers/i)).not.toBeInTheDocument();
 
     await waitFor(() => expect(submitFeedbackMock).toHaveBeenCalledTimes(1));
     const [browserId, payload] = submitFeedbackMock.mock.calls[0];
@@ -240,7 +249,11 @@ describe('FeedbackSection', () => {
         },
       ],
     });
-    const result = await screen.findByRole('status');
+    const resultHeading = await screen.findByRole('heading', {
+      name: /here is how delirio can help you/i,
+    });
+    await waitFor(() => expect(resultHeading).toHaveFocus());
+    const result = screen.getByRole('status');
     expect(result).toHaveTextContent(/here is how delirio can help you/i);
     expect(result).toHaveTextContent(/a plan built to handle schedule changes/i);
     expect(result).toHaveTextContent(/coaching that does not add another appointment/i);
@@ -311,5 +324,25 @@ describe('FeedbackSection', () => {
     await user.click(launchButton);
     expect(screen.getByLabelText('Question 1 of 5')).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'No' })).not.toBeChecked();
+  });
+
+  it('advances when a previously selected answer is clicked again after going back', async () => {
+    const user = await openQuestionnaire();
+
+    await user.click(screen.getByRole('radio', { name: 'No' }));
+    await screen.findByRole('heading', {
+      name: /has a change in your body, energy, or schedule ever disrupted your training/i,
+    });
+
+    await user.click(screen.getByRole('button', { name: /back/i }));
+    const previousAnswer = screen.getByRole('radio', { name: 'No' });
+    expect(previousAnswer).toBeChecked();
+
+    await user.click(previousAnswer);
+    expect(
+      await screen.findByRole('heading', {
+        name: /has a change in your body, energy, or schedule ever disrupted your training/i,
+      }),
+    ).toBeInTheDocument();
   });
 });

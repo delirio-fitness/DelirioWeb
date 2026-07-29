@@ -1883,7 +1883,7 @@ body,
   background: #f4f0e7;
   border-radius: var(--radius-section);
   color: #12130f;
-  height: 1200px;
+  height: 1000px;
   left: 50%;
   margin: 0;
   margin-top: clamp(120px, 12vw, 200px);
@@ -3329,7 +3329,7 @@ body,
   grid-template-columns: 1fr 352px 450px;
   margin: 0 auto;
   max-width: 1320px;
-  min-height: 1035px;
+  min-height: 0;
   padding: 35px 58px;
 }
 .d3-pricing-intro {
@@ -3664,11 +3664,36 @@ body,
   letter-spacing: 0 !important;
   margin: 16px 0 0 !important;
 }
-.d3-questionnaire-saving {
-  color: #6b685e !important;
-  font: 700 10px/14px 'Exo 2' !important;
-  letter-spacing: 1px !important;
-  margin: 18px 0 0 !important;
+.d3-questionnaire-loading {
+  align-items: center;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 0;
+  padding: 48px 32px 96px;
+  text-align: center;
+}
+.d3-questionnaire-loading-icon {
+  animation: d3-questionnaire-loading-spin 850ms linear infinite;
+  border: 3px solid rgba(18, 19, 15, 0.2);
+  border-radius: 50%;
+  border-top-color: #64715d;
+  height: 52px;
+  margin-bottom: 28px;
+  width: 52px;
+}
+.d3-questionnaire-loading h2 {
+  font: 700 clamp(24px, 3vw, 38px)/1.12 'Exo 2';
+  letter-spacing: -0.025em;
+  margin: 0;
+  max-width: 680px;
+  outline: 0;
+}
+@keyframes d3-questionnaire-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 .d3-questionnaire-success {
   margin: auto;
@@ -3729,7 +3754,7 @@ body,
   grid-template-rows: auto 1fr;
   margin: auto;
   max-width: 1320px;
-  min-height: 1035px;
+  min-height: 780px;
   overflow: hidden;
   padding: 58px;
   row-gap: 24px;
@@ -3820,6 +3845,17 @@ body,
   height: 18px;
   justify-self: end;
   width: 18px;
+}
+.d3-faq-more button {
+  cursor: pointer;
+  display: flex;
+  min-height: 64px;
+  width: auto;
+}
+.d3-faq-more button b {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
 }
 .d3-faq-list article > div p {
   color: #6b685e;
@@ -3912,10 +3948,14 @@ body,
   .d3-hero,
   .d3-page .coach-trial,
   .d3-plan-live,
-  .d3-pricing-wrap,
-  .d3-faq-wrap {
+  .d3-pricing-wrap {
     height: 1400px;
     min-height: 1400px;
+  }
+
+  .d3-plan-live {
+    height: 1050px;
+    min-height: 1050px;
   }
 
   .d3-page .coach-trial {
@@ -4087,8 +4127,9 @@ body,
 }
 .d3-wishlist-brand span {
   color: var(--paper);
+  font-family: 'Exo 2', sans-serif;
   font-size: 34px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.035em;
   line-height: 1;
 }
@@ -4281,7 +4322,7 @@ body,
 
 @media (max-width: 1399px) {
   .d3-plan-live {
-    height: 1320px;
+    height: 1000px;
   }
   .d3-sequence-content {
     position: static;
@@ -4464,30 +4505,30 @@ body,
     height: 90px;
   }
   .d3-plan-live {
-    height: 1200px;
+    height: 830px;
     margin: 0;
     margin-top: clamp(80px, 10vw, 140px);
-    min-height: 1200px;
+    min-height: 830px;
     padding: 0;
   }
   .d3-plan-live-canvas {
     display: flex;
     flex-direction: column;
     gap: 0;
-    height: 1200px;
+    height: 830px;
     inset: auto;
-    min-height: 1200px;
-    padding: 64px 20px 62px;
+    min-height: 830px;
+    padding: 44px 20px 40px;
     position: relative;
   }
   .d3-plan-live-menu {
     display: flex;
-    gap: 10px;
+    gap: 24px;
     left: auto;
     margin-inline: -20px;
     order: 1;
     overflow-x: auto;
-    padding: 4px 20px 12px;
+    padding: 4px 20px 10px;
     position: relative;
     scrollbar-width: none;
     scroll-padding-inline: 20px;
@@ -4501,82 +4542,60 @@ body,
   }
   .d3-plan-live-menu button {
     align-items: center;
-    background: rgba(244, 240, 231, 0.88);
-    border: 1px solid rgba(18, 19, 15, 0.38);
-    border-radius: 999px;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
     display: flex;
     flex: 0 0 auto;
     gap: 8px;
     grid-template-columns: none;
     isolation: isolate;
-    min-height: 40px;
-    opacity: 0.52;
-    padding: 0 14px;
+    height: 34px;
+    min-height: 34px;
+    opacity: 0.45;
+    padding: 0 1px;
     scroll-snap-align: center;
     transform: none;
   }
-  .d3-plan-live-menu button::before {
+  .d3-plan-live-menu button::before,
+  .d3-plan-live-menu button::after {
     content: none;
   }
-  .d3-plan-live-menu button::after {
-    background: #12130f;
-    border-radius: inherit;
-    bottom: 0;
-    height: 100%;
-    left: 0;
-    top: 0;
-    width: 0;
-    z-index: 0;
-  }
-  .d3-plan-live-menu button[data-progress-cycle='0']::after {
-    animation: d3-plan-pill-progress-a var(--sequence-duration) linear forwards;
-  }
-  .d3-plan-live-menu button[data-progress-cycle='1']::after {
-    animation: d3-plan-pill-progress-b var(--sequence-duration) linear forwards;
-  }
-  .d3-plan-live-menu button.is-active,
-  .d3-plan-live-menu button.is-complete {
-    border-color: #12130f;
+  .d3-plan-live-menu button.is-active {
     opacity: 1;
     transform: none;
   }
   .d3-plan-live-menu button.is-active {
-    min-height: 56px;
-    padding-inline: 24px;
+    height: 34px;
+    min-height: 34px;
   }
-  .d3-plan-live-menu button.is-complete::after {
-    animation: none;
-    width: 100%;
-  }
-  .d3-plan-live-menu button > b,
   .d3-plan-live-menu button > span {
-    color: #f4f0e7;
-    mix-blend-mode: difference;
+    color: #12130f;
     position: relative;
     z-index: 1;
   }
-  .d3-plan-live-menu button > b {
-    font-size: 12px;
-    line-height: 1;
-  }
   .d3-plan-live-menu strong {
-    font-size: 11px;
+    font-size: 12px;
     letter-spacing: 0.04em;
     line-height: 1;
+    transition: font-size 180ms ease;
     white-space: nowrap;
   }
   .d3-plan-live-menu button.is-active strong {
-    font-size: 15px;
+    font-size: 17px;
     line-height: 1;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
   }
   .d3-plan-live-menu small {
     display: none;
   }
   .d3-plan-live-editorial {
-    flex: 0 0 370px;
-    height: 370px;
+    flex: 0 0 300px;
+    height: 300px;
     left: auto;
-    margin-top: 44px;
+    margin-top: 20px;
     order: 3;
     position: relative;
     top: auto;
@@ -4590,18 +4609,19 @@ body,
   }
   .d3-plan-live .d3-plan-live-editorial h2 {
     font-size: 34px;
-    line-height: 1.02;
+    line-height: 1;
+    margin-bottom: 20px;
   }
   .d3-plan-live-body {
     width: 100%;
   }
   .d3-plan-live .d3-plan-live-body {
-    font-size: 18px;
-    line-height: 1.42;
+    font-size: 17px;
+    line-height: 1.35;
   }
   .d3-plan-live-voice-cta {
     height: 60px;
-    margin-top: 28px;
+    margin-top: 20px;
     max-width: 100%;
     width: 290px;
   }
@@ -4610,10 +4630,10 @@ body,
   }
   .d3-plan-live-stage {
     bottom: auto;
-    flex: 0 0 540px;
-    height: 540px;
+    flex: 0 0 270px;
+    height: 270px;
     left: auto;
-    margin-top: 44px;
+    margin-top: 18px;
     order: 2;
     position: relative;
     right: auto;
@@ -4622,9 +4642,9 @@ body,
     width: 100%;
   }
   .d3-plan-live-capture {
-    height: 480px;
-    max-width: 240px;
-    width: 68%;
+    height: 240px;
+    max-width: 120px;
+    width: 34%;
   }
   .d3-plan-live-capture--photo {
     height: auto;
@@ -4632,9 +4652,9 @@ body,
     width: auto;
   }
   .d3-plan-live-capture--coach-collage {
-    height: 500px;
-    max-width: 430px;
-    width: 100%;
+    height: 250px;
+    max-width: 215px;
+    width: 50%;
   }
   .d3-coach-collage {
     gap: 8px;
@@ -4649,34 +4669,34 @@ body,
     font-size: 8px;
   }
   .d3-coach-chat {
-    gap: 7px;
+    gap: 5px;
   }
   .d3-coach-chat.is-woman {
-    right: 5px;
-    top: 9px;
-    width: 52%;
+    right: 4px;
+    top: 10px;
+    width: 76%;
   }
   .d3-coach-chat.is-man {
-    left: 4px;
-    top: 4px;
-    width: 50%;
+    left: 3px;
+    top: 8px;
+    width: 88%;
   }
   .d3-coach-chat__row {
-    gap: 4px;
+    gap: 3px;
   }
   .d3-coach-chat__avatar {
-    flex-basis: 24px;
-    height: 24px;
-    width: 24px;
+    flex-basis: 18px;
+    height: 18px;
+    width: 18px;
   }
   .d3-coach-chat__bubble {
-    border-radius: 12px;
-    font-size: 8px;
-    line-height: 1.2;
-    padding: 7px 8px;
+    border-radius: 10px;
+    font-size: 7px;
+    line-height: 1.18;
+    padding: 5px 6px;
   }
   .d3-coach-chat__row.is-coach .d3-coach-chat__bubble {
-    max-width: calc(100% - 28px);
+    max-width: calc(100% - 21px);
   }
   .d3-coach-chat__row.is-user .d3-coach-chat__bubble {
     border-bottom-right-radius: 3px;
@@ -4688,17 +4708,17 @@ body,
     width: 8px;
   }
   .d3-plan-live-capture--channels {
-    height: 500px;
+    height: 250px;
     max-width: none;
-    width: 100%;
+    width: 50%;
   }
   .d3-plan-live-channel-phones {
-    height: 420px;
-    max-width: 350px;
+    height: 210px;
+    max-width: 175px;
   }
   .d3-plan-live-channel-phone {
-    height: 410px;
-    width: 190px;
+    height: 205px;
+    width: 95px;
   }
   .d3-plan-live-channel-phone.is-app {
     right: 0;
@@ -4708,37 +4728,50 @@ body,
     top: 22px;
   }
   .d3-plan-live-channel-note {
-    border-radius: 18px;
-    gap: 10px;
-    grid-template-columns: 36px minmax(0, 1fr);
-    max-width: 330px;
-    padding: 10px 12px;
-    top: -40px;
-    width: 330px;
+    border-radius: 16px;
+    box-sizing: border-box;
+    gap: 9px;
+    grid-template-columns: 34px minmax(0, 1fr);
+    left: 80px;
+    max-width: none;
+    padding: 8px 10px;
+    top: -34px;
+    width: min(calc(100vw - 32px), 345px);
   }
   .d3-plan-live-notification-icon {
-    border-radius: 9px;
-    height: 36px;
-    width: 36px;
+    border-radius: 8px;
+    height: 34px;
+    width: 34px;
+  }
+  .d3-plan-live-notification-icon svg {
+    height: 20px;
+    width: 14px;
   }
   .d3-plan-live-notification-meta strong {
     font-size: 12px;
   }
+  .d3-plan-live-notification-meta time {
+    font-size: 9px;
+    white-space: nowrap;
+  }
   .d3-plan-live-notification-copy > b {
     font-size: 11px;
+    line-height: 1.15;
+    margin-bottom: 1px;
   }
   .d3-plan-live-notification-copy > span:last-child {
     font-size: 10px;
+    line-height: 1.2;
   }
   .d3-plan-live-capture--photo.is-square .d3-plan-live-photo {
-    height: calc(100vw - 24px);
-    max-height: 430px;
-    max-width: 430px;
-    width: calc(100vw - 24px);
+    height: min(calc(50vw - 12px), 215px);
+    max-height: 215px;
+    max-width: 215px;
+    width: min(calc(50vw - 12px), 215px);
   }
   .d3-plan-live-capture--photo.is-portrait .d3-plan-live-photo {
-    height: min(142vw, 570px);
-    width: calc(100vw - 24px);
+    height: min(71vw, 285px);
+    width: min(calc(50vw - 12px), 215px);
   }
   .d3-sequence-content {
     position: static;
@@ -5350,7 +5383,8 @@ body,
   .coach-trial__shell,
   .d3-faq-wrap,
   .d3-plan-live,
-  .d3-plan-live-background {
+  .d3-plan-live-background,
+  .d3-questionnaire-loading-icon {
     animation: none;
   }
   .d3-hero-typewriter::after {
@@ -5404,7 +5438,6 @@ body,
 .d3-plan > a,
 .d3-questionnaire-back,
 .d3-questionnaire-error,
-.d3-questionnaire-saving,
 .d3-faq-intro small,
 .d3-faq-categories button,
 .d3-faq-list button span,

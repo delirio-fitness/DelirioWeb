@@ -50,6 +50,8 @@ const faqCategoryLabels: Record<FaqCategory, string> = {
 };
 
 const faqCategories: FaqCategory[] = ['AI', 'COACHING', 'PRODUCT', 'PRICE'];
+const INITIAL_FAQ_COUNT = 3;
+const FAQ_BATCH_SIZE = 3;
 
 const faqSections: Record<FaqCategory, readonly (readonly [string, string])[]> = {
   AI: [
@@ -96,7 +98,8 @@ export default function Landing() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [headerAtTop, setHeaderAtTop] = useState(true);
   const [faqCategory, setFaqCategory] = useState<FaqCategory>('AI');
-  const [openFaqs, setOpenFaqs] = useState(() => new Set([0]));
+  const [openFaqs, setOpenFaqs] = useState(() => new Set<number>());
+  const [visibleFaqCount, setVisibleFaqCount] = useState(INITIAL_FAQ_COUNT);
   const [selectedCoach, setSelectedCoach] = useState<CoachId | null>(null);
   const [mode, setMode] = useState<SessionMode>('voice');
   const [chatInput, setChatInput] = useState('');
@@ -198,7 +201,7 @@ export default function Landing() {
     animation.addEventListener('finish', restoreOverflow, { once: true });
     animation.addEventListener('cancel', restoreOverflow, { once: true });
     return () => animation.cancel();
-  }, [faqCategory, openFaqs]);
+  }, [faqCategory, openFaqs, visibleFaqCount]);
 
   function prepareFaqResize() {
     previousFaqHeightRef.current = faqPanelRef.current?.getBoundingClientRect().height ?? null;
@@ -218,7 +221,16 @@ export default function Landing() {
     if (category === faqCategory) return;
     prepareFaqResize();
     setFaqCategory(category);
-    setOpenFaqs(new Set([0]));
+    setOpenFaqs(new Set());
+    setVisibleFaqCount(INITIAL_FAQ_COUNT);
+  }
+
+  function showMoreFaqs() {
+    prepareFaqResize();
+    setVisibleFaqCount((current) => Math.min(
+      current + FAQ_BATCH_SIZE,
+      faqSections[faqCategory].length,
+    ));
   }
 
   return (
@@ -286,7 +298,6 @@ export default function Landing() {
               <div className="d3-faq-intro">
                 <h2 id="faq-title">CLEAR ANSWERS<br />BEFORE YOU START.</h2>
                 <p>Understand what Delirio can do, where its limits are, and what stays in your control.</p>
-                <small>CHOOSE A TOPIC</small>
               </div>
               <div className="d3-faq-categories" role="group" aria-label="FAQ categories">
                 {faqCategories.map((category) => <button key={category} type="button" aria-pressed={faqCategory === category} onClick={() => selectFaqCategory(category)}>{faqCategoryLabels[category]}</button>)}
@@ -294,7 +305,28 @@ export default function Landing() {
               </div>
             </div>
             <div className="d3-faq-list" aria-live="polite">
-              {faqSections[faqCategory].map(([question, answer], index) => { const open = openFaqs.has(index); return <article key={question}><h3><button type="button" aria-expanded={open} onClick={() => toggleFaq(index)}><span>{String(index + 1).padStart(2, '0')}</span><b>{question}</b>{open ? <ChevronDown aria-hidden="true" /> : <ChevronRight aria-hidden="true" />}</button></h3><div hidden={!open}><p>{answer}</p></div></article>; })}
+              {faqSections[faqCategory].slice(0, visibleFaqCount).map(([question, answer], index) => {
+                const open = openFaqs.has(index);
+                return <article key={question}>
+                  <h3>
+                    <button type="button" aria-expanded={open} onClick={() => toggleFaq(index)}>
+                      <span>{String(index + 1).padStart(2, '0')}</span>
+                      <b>{question}</b>
+                      {open ? <ChevronDown aria-hidden="true" /> : <ChevronRight aria-hidden="true" />}
+                    </button>
+                  </h3>
+                  <div hidden={!open}><p>{answer}</p></div>
+                </article>;
+              })}
+              {visibleFaqCount < faqSections[faqCategory].length && (
+                <article className="d3-faq-more">
+                  <h3>
+                    <button type="button" onClick={showMoreFaqs}>
+                      <b>MORE...</b>
+                    </button>
+                  </h3>
+                </article>
+              )}
             </div>
           </div>
         </section>
