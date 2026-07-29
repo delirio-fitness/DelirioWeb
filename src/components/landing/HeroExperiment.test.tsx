@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { HeroExperiment } from './HeroExperiment';
 import { HeroWorkoutScoreboard } from './unused/HeroWorkoutScoreboard';
 
@@ -6,16 +7,16 @@ describe('HeroExperiment', () => {
   afterEach(() => window.history.replaceState({}, '', '/'));
 
   it.each([
-    ['', 'hero-v3-title'],
-    ['?hero=v1', 'hero-title'],
-    ['?hero=v2', 'hero-v23-title'],
-    ['?hero=v2.3', 'hero-v23-title'],
-    ['?hero=v3', 'hero-v3-title'],
-  ])('renders the saved %s composition', (search, headingId) => {
+    ['', 'hero-v3-title', '#questionnaire'],
+    ['?hero=v1', 'hero-title', '#coaches'],
+    ['?hero=v2', 'hero-v23-title', '#coaches'],
+    ['?hero=v2.3', 'hero-v23-title', '#coaches'],
+    ['?hero=v3', 'hero-v3-title', '#questionnaire'],
+  ])('renders the saved %s composition', (search, headingId, ctaHref) => {
     window.history.replaceState({}, '', `/${search}`);
     render(<HeroExperiment />);
     expect(screen.getByRole('heading')).toHaveAttribute('id', headingId);
-    expect(screen.getByRole('link')).toHaveAttribute('href', '#coaches');
+    expect(screen.getByRole('link')).toHaveAttribute('href', ctaHref);
   });
 
   it.each(['?hero=v1', '?hero=v2.3'])(
@@ -49,7 +50,20 @@ describe('HeroExperiment', () => {
     window.history.replaceState({}, '', '/?hero=v3');
     render(<HeroExperiment />);
     expect(screen.queryByRole('complementary', { name: /live workout scoreboard/i })).not.toBeInTheDocument();
-    expect(screen.getByLabelText(/schedule shift detected.*today’s plan adapted/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /your energy shifts.*your coach adapts.*get fit.*stay fit.*keep going/i })).toBeInTheDocument();
+    expect(screen.getAllByText(/^YOU$/)).toHaveLength(1);
+    expect(screen.getAllByText('TAKE A QUIZ')).toHaveLength(2);
+    expect(screen.getByText('ADAPTIVE PLANS / LIVE GUIDANCE / CHECK-INS / CONTINUITY')).toBeInTheDocument();
+    expect(screen.getByLabelText(/context updated.*next step ready/i)).toBeInTheDocument();
+  });
+
+  it('opens the research questionnaire from the default hero', async () => {
+    const user = userEvent.setup();
+    const onOpenQuestionnaire = jest.fn();
+    render(<HeroExperiment onOpenQuestionnaire={onOpenQuestionnaire} />);
+
+    await user.click(screen.getByRole('button', { name: /take a quiz/i }));
+    expect(onOpenQuestionnaire).toHaveBeenCalledTimes(1);
   });
 
   it('preserves the unused workout scoreboard for future sections', () => {

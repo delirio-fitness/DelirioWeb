@@ -21,7 +21,7 @@ export function LandingHeader({ sectionPrefix = '' }: { sectionPrefix?: '' | '/'
             <a key={id} href={`${sectionPrefix}#${id}`}>{label}</a>
           ))}
         </nav>
-        <a className="d3-header-cta" href={`${sectionPrefix}#coaches`}>Start training</a>
+        <a className="d3-header-cta" href={`${sectionPrefix}#wishlist`}>JOIN THE WISHLIST</a>
       </header>
     </>
   );

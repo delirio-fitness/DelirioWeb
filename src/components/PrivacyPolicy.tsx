@@ -10,7 +10,7 @@ export default function PrivacyPolicy() {
     <LandingLegalShell>
       <div className="max-w-3xl mx-auto px-6 py-10 md:py-16 min-h-screen bg-white text-black">
         <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
-        <p className="mb-2 text-sm text-gray-500">Last updated: July 25, 2026</p>
+        <p className="mb-2 text-sm text-gray-500">Last updated: July 28, 2026</p>
         <p className="mb-4">
           Delirio (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) provides an AI-powered fitness coaching
           mobile application. This Privacy Policy explains what information we collect, how we use and share it, and the
@@ -39,12 +39,19 @@ export default function PrivacyPolicy() {
           rent your mobile phone number or your SMS/WhatsApp opt-in data to third parties for marketing purposes.
         </p>
 
-        <h3 className="text-xl font-semibold mb-2 mt-6">Website Feedback</h3>
+        <h3 className="text-xl font-semibold mb-2 mt-6">Website Feedback and Wishlist</h3>
         <p className="mb-4">
           If you submit our website feedback form, we collect your responses and a randomly generated identifier stored
           in your browser. This identifier helps us distinguish submissions from the same browser without asking for
-          your name, email address, or phone number. We use this information to evaluate product requests and improve
-          Delirio.
+          your name, email address, or phone number. Questionnaire responses may include optional information about
+          whether a GLP-1 medication is or was part of your routine, where you are in that experience, and what most
+          often disrupts your training. We use this information to tailor the remaining questions, evaluate product
+          requests, and improve Delirio.
+        </p>
+        <p className="mb-4">
+          If you join the Delirio wishlist, we collect the email address you submit and your explicit request to receive
+          launch and product updates. We use it to send those updates and to understand where wishlist interest comes
+          from. You can unsubscribe through any wishlist email. We do not sell your email address.
         </p>
 
         <h3 className="text-xl font-semibold mb-2 mt-6">Health and Fitness Data</h3>

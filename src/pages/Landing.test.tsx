@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -89,8 +89,84 @@ describe('Landing journey', () => {
     expect(screen.queryByRole('button', { name: /can the ai actually see my form/i })).not.toBeInTheDocument();
   });
 
+  it('presents problem recognition before the product mechanism and keeps medical claims bounded', async () => {
+    const user = userEvent.setup();
+    render(<MemoryRouter><Landing /></MemoryRouter>);
+
+    expect(screen.queryByRole('heading', { name: /less starting over.*more knowing what.s next/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /delirio coaching experience/i })).toBeInTheDocument();
+    const problemBand = screen.getByRole('region', { name: /when staying fit feels harder/i });
+    const painPoints = within(problemBand).getAllByRole('article');
+    expect(painPoints).toHaveLength(4);
+    expect(painPoints.every((painPoint) => painPoint.querySelector('svg[aria-hidden="true"]'))).toBe(true);
+    expect(problemBand).toHaveTextContent(/energy and strength changes.*adjusts the plan/i);
+    expect(problemBand).toHaveTextContent(/motivation drops.*motivational reminders.*purpose/i);
+    expect(problemBand).toHaveTextContent(/time gets squeezed.*rebuilds the session/i);
+    expect(problemBand).toHaveTextContent(/regaining feels overwhelming.*progressive path.*rebuild strength/i);
+    expect(problemBand).not.toHaveTextContent(/glp-1 journeys|busy weeks|missed days|the friction delirio removes/i);
+    expect(screen.queryByText(/physical wellbeing concerns/i)).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /pick it up return with context/i }));
+    expect(screen.getByRole('heading', { name: /a missed workout.*not an abandoned plan/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /one coach.*no appointment to reschedule/i })).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'About the product' }));
+    expect(screen.getByRole('button', { name: /strength training while i use a glp-1 medication/i })).toBeInTheDocument();
+  });
+
+  it('keeps retired landing-page content out of the rendered journey', () => {
+    render(<MemoryRouter><Landing /></MemoryRouter>);
+
+    expect(screen.queryByText(/ask in the moment/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/hear what changes/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /clear about what is known/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /start the questions/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /start voice session/i })).toBeInTheDocument();
+    expect(document.querySelector('.d3-voice-product')).not.toBeInTheDocument();
+  });
+
   it('offers a direct pricing contact option', () => {
     render(<MemoryRouter><Landing /></MemoryRouter>);
     expect(screen.getByRole('link', { name: 'contact@delirio.fit' })).toHaveAttribute('href', 'mailto:contact@delirio.fit');
+  });
+
+  it('links How it works directly to the product journey carousel', () => {
+    render(<MemoryRouter><Landing /></MemoryRouter>);
+
+    expect(screen.getByRole('link', { name: /how it works/i })).toHaveAttribute('href', '#how-it-works');
+    const problemBand = document.querySelector('.d3-problem-band');
+    const fadeTransition = document.querySelector('.d3-section-fade--dark-to-light');
+    const carousel = document.getElementById('how-it-works');
+    const coachStudio = document.getElementById('session');
+    expect(carousel).toHaveClass('d3-plan-live');
+    expect(carousel).toHaveAttribute('data-theme', 'light');
+    expect(fadeTransition).not.toBeNull();
+    expect(fadeTransition).toHaveAttribute('aria-hidden', 'true');
+    expect(Boolean((problemBand?.compareDocumentPosition(fadeTransition as Node) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
+    expect(Boolean((fadeTransition?.compareDocumentPosition(carousel as Node) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
+    expect(Boolean((carousel?.compareDocumentPosition(coachStudio as Node) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
+    expect(document.querySelector('.d3-wheel-transition')).not.toBeInTheDocument();
+  });
+
+  it('opens the questionnaire overlay from the default hero', async () => {
+    const user = userEvent.setup();
+    render(<MemoryRouter><Landing /></MemoryRouter>);
+
+    await user.click(screen.getByRole('button', { name: /take a quiz/i }));
+    expect(screen.getByRole('dialog', { name: /is a glp-1 medication/i })).toBeInTheDocument();
+  });
+
+  it('starts a new questionnaire run each time the hero action opens it', async () => {
+    const user = userEvent.setup();
+    render(<MemoryRouter><Landing /></MemoryRouter>);
+    const launchButton = screen.getByRole('button', { name: /take a quiz/i });
+
+    await user.click(launchButton);
+    await user.click(screen.getByRole('radio', { name: 'No' }));
+    await user.click(screen.getByRole('button', { name: /close questionnaire/i }));
+    await screen.findByRole('button', { name: /take a quiz/i });
+
+    await user.click(launchButton);
+    expect(screen.getByLabelText('Question 1 of 5')).toBeInTheDocument();
+    expect(screen.getByRole('radio', { name: 'No' })).not.toBeChecked();
   });
 });

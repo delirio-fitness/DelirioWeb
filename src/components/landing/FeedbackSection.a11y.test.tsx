@@ -7,18 +7,20 @@ expect.extend(toHaveNoViolations);
 
 describe('FeedbackSection accessibility', () => {
   it('has no detectable accessibility violations on the initial question', async () => {
-    const { container } = render(<FeedbackSection />);
+    render(<FeedbackSection open />);
 
-    expect(await axe(container)).toHaveNoViolations();
+    expect(await axe(document.body)).toHaveNoViolations();
   });
 
   it('has no detectable accessibility violations after progressing', async () => {
     const user = userEvent.setup();
-    const { container } = render(<FeedbackSection />);
+    render(<FeedbackSection open />);
 
-    await user.click(screen.getByRole('radio', { name: 'A plan that adjusts around my schedule' }));
-    await screen.findByRole('radio', { name: 'Clearer movement explanations' });
+    await user.click(screen.getByRole('radio', { name: 'Prefer not to say' }));
+    await screen.findByRole('radio', {
+      name: 'I stay active, but planning it takes too much effort',
+    });
 
-    expect(await axe(container)).toHaveNoViolations();
+    expect(await axe(document.body)).toHaveNoViolations();
   });
 });

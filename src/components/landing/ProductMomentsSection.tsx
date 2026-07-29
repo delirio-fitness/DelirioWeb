@@ -9,12 +9,12 @@ const lanes: readonly { screen: ProductScreen; className: string }[] = [
   { screen: 'progress', className: 'is-progress is-up' },
 ];
 
-export function ProductMomentsSection() {
+export function ProductMomentsSection({ onStartVoice }: { onStartVoice?: () => void }) {
   const showProductRiver = false;
 
   return (
     <>
-      <PlanToLiveGuidance />
+      <PlanToLiveGuidance onStartVoice={onStartVoice} />
       {showProductRiver && <section className="d3-product-river" aria-labelledby="product-river-title">
       <p className="d3-river-kicker">APP EXPERIENCE / CONTINUOUS COACHING LOOP</p>
       <h2 id="product-river-title">A RIVER OF<br />REAL PRODUCT<br />MOMENTS.</h2>

@@ -13,8 +13,50 @@ document records both that Firebase UID and the browser's first-party UUID.
    `FIREBASE_APPCHECK_SITE_KEY`, monitor metrics, and then enable Firestore
    enforcement.
 
-The rules allow authenticated clients to create validated feedback documents
-only. Client reads, updates, and deletes are denied.
+The rules allow anonymous-authenticated clients to create validated feedback
+documents. Client reads and deletes are denied. A questionnaire document may be
+updated only by its originating anonymous Firebase user, and only by adding or
+changing its top-level `email` field when that visitor explicitly enters an
+email at the end of the quiz. The saved answers are not rewritten.
+
+The conditional product questionnaire uses a version 6 answer envelope while
+preserving the version 2 Firestore document shape. It records GLP-1 context and
+the situational barriers that make fitness support difficult. Its expanded
+answers are serialized into the existing `wish`, `coachingUsefulness`, and
+`nextBuild` strings. Each group includes a readable `responses` array containing
+the exact question prompt and visible answer label selected by the visitor, in
+addition to the stable choice IDs used for analysis. A future normalized schema
+requires an explicit Firestore rules review and migration before deployment.
+
+The same questionnaire overlay opens from the default hero's **Shape What's
+Next** action and from the lower-page research prompt. After Firestore confirms a
+successful write, the overlay links to the wishlist form; it never presents the
+research answers as a generated plan.
+Every invocation begins a fresh local questionnaire session. Every completed
+session calls Firestore `addDoc`, which creates a new random document ID; the
+stable browser ID remains a correlation field and is never used to overwrite or
+deduplicate responses.
+
+The footer wishlist creates a separate authenticated, create-only document in
+`warmNetwork`. It uses the same validated document envelope as the questionnaire
+and stores the normalized email as a top-level `email` field. Its answer strings
+record the `wishlist-opt-in` submission type, form placement, and consent marker.
+
+When a visitor opts in from the completed questionnaire, the site updates the
+same `webQuestionaire/{submissionId}` document that already contains the quiz
+answers. The normalized email is added as that document's top-level `email`
+field without rewriting the questionnaire answers. No second identified
+questionnaire record is created, so the original random Firestore ID remains
+the identifier for the complete response.
+
+## Rules deployment boundary
+
+The checked-in [firestore.rules](../firestore.rules) now includes the narrowly
+scoped questionnaire update and `warmNetwork` create paths described above. It
+has **not** been deployed by this code change. Before deploying, review the
+rules in the Firebase console and deploy them deliberately. The prior deployed
+rules deny questionnaire updates and do not allow `warmNetwork` creates, so
+without this rules deployment the new email writes will be rejected.
 
 ## Configuration boundary
 

@@ -6,6 +6,10 @@ This directory defines focused agents for frontend product work. Each agent owns
 
 DelirioWeb is the mobile-first marketing and interactive-demo site for Delirio, an AI fitness-coaching iOS app. The product differentiator is an ongoing coach relationship: Reed or Iris can watch form through the phone camera, coach live during workouts, build and adapt programming, and continue the conversation through voice or text between sessions.
 
+Delirio is GLP-1-first. Its initial product and acquisition decisions prioritize people using, maintaining, tapering, or coming off GLP-1 medication who want sustainable strength, capability, structure, and continuity. Time-constrained professional women are the lead persona within that market. Non-GLP-1 users remain welcome, but broad fitness appeal must not dilute the primary audience into generic positioning.
+
+The compact product, audience, language, conversion, trust, UI, and UX beliefs live in [`delirio-product-beliefs.md`](./delirio-product-beliefs.md). The complete consolidated research and content model lives in [`docs/GLP1_CONTENT_MOMENTUM_STRATEGY.md`](../docs/GLP1_CONTENT_MOMENTUM_STRATEGY.md). Both specialist agents must read them before product-facing work. They supersede stale implementation facts in this README when they conflict.
+
 The website must make that relationship tangible, trustworthy, and easy to try. It is not a generic fitness-template site and must not become a feature dump.
 
 These product pillars are immutable, although their layout and presentation may evolve:
@@ -14,17 +18,23 @@ These product pillars are immutable, although their layout and presentation may 
 2. **Voice Sessions:** the working live voice experience, including permission, connecting, active, muted, ended, and error/retry states.
 3. **FAQ content:** the existing AI, coaching, product, and price context that answers trust and purchase objections.
 4. **App conversion:** prominent, accurate promotion of the production iOS app and its monthly/yearly subscriptions through the configured App Store listing.
+5. **Planning ownership:** the coach prepares and adapts the plan. The user retains agency without carrying the workout-planning burden.
+6. **Continuity:** Delirio helps a user return after schedule changes, uncertainty, missed sessions, or a lapse without framing the return as failure or another start from zero.
+7. **Research without deception:** “Shape What’s Next” gathers conditional audience and product feedback. It does not generate a plan or masquerade as a personalized assessment.
+8. **Conversion readiness:** each major content unit should resolve a real visitor question about relevance, differentiation, consequence, feasibility, urgency, recognition, or belonging without manufacturing fear or social proof.
+8. **GLP-1-first relevance:** primary journeys address strength, changing energy, continuity, and the transition beyond short-term weight loss without prescribing, diagnosing, treating, or replacing clinical care.
 
 The visual direction is **dark-first, spacious, simple, premium, energetic, and human**. Preserve Delirio's blue and pink coach identities while moving away from the predominantly light current implementation. Treat [Hims](https://www.hims.com/) as inspiration for generous space, short content blocks, direct headings, focused calls to action, and clear section rhythm—not as a brand, copy, component, or trade-dress template.
 
 ### Current implementation facts
 
 - Entry path: `index.html -> src/main.tsx -> src/App.tsx -> src/pages/Landing.tsx`.
-- The landing page contains coach selection, live voice/text interactions, form-feedback imagery, comparison content, categorized FAQ, pricing, and App Store promotion.
+- The active landing stylesheet is `src/styles/design3.css`, and the current page deliberately alternates dark and full-width light sections.
+- Hero V3 is the production default. Hero V1 and V2.3 remain query-selectable experiments, and discarded scoreboards live under `src/components/landing/unused/`.
+- The landing page contains the audience-led hero, a vertical product journey, coach selection, live voice/text interactions, categorized FAQ, pricing, the conditional research questionnaire, and App Store promotion.
 - Voice has `idle`, `connecting`, `connected`, and `error` states in `src/hooks/useVoiceSession.ts`.
-- The current landing palette in `src/styles/landing-redesign.css` is light (`#0a0a0a` text over light surfaces) with blue `#3a90ff` and pink `#d875ff` accents. A dark redesign must migrate semantic surfaces and text deliberately rather than merely invert colors.
 - The audience is expected to be mobile-heavy because Delirio is an iOS app. Validate at 390x844 first, then 820x1180 and 1440x900.
-- The default App Store URL points to Apple’s homepage and is a release blocker until the real Delirio listing is configured.
+- `VITE_APP_STORE_URL` owns the production App Store destination. Its fallback still points to Apple's generic App Store page and remains a release blocker until the verified Delirio listing is configured.
 
 ## Agents
 

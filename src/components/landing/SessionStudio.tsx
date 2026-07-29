@@ -59,20 +59,21 @@ export function SessionStudio({ selectedCoach, onSelectCoach, mode, onModeChange
   return (
     <section id="session" className={`coach-trial coach-trial--${mode}`} aria-labelledby="coach-trial-title">
       <span id="coaches" className="coach-trial__anchor" aria-hidden="true" />
-      <div className="coach-trial__intro">
-        <h2 id="coach-trial-title">CHOOSE HOW YOU<br />WANT TO BE COACHED.</h2>
-        <p className="coach-trial__body">Choose the coaching style that helps you feel clear and supported. Talk by voice or text, and switch anytime.</p>
-      </div>
+      <div className={`coach-trial__shell ${coach ? '' : 'coach-trial__shell--choose'}`}>
+        <div className="coach-trial__intro">
+          <h2 id="coach-trial-title">CHOOSE HOW YOU<br />WANT TO BE COACHED.</h2>
+        </div>
 
-      <div className={`coach-trial__panel ${coach ? '' : 'coach-trial__panel--choose'}`}>
-        {!coach ? (
-          <ChooseCoach onSelectCoach={onSelectCoach} />
-        ) : (
-          <>
-            <TrialControls coach={coach.id} mode={mode} onSelectCoach={onSelectCoach} onModeChange={onModeChange} />
-            {mode === 'voice' ? <VoiceStage key={coach.id} coach={coach} voice={voice} /> : <TextStage key={coach.id} coach={coach} text={text} chatRef={chatRef} />}
-          </>
-        )}
+        <div className={`coach-trial__panel ${coach ? '' : 'coach-trial__panel--choose'}`}>
+          {!coach ? (
+            <ChooseCoach onSelectCoach={onSelectCoach} />
+          ) : (
+            <>
+              <TrialControls coach={coach.id} mode={mode} onSelectCoach={onSelectCoach} onModeChange={onModeChange} />
+              {mode === 'voice' ? <VoiceStage key={coach.id} coach={coach} voice={voice} /> : <TextStage key={coach.id} coach={coach} text={text} chatRef={chatRef} />}
+            </>
+          )}
+        </div>
       </div>
     </section>
   );
@@ -80,15 +81,19 @@ export function SessionStudio({ selectedCoach, onSelectCoach, mode, onModeChange
 
 function ChooseCoach({ onSelectCoach }: { onSelectCoach: (coach: CoachId) => void }) {
   return <>
-    <p className="coach-trial__step">1 / CHOOSE A COACH</p>
-    <h3 className="coach-trial__question">WHO SHOULD COACH YOU?</h3>
     <div className="coach-trial__choices">
       {(['iris', 'reed'] as const).map((id) => {
         const coach = coachProfiles[id];
         const descriptor = id === 'iris' ? 'RELATIONAL / ATTENTIVE' : 'FOCUSED / DIRECT';
+        const description = id === 'iris'
+          ? 'Warm, patient, and understanding. Iris adapts gently when your energy, confidence, or day changes.'
+          : 'Structured, direct, and schedule-driven. Reed keeps commitments clear and helps you follow the plan.';
         return <button className="coach-trial__card" key={id} type="button" onClick={() => onSelectCoach(id)}>
-          <img src={coach.avatar} alt="" />
-          <span><b>{coach.name.toUpperCase()}</b><small>{descriptor}</small></span>
+          <span className="coach-trial__card-profile">
+            <img src={coach.avatar} alt="" />
+            <span className="coach-trial__card-description">{description}</span>
+          </span>
+          <span className="coach-trial__card-meta"><b>{coach.name.toUpperCase()}</b><small>{descriptor}</small></span>
           <u>SELECT COACH →</u>
         </button>;
       })}
@@ -97,7 +102,7 @@ function ChooseCoach({ onSelectCoach }: { onSelectCoach: (coach: CoachId) => voi
 }
 
 function TrialControls({ coach, mode, onSelectCoach, onModeChange }: { coach: CoachId; mode: SessionMode; onSelectCoach: (coach: CoachId) => void; onModeChange: (mode: SessionMode) => void }) {
-  return <div className="coach-trial__controls">
+  return <div className="coach-trial__controls" style = {{paddingInlineStart: 100, paddingInlineEnd: 100}} >
     <div className="coach-trial__coach-tabs" role="group" aria-label="Choose coach">
       {(['iris', 'reed'] as const).map((id) => <button key={id} type="button" aria-pressed={coach === id} onClick={() => onSelectCoach(id)}><img src={coachProfiles[id].avatar} alt="" /><span>{coachProfiles[id].name.toUpperCase()}</span></button>)}
     </div>
@@ -121,7 +126,7 @@ function VoiceStage({ coach, voice }: { coach: (typeof coachProfiles)[CoachId]; 
 
   const transcript = [...voice.botTurns, voice.botTranscript].filter(Boolean).at(-1) || voice.userTranscript;
 
-  return <div className={`coach-trial__stage coach-trial__stage--voice coach-trial__mode-content ${voice.isBotSpeaking ? 'is-coach-speaking' : ''}`}>
+  return <div style = {{paddingLeft: 100}} className={`coach-trial__stage coach-trial__stage--voice coach-trial__mode-content ${voice.isBotSpeaking ? 'is-coach-speaking' : ''} ${voice.sessionState === 'connected' ? 'is-connected' : ''}`}>
     {(voice.sessionState === 'connecting' || voice.sessionState === 'connected') && <div className="coach-trial__voice-presence" aria-hidden="true">
       <VoiceFrequencyWaveform levels={voice.frequencyLevels} isListening={voice.isFrequencyListening} />
     </div>}
@@ -141,14 +146,14 @@ function VoiceStage({ coach, voice }: { coach: (typeof coachProfiles)[CoachId]; 
 function TextStage({ coach, text, chatRef }: { coach: (typeof coachProfiles)[CoachId]; text: Props['text']; chatRef: RefObject<HTMLDivElement> }) {
   const hasConnectionStatus = text.connectionState !== 'idle' || Boolean(text.error);
 
-  return <div className="coach-trial__stage coach-trial__stage--text coach-trial__mode-content">
+  return <div style = {{paddingInlineStart: 100, paddingInlineEnd: 100}} className="coach-trial__stage coach-trial__stage--text coach-trial__mode-content">
     <div className="coach-trial__text-content">
       <div className="coach-trial__text-header">
         <img className="coach-trial__stage-portrait" src={coach.avatar} alt={`${coach.name}, selected Delirio coach`} />
         <p className="coach-trial__session-label">{coach.name.toUpperCase()} / WEB CHAT</p>
       </div>
       <div className="coach-trial__message-viewport">
-        <p className={`coach-trial__chat-ghost ${text.messages.length ? 'is-hidden' : ''}`} aria-hidden={text.messages.length > 0}>Your coach can help you plan, adjust, and continue. Ask about today’s training…</p>
+        <p className={`coach-trial__chat-ghost ${text.messages.length ? 'is-hidden' : ''}`} aria-hidden={text.messages.length > 0}>Your coach can build your plan, adapt it, and help you continue. Ask about today’s training…</p>
         {text.messages.length || hasConnectionStatus ? <div ref={chatRef} className="coach-trial__messages" aria-live="polite">
           {text.messages.map((message, index) => <p className={message.role} key={`${message.role}-${index}`}><b>{message.role === 'user' ? 'YOU' : coach.name.toUpperCase()}</b>{message.text}</p>)}
           {text.error ? <p className="coach-trial__connection-status is-error" role="alert">CONNECTION FAILED · <button type="button" onClick={text.onRetry}>RETRY</button></p> : text.connectionState === 'responding' ? <p className="coach-trial__connection-status">{coach.name.toUpperCase()} IS RESPONDING…</p> : text.connectionState === 'connecting' ? <p className="coach-trial__connection-status">CONNECTING…</p> : null}

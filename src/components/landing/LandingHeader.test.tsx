@@ -12,6 +12,8 @@ describe('LandingHeader', () => {
     expect(navigation).toHaveTextContent('How it works');
     expect(navigation).toHaveTextContent('Coaches');
     expect(navigation).toHaveTextContent('Pricing');
-    expect(screen.getByRole('link', { name: /start training/i })).toHaveAttribute('href', '#coaches');
+    const wishlist = screen.getByRole('link', { name: /join the wishlist/i });
+    expect(wishlist).toHaveAttribute('href', '#wishlist');
+    expect(wishlist).not.toHaveAttribute('target');
   });
 });

@@ -1,0 +1,21 @@
+Use case: photorealistic-natural
+Asset type: square premium consumer fitness landing-page carousel photograph
+
+Create an entirely original photorealistic editorial lifestyle photograph of a completely fictional 38-year-old professional woman immediately after completing a moderate strength workout. She has natural skin texture, shoulder-length dark brown hair in a practical low ponytail with a few realistic loose strands, an attainable average-to-athletic body, realistic proportions, and a grounded contemporary appearance. She must not resemble any celebrity, influencer, athlete, commercial model, public figure, or identifiable real person. Dress her in unbranded charcoal training leggings, a muted plum performance top, clean neutral trainers, and a small unbranded smartwatch. She should look like an ordinary busy professional building strength, not an elite athlete or fitness model.
+
+Capture a quiet post-workout moment. She sits naturally at the edge of a simple low bench beside an open exercise mat. Her shoulders are relaxed and her breathing has settled. She holds her smartphone in one hand at a believable angle and looks at it with subtle recognition and relief. The other hand rests naturally on her thigh or lightly holds an unbranded water bottle. Her expression says that she finished today's work and understands what comes next. No large smile, victory pose, thumbs-up, flexing, or direct eye contact with the camera.
+
+The environment is a refined but attainable urban apartment fitness corner or residential gym during early evening. Dumbbells are safely placed together on the floor. The mat remains open. A folded towel and generic water bottle may be present. The room should feel calm, private, slightly lived in, and achievable. Avoid luxury fantasy, sterile medical environments, commercial gym branding, influencer studios, and excessively perfect staging.
+
+Use a square 1:1 composition. Place the woman in the left-center and lower-left area at a stable diagonal. Keep her face, both hands, phone silhouette, seated posture, and nearby equipment clear. Reserve clean negative space in the upper-right quadrant, approximately 28 percent of the image width and 48 percent of the image height, for a Delirio post-workout planning overlay that will be added later. Do not place her face, phone, hands, bench edge, lamp, window frame, equipment, or other high-contrast element inside the overlay-safe region. Use a softly defocused wall or calm architectural surface there.
+
+Lighting continues the same premium natural campaign language: soft directional window light from camera-left plus slightly warmer practical light than the active workout scene. Preserve neutral skin, realistic mild cheek warmth, subtle post-workout perspiration, and detail in dark clothing. No heavy orange cast, neon lighting, smoke, haze, crushed shadows, blown highlights, or aggressive cinematic grade.
+
+Use a full-frame mirrorless camera character with a 40mm to 50mm equivalent lens, eye-level or slightly above seated eye level, approximately f/3.2, natural perspective, believable depth of field, and a shutter fast enough for crisp face, fingers, phone, and fabric. Render realistic hair, skin pores, fabric folds, bench texture, floor texture, phone reflections, and soft shadows. Premium advertising finish without plastic retouching, body reshaping, or synthetic smoothness.
+
+Color palette: charcoal, muted plum, warm off-white, dark wood, restrained olive, and gently warm highlights. No visible text anywhere. No third-party logos, trademarks, posters, branded clothing, branded equipment, watermarks, signatures, stock marks, or copyrighted art.
+
+Anatomy constraints: exactly one person; anatomically correct seated posture; two arms and two legs; natural hands with five fingers; plausible grip around one phone; no duplicated phone, fused fingers, extra limbs, warped joints, reflection clone, or floating equipment.
+
+Do not add an app overlay, floating interface, notification, graphic, caption, logo, arrow, metric, or generated text. Those elements will be composited separately. No medication, injection, packaging, scale, before-and-after comparison, medical claim, diagnosis, pain, injury, collapse, extreme exhaustion, excessive sweat, sexualized pose, or celebratory stock-photo gesture.
+

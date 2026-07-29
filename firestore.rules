@@ -10,6 +10,39 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
+    // The website retains a compact, rule-validated envelope and serializes
+    // evolving questionnaire fields inside its three answer strings.
+    function hasValidWebsiteFeedbackEnvelope(data) {
+      return data.keys().hasOnly([
+          'browserId', 'ownerUid', 'answers', 'email', 'source', 'schemaVersion', 'createdAt'
+        ])
+        && data.browserId is string
+        && data.browserId.matches('^[a-zA-Z0-9_-]{16,80}$')
+        && data.ownerUid == request.auth.uid
+        && data.source == 'delirio-website-feedback'
+        && data.schemaVersion == 2
+        && data.answers is map
+        && data.answers.keys().hasOnly([
+          'wish', 'coachingUsefulness', 'nextBuild'
+        ])
+        && data.answers.wish is string
+        && data.answers.wish.size() > 0
+        && data.answers.wish.size() <= 2000
+        && data.answers.coachingUsefulness is string
+        && data.answers.coachingUsefulness.size() > 0
+        && data.answers.coachingUsefulness.size() <= 2000
+        && data.answers.nextBuild is string
+        && data.answers.nextBuild.size() > 0
+        && data.answers.nextBuild.size() <= 2000;
+    }
+
+    function hasValidWebsiteEmail(data) {
+      return data.keys().hasAll(['email'])
+        && data.email is string
+        && data.email.size() > 3
+        && data.email.size() <= 254;
+    }
+
     // These entitlement fields are owned by the verified App Store server flow.
     function lockedEntitlementFields() {
       return [
@@ -21,31 +54,29 @@ service cloud.firestore {
       ];
     }
 
-    // Website questionnaire: authenticated, validated, create-only submissions.
+    // Website questionnaire: anonymous-authenticated, validated submissions.
     match /webQuestionaire/{submissionId} {
       allow create: if request.auth != null
-        && request.resource.data.keys().hasOnly([
-          'browserId', 'ownerUid', 'answers', 'source', 'schemaVersion', 'createdAt'
-        ])
-        && request.resource.data.browserId is string
-        && request.resource.data.browserId.matches('^[a-zA-Z0-9_-]{16,80}$')
-        && request.resource.data.ownerUid == request.auth.uid
-        && request.resource.data.source == 'delirio-website-feedback'
-        && request.resource.data.schemaVersion == 2
         && request.resource.data.createdAt == request.time
-        && request.resource.data.answers is map
-        && request.resource.data.answers.keys().hasOnly([
-          'wish', 'coachingUsefulness', 'nextBuild'
-        ])
-        && request.resource.data.answers.wish is string
-        && request.resource.data.answers.wish.size() > 0
-        && request.resource.data.answers.wish.size() <= 2000
-        && request.resource.data.answers.coachingUsefulness is string
-        && request.resource.data.answers.coachingUsefulness.size() > 0
-        && request.resource.data.answers.coachingUsefulness.size() <= 2000
-        && request.resource.data.answers.nextBuild is string
-        && request.resource.data.answers.nextBuild.size() > 0
-        && request.resource.data.answers.nextBuild.size() <= 2000;
+        && hasValidWebsiteFeedbackEnvelope(request.resource.data);
+
+      // A quiz email is appended only to the originating anonymous owner's
+      // document. All identity, source, and timestamp fields remain immutable.
+      allow update: if isOwner(resource.data.ownerUid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['email'])
+        && hasValidWebsiteFeedbackEnvelope(request.resource.data)
+        && hasValidWebsiteEmail(request.resource.data);
+
+      allow read, delete: if false;
+    }
+
+    // Footer-only waitlist opt-ins do not have a questionnaire to update.
+    // They are retained as separate, validated, create-only warm-network leads.
+    match /warmNetwork/{submissionId} {
+      allow create: if request.auth != null
+        && request.resource.data.createdAt == request.time
+        && hasValidWebsiteFeedbackEnvelope(request.resource.data)
+        && hasValidWebsiteEmail(request.resource.data);
 
       allow read, update, delete: if false;
     }

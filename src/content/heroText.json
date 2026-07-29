@@ -51,5 +51,60 @@
       "eyebrow": "SCHEDULE SHIFT DETECTED",
       "message": "TODAY’S PLAN ADAPTED"
     }
+  },
+  "heroTextV3": {
+    "kicker": "",
+    "heading": {
+      "accessibleText": "Your energy shifts. Your coach adapts so you can get fit, stay fit, and keep going.",
+      "lines": [
+        { "text": "YOUR ENERGY SHIFTS." },
+        { "text": "YOUR COACH ADAPTS." },
+        {
+          "lead": "YOU",
+          "prefix": "",
+          "animatedWords": ["GET FIT.", "STAY FIT.", "KEEP GOING."]
+        }
+      ]
+    },
+    "support": "Delirio adjusts your plan when energy, time, or motivation changes, so rebuilding fitness feels clear instead of overwhelming.",
+    "invitation": "TELL US WHAT MAKES GETTING FIT HARDER",
+    "cta": {
+      "label": "TAKE A QUIZ",
+      "href": "#questionnaire",
+      "icon": "↗"
+    },
+    "capabilities": "ADAPTIVE PLANS / LIVE GUIDANCE / CHECK-INS / CONTINUITY",
+    "coachingSignal": {
+      "ariaLabel": "Context updated. Next step ready.",
+      "eyebrow": "CONTEXT UPDATED",
+      "message": "NEXT SESSION READY"
+    }
+  },
+  "heroTextV4": {
+    "kicker": "STRUCTURE FOR THE WEEK YOU ACTUALLY HAVE",
+    "heading": {
+      "accessibleText": "Less figuring it out. More structure, guidance, and follow-through.",
+      "lines": [
+        { "text": "LESS FIGURING IT OUT." },
+        { "text": "MORE" },
+        {
+          "prefix": "",
+          "animatedWords": ["STRUCTURE.", "GUIDANCE.", "FOLLOW-THROUGH."]
+        }
+      ]
+    },
+    "support": "Delirio turns the time you have into a clear training plan, guides each session, and helps you stay connected to what comes next.",
+    "invitation": "SHOW US WHERE FITNESS GETS STUCK",
+    "cta": {
+      "label": "SHAPE WHAT’S NEXT",
+      "href": "#questionnaire",
+      "icon": "↗"
+    },
+    "capabilities": "SCHEDULE / STRUCTURE / GUIDANCE / FOLLOW-THROUGH",
+    "coachingSignal": {
+      "ariaLabel": "Next step clarified. Today’s session ready.",
+      "eyebrow": "NEXT STEP CLARIFIED",
+      "message": "TODAY’S SESSION READY"
+    }
   }
 }

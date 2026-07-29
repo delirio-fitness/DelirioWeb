@@ -5,7 +5,7 @@ type PhoneScreenshotFrameProps = {
 
 export function PhoneScreenshotFrame({ src, alt }: PhoneScreenshotFrameProps) {
   return (
-    <div className="d3-iphone-frame">
+    <div className="d3-iphone-frame" data-device="iphone-15-pro-max">
       <span className="d3-iphone-action" aria-hidden="true" />
       <span className="d3-iphone-volume is-up" aria-hidden="true" />
       <span className="d3-iphone-volume is-down" aria-hidden="true" />

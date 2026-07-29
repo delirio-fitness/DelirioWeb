@@ -1,21 +1,10 @@
 import { Link } from 'react-router-dom';
-import { APP_STORE_URL } from '../../config/product';
-import appStoreBadge from '../../images/appleOfficialBadges/Mobile app store badge.svg';
-import { Logo } from '../logo';
+import { WishlistSignup } from './WishlistSignup';
 
 export function LandingFooter({ sectionPrefix = '/' }: { sectionPrefix?: '' | '/' }) {
   return (
     <footer className="d3-footer">
-      <div className="d3-footer-feature">
-        <div className="d3-footer-copy"><h2>YOUR COACH.<br />READY WHEN YOU ARE.</h2><p>Delirio is available on iPhone. Plan, train, and follow up wherever your week takes you.</p></div>
-        <div className="d3-app-card">
-          <div className="d3-app-download">
-            <div className="d3-app-icon"><Logo color="white" width="72" height="100" /></div>
-            <a className="d3-app-badge" href={APP_STORE_URL} target="_blank" rel="noreferrer"><img src={appStoreBadge} alt="Download on the App Store" /></a>
-          </div>
-          <div className="d3-app-copy"><small>Version 1.0 · iPhone</small><b>NOW AVAILABLE ON THE APP STORE</b></div>
-        </div>
-      </div>
+      <WishlistSignup />
       <div className="d3-footer-links">
         <FooterColumn sectionPrefix={sectionPrefix} title="Product" links={[['Plans', '#pricing'], ['Exercises', '#how-it-works'], ['Live coaching', '#coaches']]} />
         <FooterColumn sectionPrefix={sectionPrefix} title="Coaches" links={[['Iris', '#coaches'], ['Reed', '#coaches'], ['Voice / Chat / SMS', '#coaches']]} />
