@@ -10,7 +10,7 @@ export default function PrivacyPolicy() {
     <LandingLegalShell>
       <div className="max-w-3xl mx-auto px-6 py-10 md:py-16 min-h-screen bg-white text-black">
         <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
-        <p className="mb-2 text-sm text-gray-500">Last updated: July 28, 2026</p>
+        <p className="mb-2 text-sm text-gray-500">Last updated: July 22, 2026</p>
         <p className="mb-4">
           Delirio (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) provides an AI-powered fitness coaching
           mobile application. This Privacy Policy explains what information we collect, how we use and share it, and the
@@ -147,6 +147,25 @@ export default function PrivacyPolicy() {
           during workouts &mdash; is sent to those services to make these features work. Before these features are first
           used, we ask for your consent.
         </p>
+        <p className="mb-4">We currently use the following AI providers:</p>
+        <ul className="mb-4 list-disc pl-6">
+          <li>
+            <strong>ElevenLabs</strong> &mdash; receives your microphone audio during voice coaching, to understand what
+            you say and to generate your coach&rsquo;s voice.
+          </li>
+          <li>
+            <strong>OpenAI</strong> &mdash; receives your conversations with your coach, in both voice and text, to
+            generate your coach&rsquo;s responses.
+          </li>
+          <li>
+            <strong>Google (Gemini)</strong> &mdash; receives short clips of your workout video, as the vision step
+            inside our own form-analysis pipeline, which turns the result into your coach&rsquo;s feedback.
+          </li>
+        </ul>
+        <p className="mb-4">
+          These providers process your data on our behalf to deliver the features described above. If we change AI
+          providers, we will update this policy and the in-app disclosure before the change takes effect.
+        </p>
         <p className="mb-4">
           You can review what is shared and withdraw or re-grant your consent at any time in the app under{" "}
           <strong>Settings → Data &amp; AI</strong>. Withdrawing consent turns off camera form feedback.
@@ -164,6 +183,7 @@ export default function PrivacyPolicy() {
           </li>
           <li>
             <strong>AI service providers</strong> for voice conversations, camera form analysis, and text coaching
+            (named individually under <strong>AI Features and Your Consent</strong> above)
           </li>
           <li>
             <strong>Analytics and diagnostics providers</strong> to understand usage and diagnose crashes and
@@ -209,8 +229,8 @@ export default function PrivacyPolicy() {
         </p>
         <p className="mb-4">
           If you cannot access the app, you can also request deletion by emailing us at{" "}
-          <a href="mailto:amir7alsad@gmail.com" className="text-blue-600 underline">
-            amir7alsad@gmail.com
+          <a href="mailto:contact@delirio.fit" className="text-blue-600 underline">
+            contact@delirio.fit
           </a>
           . We may need to verify your identity before completing the request.
         </p>
@@ -241,8 +261,8 @@ export default function PrivacyPolicy() {
         </ul>
         <p className="mb-4">
           To exercise these rights, contact us at{" "}
-          <a href="mailto:amir7alsad@gmail.com" className="text-blue-600 underline">
-            amir7alsad@gmail.com
+          <a href="mailto:contact@delirio.fit" className="text-blue-600 underline">
+            contact@delirio.fit
           </a>
           .
         </p>
@@ -263,8 +283,8 @@ export default function PrivacyPolicy() {
         <p className="mb-4">If you have questions about this Privacy Policy or our data practices, please contact us at:</p>
         <p className="mb-4">
           <strong>Email:</strong>{" "}
-          <a href="mailto:amir7alsad@gmail.com" className="text-blue-600 underline">
-            amir7alsad@gmail.com
+          <a href="mailto:contact@delirio.fit" className="text-blue-600 underline">
+            contact@delirio.fit
           </a>
         </p>
 

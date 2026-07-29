@@ -11,7 +11,7 @@ export default function TermsServices() {
     <LandingLegalShell>
       <div id="terms-of-service" className="max-w-3xl mx-auto px-6 py-10 md:py-16">
         <h1 className="text-4xl font-bold mb-8">Terms of Service</h1>
-          <p className="mb-2 text-sm text-gray-500">Last updated: July 12, 2026</p>
+          <p className="mb-2 text-sm text-gray-500">Last updated: July 22, 2026</p>
 
           <h2 className="text-2xl font-semibold mb-4 mt-8">Agreement to Terms</h2>
           <p className="mb-4">
@@ -79,20 +79,6 @@ export default function TermsServices() {
             <li>You are responsible for using your own judgment when following any AI-generated advice.</li>
           </ul>
 
-          <h2 className="text-2xl font-semibold mb-4 mt-8">Subscriptions and Billing</h2>
-          <p className="mb-4">
-            Delirio offers subscriptions purchased and managed through Apple&rsquo;s App Store. Available plans are:
-          </p>
-          <ul className="mb-4 list-disc pl-6">
-            <li>${MONTHLY_PRICE_USD} per month, billed monthly.</li>
-            <li>${YEARLY_PRICE_USD} per year, billed annually (equivalent to ${YEARLY_MONTHLY_EQUIVALENT_USD} per month).</li>
-          </ul>
-          <p className="mb-4">
-            Apple processes subscription payments and provides the controls for managing or canceling your subscription.
-            Apple&rsquo;s applicable purchase, renewal, cancellation, and refund terms govern transactions completed through
-            the App Store. We may change pricing or features prospectively as permitted by applicable law and platform rules.
-          </p>
-
           <h2 className="text-2xl font-semibold mb-4 mt-8">Account Registration</h2>
           <p className="mb-4">To use certain features of the Service, you must create an account. You agree to:</p>
                 <ul className="mb-4 list-disc pl-6">
@@ -102,6 +88,64 @@ export default function TermsServices() {
             <li>Accept responsibility for all activity that occurs under your account</li>
                 </ul>
           <p className="mb-4">We reserve the right to suspend or terminate accounts that violate these Terms.</p>
+
+          <h2 className="text-2xl font-semibold mb-4 mt-8">Subscriptions and Billing</h2>
+          <p className="mb-4">
+            Some features of the Service require a paid subscription. Delirio Plus is an auto-renewable subscription
+            offered as a monthly plan ($29.99 per month) or an annual plan ($179.99 per year). Prices are shown in the
+            app at the point of purchase and may vary by region and currency.
+          </p>
+
+          <h3 className="text-xl font-semibold mb-3 mt-6">Free Trial</h3>
+          <p className="mb-4">
+            New subscribers may be offered a 7-day free trial. Unless you cancel at least 24 hours before the trial
+            ends, the trial automatically converts to a paid subscription at the price displayed at sign-up. Trial
+            eligibility is limited to one per Apple Account.
+          </p>
+
+          <h3 className="text-xl font-semibold mb-3 mt-6">Auto-Renewal</h3>
+          <p className="mb-4">
+            Subscriptions renew automatically for the same period unless canceled at least 24 hours before the end of
+            the current period. Payment is charged to your Apple Account through the App Store, and your account is
+            charged for renewal within 24 hours prior to the end of the current period.
+          </p>
+
+          <h3 className="text-xl font-semibold mb-3 mt-6">Managing and Canceling Your Subscription</h3>
+          <p className="mb-4">
+            You can manage or cancel your subscription at any time through your Apple Account subscription settings
+            (Settings &rarr; Apple Account &rarr; Subscriptions), or through the Manage Subscription option inside the
+            app. Cancellation takes effect at the end of the current billing period, and you keep access until then.
+            Deleting the app does not cancel your subscription.
+          </p>
+
+          <h3 className="text-xl font-semibold mb-3 mt-6">Refunds</h3>
+          <p className="mb-4">
+            Purchases are processed by Apple, and refund requests are handled by Apple under its terms. You can request
+            a refund at{" "}
+            <a href="https://reportaproblem.apple.com" className="text-blue-600 underline">
+              reportaproblem.apple.com
+            </a>
+            . Delirio cannot issue App Store refunds directly.
+          </p>
+
+          <h3 className="text-xl font-semibold mb-3 mt-6">Price Changes</h3>
+          <p className="mb-4">
+            If we change subscription prices, existing subscribers will be notified in accordance with App Store rules
+            and may cancel before the new price takes effect.
+          </p>
+
+          <h3 className="text-xl font-semibold mb-3 mt-6">Promotional Offers</h3>
+          <p className="mb-4">
+            If you redeem a promotional offer code, the standard price applies after the offer period ends unless you
+            cancel the subscription before then.
+          </p>
+
+          <h2 className="text-2xl font-semibold mb-4 mt-8">Service Changes</h2>
+          <p className="mb-4">
+            We are continually improving Delirio. Features may be added, modified, or removed over time, and the Service
+            may occasionally be unavailable for maintenance or experience interruptions. We will provide reasonable
+            notice of changes that materially reduce the core functionality of a paid subscription.
+          </p>
 
           <h2 className="text-2xl font-semibold mb-4 mt-8">Messaging Consent</h2>
           <p className="mb-4">
@@ -191,6 +235,10 @@ export default function TermsServices() {
             without notice. You may stop using the Service at any time.
           </p>
           <p className="mb-4">
+            If we terminate your access without cause while you have an active paid subscription, your remedy is to
+            request a refund from Apple for the unused portion of your subscription term.
+          </p>
+          <p className="mb-4">
             Upon termination, your right to use the Service will immediately cease. Provisions of these Terms that by
             their nature should survive termination will survive, including ownership, disclaimers, indemnification, and
             limitations of liability.
@@ -226,8 +274,8 @@ export default function TermsServices() {
           <p className="mb-4">If you have questions about these Terms, please contact us at:</p>
           <p className="mb-4">
             <strong>Email:</strong>{" "}
-            <a href="mailto:amir7alsad@gmail.com" className="text-blue-600 underline">
-              amir7alsad@gmail.com
+            <a href="mailto:contact@delirio.fit" className="text-blue-600 underline">
+              contact@delirio.fit
             </a>
           </p>
 
