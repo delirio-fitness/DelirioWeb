@@ -1,8 +1,8 @@
 # Delirio Web
 
-Marketing landing page for Delirio, an AI fitness coaching iOS app. The site demonstrates the
-voice and text coaching experience via Pipecat, hosts the legal pages, and points users to the
-TestFlight beta.
+Production marketing landing page for Delirio, an AI fitness coaching iOS app. The site demonstrates
+the voice and text coaching experience via Pipecat, hosts legal pages, presents subscription pricing,
+and routes acquisition to the App Store.
 
 ## Stack
 
@@ -19,8 +19,8 @@ TestFlight beta.
 index.html → src/main.tsx → src/App.tsx → src/pages/Landing.tsx
 ```
 
-Legal routes wrap their content in `src/components/LandingLegalShell.tsx`, which renders
-`LandingSiteHeader` + `LandingSiteFooter` around the page body.
+Legal routes wrap their content in `src/components/LandingLegalShell.tsx`, which renders the current
+Design 3 navigation and footer around the page body.
 
 ## Routes
 
@@ -38,10 +38,13 @@ npm run preview     # serve build/
 npm run typecheck   # tsc --noEmit (strict)
 npm run lint        # eslint src
 npm run format      # prettier --write src
+npm test            # Jest + React Testing Library
+npm run test:watch  # interactive Jest watch mode
+npm run test:coverage
 ```
 
-There is no unit-test runner configured (no vitest/jest). Code-correctness checks are
-`typecheck` + `lint`; feature correctness comes from browser-testing — see below.
+Jest covers component behavior and integration journeys. Browser testing remains required for
+responsive layout, real microphone permission, audio, contrast, and motion.
 
 ## Verifying changes
 
@@ -67,7 +70,7 @@ Before reporting any code change as done:
    playwright-cli resize 820 1180   # iPad-class — when touching responsive breakpoints
    ```
    Watch for: text overflow, tap targets <44px, horizontal scroll, content hidden behind the
-   smart banner, hero/section padding collapsing, image mockups overlapping copy.
+   sticky header, hero/section padding collapsing, and image mockups overlapping copy.
 
 ### playwright-cli artifacts
 
@@ -96,11 +99,11 @@ Never write playwright artifacts to the repo root or anywhere else under version
 ```
 VITE_CHAT_ENGINE_URL       # Pipecat chat backend (default: chat-engine-staging.up.railway.app)
 VITE_PIPECAT_BACKEND_URL   # Pipecat voice backend (default: voice-engine-staging.up.railway.app)
-VITE_TRIGGER_API_KEY       # Pipecat backend trigger key (default: "password")
-VITE_TESTFLIGHT_URL        # TestFlight redirect URL (default: https://testflight.apple.com/)
+VITE_APP_STORE_URL         # Production listing (temporary fallback: https://apps.apple.com/)
 ```
 
-Defaults live in `src/utils/pipecatConfig.ts` and `src/components/LandingLegalShell.tsx`.
+Backend defaults live in `src/utils/pipecatConfig.ts`; product pricing and acquisition configuration
+live in `src/config/product.ts`.
 
 ## Non-obvious things
 
@@ -109,19 +112,12 @@ Defaults live in `src/utils/pipecatConfig.ts` and `src/components/LandingLegalSh
   regenerate, install `tailwindcss` and rebuild upstream of this repo, or hand-edit `index.css`.
 - Tokens (colors, spacing, typography) live in the `@layer theme` block at the top of
   `src/index.css`. Custom utilities are in `@layer utilities`.
-- Smart-banner meta in `index.html` uses `app-id=delirio-testflight-beta` — placeholder; the
-  banner will not render in production until replaced with a numeric App Store ID.
+- The default App Store URL is only a placeholder. Configure the real listing before release.
 - `useTextChat` uses Vite proxy `/api/chat` in dev (configured in `vite.config.ts`) and
   `${VITE_CHAT_ENGINE_URL}/chat` in production.
-- `LandingBackgroundLines.tsx` runs a wave RAF loop. Cleanup is colocated with the start effect
-  and runs whenever `waveBehaviour` toggles or the component unmounts.
-- MUI icons (`@mui/icons-material`) appear in 7 places in `Landing.tsx` for call/mic UI; they
-  drag in `@mui/material` + `@emotion/*`. Candidate for a future swap to `lucide-react`.
-- shadcn UI components live under `src/components/ui/` (button, input, checkbox, label, utils).
-  Add more from the shadcn registry — never via Figma codegen, never with versioned imports.
+- The current landing and legal shell use the `d3-*` namespace in `src/styles/design3.css`.
+- Shared UI should be added only when it has a live consumer; do not retain speculative component libraries.
 
 ## Lint state
 
-46 warnings remaining as of 2026-05-09 (mix of `no-explicit-any` in chat/voice payload
-narrowing, two `react-hooks/set-state-in-effect` patterns in `Landing.tsx`, and unescaped
-quotes in legal copy). 0 errors.
+`npm run lint` currently completes without warnings or errors.

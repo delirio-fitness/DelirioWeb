@@ -1,0 +1,21 @@
+Use case: photorealistic-natural
+Asset type: square premium consumer fitness landing-page carousel photograph
+
+Create an entirely original photorealistic editorial lifestyle photograph of a completely fictional 38-year-old professional woman beginning a strength workout after a workday. She has natural skin texture, shoulder-length dark brown hair secured in a practical low ponytail, an attainable average-to-athletic body, realistic proportions, and a grounded contemporary appearance. She must not resemble any celebrity, influencer, athlete, model, public figure, or identifiable real person. Dress her in unbranded charcoal training leggings, a muted plum performance top, clean neutral trainers, and a small unbranded smartwatch. She should look like a busy professional who exercises for strength and health, not a hyper-fit fitness model.
+
+Capture the precise moment when she transitions from planning to action. She stands in a refined but attainable urban apartment fitness corner during early evening. A securely mounted smartphone sits on a low stand beside an opened exercise mat and a pair of generic dumbbells. She has just reached toward the phone to begin the planned workout and is returning to an upright stance. Her expression is focused and quietly resolved, with a trace of workday fatigue giving way to intention. She does not look at the camera. Her body language should feel candid, not posed.
+
+Use a square 1:1 composition. Place the woman in the left-center and lower-center of the frame. Keep her face, hands, phone stand, mat, and dumbbells anatomically clear. Reserve clean, visually quiet negative space in the upper-right quadrant, approximately 28 percent of the image width and 48 percent of its height, for a Delirio app interface overlay that will be added later. Do not place the subject's face, hand, phone, equipment, window edge, lamp, or high-contrast object inside that upper-right overlay-safe area. The negative space should still feel like a natural part of the room, with a softly defocused wall or calm architectural surface.
+
+The room contains an exercise mat, one pair of generic dumbbells, a simple low bench, and an unbranded water bottle. A closed laptop or work tote may appear softly out of focus near the far edge to suggest the transition from work, but it must remain secondary. The environment should feel lived in, tasteful, private, and achievable, not like a mansion, medical clinic, influencer studio, or commercial gym.
+
+Lighting is soft directional daylight from a large window on camera-left, combined with a restrained warm practical lamp deeper in the room. Preserve detail in charcoal clothing. Use natural highlights on the cheek, shoulder, forearm, hair, and phone edge. Keep skin tones neutral and realistic. No hard spotlight, neon light, smoke, haze, heavy HDR, orange skin, teal-orange grading, crushed shadows, or blown highlights.
+
+Use a full-frame mirrorless camera character with a 40mm equivalent lens, eye-level or slightly lower camera position, approximately f/3.2, natural perspective, realistic depth of field, and a shutter fast enough to freeze the hand cleanly. Render crisp hair strands, pores, fabric weave, mat texture, floor detail, phone reflections, and believable shadows. Premium advertising finish with documentary credibility. No airbrushed skin or body reshaping.
+
+Color palette: charcoal, muted plum, warm off-white, dark wood, and restrained olive. No visible text anywhere. No third-party logos, trademarks, posters, branded clothing, branded equipment, watermarks, signatures, stock marks, or copyrighted art.
+
+Anatomy and safety constraints: exactly one person; two anatomically correct arms and hands; five natural fingers per visible hand; no duplicated limbs; stable stance; realistic wrist and shoulder angles; phone securely mounted; dumbbells placed safely; no unsafe exercise behavior.
+
+Do not include an app overlay, floating graphic, interface, notification, caption, arrow, metric, logo, or generated text. Those elements will be composited separately. No medication, injection, packaging, scale, medical imagery, before-and-after implication, health-status inference, pain, injury, collapse, sexualized pose, excessive sweat, exaggerated smile, or direct eye contact with the camera.
+

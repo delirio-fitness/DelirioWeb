@@ -1,0 +1,229 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // The website retains a compact, rule-validated envelope and serializes
+    // evolving questionnaire fields inside its three answer strings.
+    function hasValidWebsiteFeedbackEnvelope(data) {
+      return data.keys().hasOnly([
+          'browserId', 'ownerUid', 'answers', 'email', 'source', 'schemaVersion', 'createdAt'
+        ])
+        && data.browserId is string
+        && data.browserId.matches('^[a-zA-Z0-9_-]{16,80}$')
+        && data.ownerUid == request.auth.uid
+        && data.source == 'delirio-website-feedback'
+        && data.schemaVersion == 2
+        && data.answers is map
+        && data.answers.keys().hasOnly([
+          'wish', 'coachingUsefulness', 'nextBuild'
+        ])
+        && data.answers.wish is string
+        && data.answers.wish.size() > 0
+        && data.answers.wish.size() <= 2000
+        && data.answers.coachingUsefulness is string
+        && data.answers.coachingUsefulness.size() > 0
+        && data.answers.coachingUsefulness.size() <= 2000
+        && data.answers.nextBuild is string
+        && data.answers.nextBuild.size() > 0
+        && data.answers.nextBuild.size() <= 2000;
+    }
+
+    function hasValidWebsiteEmail(data) {
+      return data.keys().hasAll(['email'])
+        && data.email is string
+        && data.email.size() > 3
+        && data.email.size() <= 254;
+    }
+
+    // These entitlement fields are owned by the verified App Store server flow.
+    function lockedEntitlementFields() {
+      return [
+        'subscriptionStatus', 'subscriptionPlan', 'subscriptionOffer',
+        'subscriptionTier', 'subscriptionInterval', 'subscriptionAmount',
+        'subscriptionCurrentPeriodEnd', 'subscriptionCancelAtPeriodEnd',
+        'subscriptionTrialEnd', 'hasEverSubscribed', 'hasEverTrialed',
+        'hasEverReachedActive', 'billingState', 'canceledAt'
+      ];
+    }
+
+    // Website questionnaire: anonymous-authenticated, validated submissions.
+    match /webQuestionaire/{submissionId} {
+      allow create: if request.auth != null
+        && request.resource.data.createdAt == request.time
+        && hasValidWebsiteFeedbackEnvelope(request.resource.data);
+
+      // A quiz email is appended only to the originating anonymous owner's
+      // document. All identity, source, and timestamp fields remain immutable.
+      allow update: if isOwner(resource.data.ownerUid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['email'])
+        && hasValidWebsiteFeedbackEnvelope(request.resource.data)
+        && hasValidWebsiteEmail(request.resource.data);
+
+      allow read, delete: if false;
+    }
+
+    // Footer-only waitlist opt-ins do not have a questionnaire to update.
+    // They are retained as separate, validated, create-only warm-network leads.
+    match /warmNetwork/{submissionId} {
+      allow create: if request.auth != null
+        && request.resource.data.createdAt == request.time
+        && hasValidWebsiteFeedbackEnvelope(request.resource.data)
+        && hasValidWebsiteEmail(request.resource.data);
+
+      allow read, update, delete: if false;
+    }
+
+    // Onboarding surveys (created before auth, email linked after auth).
+    match /onboarding_surveys/{surveyId} {
+      allow create: if true;
+      allow update: if isSignedIn();
+      allow read, delete: if false;
+    }
+
+    // Global collections (read-only for clients).
+    match /exercises/{exerciseId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    match /exerciseConfigurations/{configId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    match /exerciseRegistry/{docId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // User feedback (create-only, must match auth uid).
+    match /userFeedback/{feedbackId} {
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid;
+      allow read, update, delete: if false;
+    }
+
+    // Admin users collection for internal tools.
+    match /admins/{adminId} {
+      allow read: if isSignedIn() && request.auth.uid == adminId;
+    }
+
+    match /users/{userId} {
+      // Owners read their document; registered admins may read user documents.
+      allow read: if isOwner(userId)
+        || (isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+
+      allow create: if isOwner(userId)
+        && !request.resource.data.keys().hasAny(lockedEntitlementFields());
+      allow update: if isOwner(userId)
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(lockedEntitlementFields());
+      allow delete: if isOwner(userId);
+
+      match /workouts/{date} {
+        allow read, write: if isOwner(userId);
+
+        match /sessions/{sessionId} {
+          allow read, write: if isOwner(userId);
+        }
+      }
+
+      match /stats/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /exerciseProgress/{progressId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /exerciseGraph/{exerciseId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /check_ins/{checkInId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /reminders/{reminderId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /splits/{splitId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /split_overrides/{date} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /schedule_template/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /schedule/{weekId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /scheduleOverrides/{date} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /goals/{goalId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /goals_history/{goalId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /calendar_annotations/{annotationId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /freeBusy/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /routines/{date} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /activities/{activityId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /achievements/{recordType} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /sales_state/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /archivedProfiles/{docId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /commitments/{commitmentId} {
+        allow read, write: if isOwner(userId);
+      }
+
+      match /pending_tasks/{taskId} {
+        allow read, update: if isOwner(userId);
+        allow create, delete: if false;
+      }
+
+      match /ea_status/{runId} {
+        allow read: if isOwner(userId);
+        allow write: if false;
+      }
+    }
+  }
+}

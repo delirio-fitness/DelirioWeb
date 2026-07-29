@@ -10,7 +10,7 @@ export default function PrivacyPolicy() {
     <LandingLegalShell>
       <div className="max-w-3xl mx-auto px-6 py-10 md:py-16 min-h-screen bg-white text-black">
         <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
-        <p className="mb-2 text-sm text-gray-500">Last updated: July 1, 2026</p>
+        <p className="mb-2 text-sm text-gray-500">Last updated: July 28, 2026</p>
         <p className="mb-4">
           Delirio (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) provides an AI-powered fitness coaching
           mobile application. This Privacy Policy explains what information we collect, how we use and share it, and the
@@ -37,6 +37,21 @@ export default function PrivacyPolicy() {
           You can sign in using Apple, Google, email and password, or your phone number. We use your phone number to
           deliver coaching messages over SMS or WhatsApp when you choose those channels. We will not share, sell, or
           rent your mobile phone number or your SMS/WhatsApp opt-in data to third parties for marketing purposes.
+        </p>
+
+        <h3 className="text-xl font-semibold mb-2 mt-6">Website Feedback and Wishlist</h3>
+        <p className="mb-4">
+          If you submit our website feedback form, we collect your responses and a randomly generated identifier stored
+          in your browser. This identifier helps us distinguish submissions from the same browser without asking for
+          your name, email address, or phone number. Questionnaire responses may include optional information about
+          whether a GLP-1 medication is or was part of your routine, where you are in that experience, and what most
+          often disrupts your training. We use this information to tailor the remaining questions, evaluate product
+          requests, and improve Delirio.
+        </p>
+        <p className="mb-4">
+          If you join the Delirio wishlist, we collect the email address you submit and your explicit request to receive
+          launch and product updates. We use it to send those updates and to understand where wishlist interest comes
+          from. You can unsubscribe through any wishlist email. We do not sell your email address.
         </p>
 
         <h3 className="text-xl font-semibold mb-2 mt-6">Health and Fitness Data</h3>
@@ -100,9 +115,9 @@ export default function PrivacyPolicy() {
 
         <h3 className="text-xl font-semibold mb-2 mt-6">Purchases and Subscriptions</h3>
         <p className="mb-4">
-          If you subscribe, we collect information about your subscription, such as its status and plan and an
-          identifier from our payment processor. Your payment card details are collected and processed directly by our
-          payment processor; we do not store your full card number.
+          If you subscribe through Apple&rsquo;s App Store, we receive information about your subscription, such as its
+          status, plan, and a transaction or account identifier supplied by Apple. Apple processes your payment details;
+          we do not receive or store your full payment card number.
         </p>
 
         <h3 className="text-xl font-semibold mb-2 mt-6">Usage, Analytics, and Diagnostics</h3>
@@ -122,6 +137,7 @@ export default function PrivacyPolicy() {
           <li>Process your subscription and payments</li>
           <li>Secure the app, prevent abuse, and diagnose problems</li>
           <li>Improve our app and services</li>
+          <li>Review product feedback you submit</li>
         </ul>
 
         <h2 className="text-2xl font-semibold mb-4 mt-8">AI Features and Your Consent</h2>
@@ -154,7 +170,7 @@ export default function PrivacyPolicy() {
             performance
           </li>
           <li>
-            <strong>A payment processor</strong> for subscriptions and billing
+            <strong>Apple&rsquo;s App Store</strong> for subscriptions and billing
           </li>
           <li>
             <strong>Messaging providers</strong> for SMS and WhatsApp communication

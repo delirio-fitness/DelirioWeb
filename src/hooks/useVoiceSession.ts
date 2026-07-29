@@ -1,9 +1,47 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { PipecatClient, TransportState } from "@pipecat-ai/client-js";
-import { DailyTransport } from "@pipecat-ai/daily-transport";
+import type { PipecatClient as PipecatClientInstance } from "@pipecat-ai/client-js";
 import { generateDiscoveryId, PIPECAT_BACKEND_URL } from "../utils/pipecatConfig";
+import { usePipecatFrequencyListener } from "./usePipecatFrequencyListener";
+
+export const VOICE_CONNECTION_STABILITY_MS = 1000;
 
 export type VoiceSessionState = "idle" | "connecting" | "connected" | "error";
+export type VoiceFailureKind =
+  | "permission-denied"
+  | "device-unavailable"
+  | "timeout"
+  | "network"
+  | "connection"
+  | "unknown";
+
+export function classifyVoiceFailure(message: string): VoiceFailureKind {
+  const normalized = message.toLowerCase();
+  if (normalized.includes("notallowed") || normalized.includes("permission") || normalized.includes("denied")) {
+    return "permission-denied";
+  }
+  if (normalized.includes("notfound") || normalized.includes("device") || normalized.includes("microphone")) {
+    return "device-unavailable";
+  }
+  if (normalized.includes("timeout") || normalized.includes("timed out")) {
+    return "timeout";
+  }
+  if (normalized.includes("network") || normalized.includes("failed to fetch")) {
+    return "network";
+  }
+  if (normalized.includes("connection") || normalized.includes("502") || normalized.includes("503")) {
+    return "connection";
+  }
+  return "unknown";
+}
+
+function extractText(data: unknown): string {
+  if (typeof data === "string") return data;
+  if (typeof data === "object" && data !== null && "text" in data) {
+    const text = (data as { text?: unknown }).text;
+    return typeof text === "string" ? text : "";
+  }
+  return "";
+}
 
 interface UseVoiceSessionOptions {
   personality?: string;
@@ -11,36 +49,41 @@ interface UseVoiceSessionOptions {
   context?: string;
   /** Connection timeout in ms (default: 30000) */
   timeout?: number;
-  /** Max retry attempts on connection failure (default: 3) */
+  /** Maximum automatic connection attempts before exposing manual retry (default: 5) */
   maxRetries?: number;
 }
 
 export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
   const {
-    personality = "reed", // within default_app context, "reed" and "iris" are functional
+    personality = "reed",
     userId = generateDiscoveryId(),
-    context = "discovery", //default_app is funcitonal 
+    context = "discovery",
     timeout = 30000,
-    maxRetries = 3,
-
-  } = options; 
-
+    maxRetries = 5,
+  } = options;
 
   const [sessionState, setSessionState] = useState<VoiceSessionState>("idle");
-  const [isMicMuted, setIsMicMuted] = useState(false);
-  const [isSpeakerMuted, setIsSpeakerMuted] = useState(false);
   const [isBotSpeaking, setIsBotSpeaking] = useState(false);
+  const [isBotProcessing, setIsBotProcessing] = useState(false);
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
   const [botTranscript, setBotTranscript] = useState("");
   const [botTurns, setBotTurns] = useState<string[]>([]);
   const [userTranscript, setUserTranscript] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [transportState, setTransportState] = useState<string>("idle");
+  const [failureKind, setFailureKind] = useState<VoiceFailureKind | null>(null);
+  // Visual-only gain: raises quiet speech motion without changing coach volume.
+  const {
+    levels: frequencyLevels,
+    isListening: isFrequencyListening,
+    attachTrack: attachFrequencyTrack,
+    detachTrack: detachFrequencyTrack,
+  } = usePipecatFrequencyListener({ magnitudeScalar: 1.6, barCount: 16 });
 
-  const clientRef = useRef<PipecatClient | null>(null);
+  const clientRef = useRef<PipecatClientInstance | null>(null);
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
-  const retryCountRef = useRef(0);
   const isConnectingRef = useRef(false);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stabilityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const connectionFailurePendingRef = useRef(false);
   const pendingBotTurnRef = useRef("");
   const pendingBotTurnSourceRef = useRef<"none" | "llm" | "tts">("none");
   const botMarkupTagOpenRef = useRef(false);
@@ -60,26 +103,14 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+      if (stabilityTimerRef.current) clearTimeout(stabilityTimerRef.current);
       if (audioElementRef.current) {
         audioElementRef.current.pause();
         audioElementRef.current.srcObject = null;
       }
     };
   }, []);
-
-  useEffect(() => {
-    if (audioElementRef.current) {
-      audioElementRef.current.muted = isSpeakerMuted;
-    }
-  }, [isSpeakerMuted]);
-
-  useEffect(() => {
-    if (sessionState !== "connected" || !clientRef.current) {
-      return;
-    }
-
-    clientRef.current.enableMic(!isMicMuted);
-  }, [isMicMuted, sessionState]);
 
   const resetPendingBotTurn = useCallback(() => {
     pendingBotTurnRef.current = "";
@@ -125,7 +156,7 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
     return cleaned;
   }, []);
 
-  const commitPendingBotTurn = useCallback((reason: "stopped" | "rolled" | "disconnected") => {
+  const commitPendingBotTurn = useCallback(() => {
     const finalized = pendingBotTurnRef.current.trim();
     if (!finalized) {
       return;
@@ -133,7 +164,6 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
 
     // Keep only the latest completed bot turn in the rendered transcript.
     setBotTurns([finalized]);
-    console.log(`[VoiceSession] Committed bot turn (${reason}):`, finalized);
     resetPendingBotTurn();
   }, [resetPendingBotTurn]);
 
@@ -209,9 +239,12 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
   }, [stripStreamingMarkupChunk]);
 
   useEffect(() => {
-    setBotTurns([]);
-    resetPendingBotTurn();
-    resetPendingUserTranscript();
+    const timer = window.setTimeout(() => {
+      setBotTurns([]);
+      resetPendingBotTurn();
+      resetPendingUserTranscript();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [personality, resetPendingBotTurn, resetPendingUserTranscript]);
 
   // Use refs to avoid circular dependency issues with retry logic
@@ -219,6 +252,8 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
 
   const handleConnectionError = useCallback((errorMsg: string, attempt: number) => {
     isConnectingRef.current = false;
+    connectionFailurePendingRef.current = true;
+    setIsBotProcessing(false);
 
     // Check if this is a retriable error
     const isRetriable =
@@ -232,17 +267,13 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
 
     if (isRetriable && attempt < maxRetries - 1) {
       const delay = Math.min(1000 * Math.pow(2, attempt), 10000); // Exponential backoff, max 10s
-      console.log(`[VoiceSession] Retrying in ${delay}ms (attempt ${attempt + 2}/${maxRetries})...`);
-
-      retryCountRef.current = attempt + 1;
-      setTimeout(() => {
+      retryTimerRef.current = setTimeout(() => {
+        retryTimerRef.current = null;
         connectWithRetryRef.current?.(attempt + 1);
       }, delay);
     } else {
-      console.error(`[VoiceSession] Connection failed after ${attempt + 1} attempts: ${errorMsg}`);
-      setError(errorMsg);
+      setFailureKind(classifyVoiceFailure(errorMsg));
       setSessionState("error");
-      retryCountRef.current = 0;
     }
   }, [maxRetries]);
 
@@ -250,21 +281,19 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
     if (clientRef.current?.connected || isConnectingRef.current) return;
 
     isConnectingRef.current = true;
+    connectionFailurePendingRef.current = false;
     setSessionState("connecting");
-    setError(null);
+    setFailureKind(null);
 
     // Prime audio element inside user gesture so browsers allow playback
     const audio = getAudioElement();
     audio.play().catch(() => {});
 
-    const t0 = Date.now();
-    const ms = () => `+${Date.now() - t0}ms`;
-    const sessionTag = `personality="${personality}" context="${context}" userId="${userId}"`;
-
-    console.log(`[VoiceSession] ---- NEW SESSION ----`);
-    console.log(`[VoiceSession] Config: ${sessionTag}`);
-
     try {
+      const [{ PipecatClient }, { DailyTransport }] = await Promise.all([
+        import("@pipecat-ai/client-js"),
+        import("@pipecat-ai/daily-transport"),
+      ]);
       const transport = new DailyTransport();
       const client = new PipecatClient({
         transport,
@@ -274,65 +303,69 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
         // @ts-expect-error -- runtime-supported option not in SDK type definitions
         timeout,
         callbacks: {
-          onConnected: () => {
-            console.log(`[VoiceSession] (${ms()}) Connected to transport`);
-          },
           onDisconnected: () => {
-            console.warn(`[VoiceSession] (${ms()}) Disconnected — ${sessionTag}`);
-            commitPendingBotTurn("disconnected");
+            commitPendingBotTurn();
+            if (stabilityTimerRef.current) {
+              clearTimeout(stabilityTimerRef.current);
+              stabilityTimerRef.current = null;
+            }
+            clientRef.current = null;
+            detachFrequencyTrack();
+            if (connectionFailurePendingRef.current) return;
+            if (isConnectingRef.current) {
+              handleConnectionError("Connection dropped before becoming stable", attempt);
+              return;
+            }
             setSessionState("idle");
             setIsBotSpeaking(false);
+            setIsBotProcessing(false);
             setIsUserSpeaking(false);
             isConnectingRef.current = false;
           },
-          onTransportStateChanged: (state: TransportState) => {
-            console.log(`[VoiceSession] (${ms()}) Transport: ${state}`);
-            setTransportState(state);
-          },
           onBotReady: () => {
-            console.log(`[VoiceSession] (${ms()}) Bot ready — session fully connected`);
-            setSessionState("connected");
-            retryCountRef.current = 0;
-            isConnectingRef.current = false;
+            if (stabilityTimerRef.current) clearTimeout(stabilityTimerRef.current);
+            stabilityTimerRef.current = setTimeout(() => {
+              stabilityTimerRef.current = null;
+              if (clientRef.current !== client) return;
+              setSessionState("connected");
+              setFailureKind(null);
+              isConnectingRef.current = false;
+            }, VOICE_CONNECTION_STABILITY_MS);
           },
           onBotStartedSpeaking: () => {
-            console.log(`[VoiceSession] (${ms()}) Bot started speaking`);
-            commitPendingBotTurn("rolled");
+            commitPendingBotTurn();
             resetPendingBotTurn();
             setIsBotSpeaking(true);
+            setIsBotProcessing(false);
           },
           onBotStoppedSpeaking: () => {
-            console.log(`[VoiceSession] (${ms()}) Bot stopped speaking`);
             setIsBotSpeaking(false);
-            commitPendingBotTurn("stopped");
+            commitPendingBotTurn();
           },
           onUserStartedSpeaking: () => {
             resetPendingUserTranscript();
             setIsUserSpeaking(true);
           },
           onUserStoppedSpeaking: () => setIsUserSpeaking(false),
-          onBotLlmText: (data: any) => {
+          onBotLlmText: (data) => {
             // Streaming bot output during the active turn.
-            const text = typeof data === "string" ? data : data?.text ?? "";
+            const text = extractText(data);
             if (text) {
               appendPendingBotTurn("llm", text);
             }
           },
-          onBotTtsText: (data: any) => {
+          onBotTtsText: (data) => {
             // TTS text stream; used when no LLM token stream is available.
-            const text = typeof data === "string" ? data : data?.text ?? "";
+            const text = extractText(data);
             if (text) {
               appendPendingBotTurn("tts", text);
             }
           },
           onBotLlmStarted: () => {
             // Start a fresh turn; preserve any text from an unclosed previous turn.
-            commitPendingBotTurn("rolled");
+            commitPendingBotTurn();
             resetPendingBotTurn();
-          },
-          onBotTranscript: (data) => {
-            // Deprecated fallback — only fires if above events don't
-          //  if (data.text) setBotTranscript(data.text);
+            setIsBotProcessing(true);
           },
           onUserTranscript: (data) => {
             const text = typeof data === "string" ? data : data?.text ?? "";
@@ -342,41 +375,30 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
 
             if (data?.text && data?.final) {
               const cleanUserText = stripInlineMarkup(data.text);
-              console.log("[VoiceSession] User transcript (final):", cleanUserText);
               pendingUserTranscriptRef.current = cleanUserText;
               setUserTranscript(cleanUserText);
             }
           },
           onTrackStarted: (track, participant) => {
-            console.log(`[VoiceSession] (${ms()}) Track: ${track.kind}, local=${participant?.local}`);
             if (track.kind === "audio" && participant && !participant.local) {
               const audio = getAudioElement();
               const stream = new MediaStream([track]);
               audio.srcObject = stream;
-              audio.muted = isSpeakerMuted;
-              audio.play().catch((e) =>
-                console.warn("[VoiceSession] Audio play blocked:", e)
-              );
-              console.log("[VoiceSession] Remote audio track attached");
+              audio.play().catch(() => {});
+              attachFrequencyTrack(track);
             }
           },
           onError: (message) => {
-            //log General message: 
-            console.log("General error message: ", message)
-            console.error(`[VoiceSession] (${ms()}) ERROR — ${sessionTag}`);
-            console.error("[VoiceSession] Error payload:", {
-              label: message?.label,
-              type: message?.type,
-              data: message?.data,
-              id: message?.id,
-            });
             const data = message?.data;
+            const nestedMessage =
+              typeof data === "object" && data !== null && "message" in data
+                ? (data as { message?: unknown }).message
+                : null;
             const errorMsg =
-              (typeof data === "object" && data !== null ? (data as any).message : null)
+              (typeof nestedMessage === "string" ? nestedMessage : null)
               ?? (typeof data === "string" ? data : null)
               ?? (typeof message === "string" ? message : JSON.stringify(message))
               ?? "Connection error";
-            console.error(`[VoiceSession] Extracted error: "${errorMsg}"`);
             handleConnectionError(errorMsg, attempt);
           },
         },
@@ -387,32 +409,11 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
       const connectUrl = `${PIPECAT_BACKEND_URL}/connect`;
       const requestBody = { user_id: userId, personality, context };
 
-      console.log(`[VoiceSession] Attempting connection (attempt ${attempt + 1}/${maxRetries})...`);
-      console.log(`[VoiceSession] Endpoint: ${connectUrl}`);
-      console.log(`[VoiceSession] Request body:`, requestBody);
-
       await client.startBotAndConnect({
         endpoint: connectUrl,
         requestData: requestBody,
-        // TODO: `config` is honored at runtime but missing from APIRequest in @pipecat-ai/client-js typings.
-        // @ts-expect-error -- runtime-supported field not in SDK type definitions
-        config:[
-          {
-            service: "llm", 
-            options:[
-              {
-                name: "messages",
-                 value: [
-                  {role: "system", content: "Always refer to the user as ANDY"}
-                 ]
-              }
-            ]
-          }
-        ]
       });
-      console.log("Endpoint in use: ", connectUrl) //logging 
     } catch (err) {
-      console.error("[VoiceSession] Connection error:", err);
       const errorMsg = err instanceof Error ? err.message : "Failed to connect";
       handleConnectionError(errorMsg, attempt);
     }
@@ -421,16 +422,16 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
     userId,
     context,
     timeout,
-    maxRetries,
     handleConnectionError,
     getAudioElement,
-    isSpeakerMuted,
     appendPendingBotTurn,
     appendPendingUserTranscript,
     commitPendingBotTurn,
     resetPendingBotTurn,
     resetPendingUserTranscript,
     stripInlineMarkup,
+    attachFrequencyTrack,
+    detachFrequencyTrack,
   ]);
 
   // Keep the ref updated
@@ -439,8 +440,8 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
   }, [connectWithRetry]);
 
   const connect = useCallback(async () => {
-    retryCountRef.current = 0;
     setBotTurns([]);
+    setFailureKind(null);
     resetPendingBotTurn();
     resetPendingUserTranscript();
     await connectWithRetry(0);
@@ -448,44 +449,27 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
 
   const disconnect = useCallback(async () => {
     isConnectingRef.current = false;
-    retryCountRef.current = 0;
-    commitPendingBotTurn("disconnected");
+    connectionFailurePendingRef.current = false;
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
+    if (stabilityTimerRef.current) {
+      clearTimeout(stabilityTimerRef.current);
+      stabilityTimerRef.current = null;
+    }
+    commitPendingBotTurn();
+    detachFrequencyTrack();
     if (!clientRef.current) return;
     try {
       await clientRef.current.disconnect();
-    } catch (err) {
-      console.error("[VoiceSession] Disconnect error:", err);
+    } catch {
+      // The transport may already be closed; local teardown still proceeds.
     }
     clientRef.current = null;
     setSessionState("idle");
-    setTransportState("idle");
-  }, [commitPendingBotTurn]);
-
-  const toggleMic = useCallback(() => {
-    setIsMicMuted((currentState) => {
-      const nextState = !currentState;
-      clientRef.current?.enableMic(!nextState);
-      return nextState;
-    });
-  }, []);
-
-  const toggleSpeakerMute = useCallback(() => {
-    setIsSpeakerMuted((currentState) => {
-      const nextState = !currentState;
-      if (audioElementRef.current) {
-        audioElementRef.current.muted = nextState;
-      }
-      return nextState;
-    });
-  }, []);
-
-  const updateMic = useCallback((deviceId: string) => {
-    clientRef.current?.updateMic(deviceId);
-  }, []);
-
-  const updateSpeaker = useCallback((deviceId: string) => {
-    clientRef.current?.updateSpeaker(deviceId);
-  }, []);
+    setIsBotProcessing(false);
+  }, [commitPendingBotTurn, detachFrequencyTrack]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -498,20 +482,17 @@ export function useVoiceSession(options: UseVoiceSessionOptions = {}) {
 
   return {
     sessionState,
-    transportState,
-    isMicMuted,
-    isSpeakerMuted,
     isBotSpeaking,
+    isBotProcessing,
     isUserSpeaking,
     botTranscript,
     botTurns,
     userTranscript,
-    error,
+    failureKind,
+    frequencyLevels,
+    isFrequencyListening,
     connect,
     disconnect,
-    toggleMic,
-    toggleSpeakerMute,
-    updateMic,
-    updateSpeaker,
+    cancelConnect: disconnect,
   };
 }
