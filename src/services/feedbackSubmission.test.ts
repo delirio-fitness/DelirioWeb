@@ -4,7 +4,6 @@ import { getFirebaseServices } from './firebaseClient';
 import {
   appendQuestionnaireEmailToFirestore,
   submitWarmNetworkWishlistToFirestore,
-  type FeedbackAnswers,
 } from './feedbackSubmission';
 
 jest.mock('firebase/auth', () => ({ signInAnonymously: jest.fn() }));
@@ -24,12 +23,6 @@ const documentMock = jest.mocked(doc);
 const serverTimestampMock = jest.mocked(serverTimestamp);
 const signInAnonymouslyMock = jest.mocked(signInAnonymously);
 const updateDocMock = jest.mocked(updateDoc);
-
-const answers: FeedbackAnswers = {
-  wish: '{"email":"person@example.com"}',
-  coachingUsefulness: '{"placement":"questionnaire"}',
-  nextBuild: '{"consent":"delirio-launch-and-product-updates"}',
-};
 
 describe('website Firebase submission paths', () => {
   const auth = { currentUser: { uid: 'anonymous-user-id' } };
@@ -62,18 +55,17 @@ describe('website Firebase submission paths', () => {
 
   it('writes a footer-only opt-in as a create-only warmNetwork record', async () => {
     await expect(
-      submitWarmNetworkWishlistToFirestore('browser_id_1234567890', answers, 'person@example.com'),
+      submitWarmNetworkWishlistToFirestore('browser_id_1234567890', 'person@example.com'),
     ).resolves.toBe('warm-network-document-id');
 
     expect(collectionMock).toHaveBeenCalledWith(database, 'warmNetwork');
     expect(addDocMock).toHaveBeenCalledWith('collection-ref', {
-      browserId: 'browser_id_1234567890',
-      ownerUid: 'anonymous-user-id',
-      answers,
       email: 'person@example.com',
-      source: 'delirio-website-feedback',
-      schemaVersion: 2,
+      TimeSTamp: expect.any(Number),
       createdAt: 'server-time',
+      source: 'delirio-website-wishlist',
+      ownerUid: 'anonymous-user-id',
+      browserID: 'browser_id_1234567890',
     });
   });
 

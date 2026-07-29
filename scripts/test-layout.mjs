@@ -7,7 +7,7 @@ const BASE_URL = `http://127.0.0.1:${PORT}`;
 const viewports = [
   { name: 'desktop', width: 1440, height: 900 },
   { name: 'tablet', width: 820, height: 1180 },
-  { name: 'mobile', width: 390, height: 844 },
+  { name: 'mobile', width: 360, height: 800 },
 ];
 
 const server = spawn('npm', ['run', 'dev', '--', '--host', '127.0.0.1', '--port', String(PORT), '--strictPort'], {
@@ -131,6 +131,21 @@ async function testViewport(browser, viewport) {
   assertGap(verticalGap(sessionIntro, sessionPanel), viewport.name === 'mobile' ? 32 : 40, 'Coach intro-to-panel', viewport.name);
 
   await page.getByRole('button', { name: /reed.*select coach/i }).click();
+  const coachControls = await box(page, '.coach-trial__controls');
+  const sessionPanelAfterSelection = await box(page, '#session .coach-trial__panel');
+  assert.ok(coachControls.x >= sessionPanelAfterSelection.x - 1, `${viewport.name}: coach controls must remain inside the session panel`);
+  assert.ok(coachControls.x + coachControls.width <= sessionPanelAfterSelection.x + sessionPanelAfterSelection.width + 1, `${viewport.name}: coach controls must not overflow the session panel`);
+  const controlButtons = await page.locator('.coach-trial__controls button').evaluateAll((buttons) => buttons.map((button) => ({
+    width: button.getBoundingClientRect().width,
+    textFits: button.scrollWidth <= button.clientWidth + 1,
+  })));
+  assert.ok(controlButtons.every(({ width }) => width >= (viewport.name === 'mobile' ? 130 : 140)), `${viewport.name}: coach controls must retain a usable adaptive width`);
+  assert.ok(controlButtons.every(({ textFits }) => textFits), `${viewport.name}: coach control labels must remain inside their buttons`);
+  const selectedGeometry = await page.evaluate(() => ({
+    scrollWidth: document.documentElement.scrollWidth,
+    clientWidth: document.documentElement.clientWidth,
+  }));
+  assert.ok(selectedGeometry.scrollWidth <= selectedGeometry.clientWidth + 1, `${viewport.name}: selected coach state must not overflow horizontally`);
   await page.getByRole('button', { name: 'TEXT', exact: true }).click();
   const messageViewport = await box(page, '.coach-trial__message-viewport');
   const composer = await box(page, '.coach-trial__chat-form');

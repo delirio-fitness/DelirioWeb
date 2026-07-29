@@ -38,9 +38,10 @@ stable browser ID remains a correlation field and is never used to overwrite or
 deduplicate responses.
 
 The footer wishlist creates a separate authenticated, create-only document in
-`warmNetwork`. It uses the same validated document envelope as the questionnaire
-and stores the normalized email as a top-level `email` field. Its answer strings
-record the `wishlist-opt-in` submission type, form placement, and consent marker.
+`warmNetwork`. It stores exactly six fields: normalized `email`, client-millisecond
+`TimeSTamp`, server-generated `createdAt`, the fixed `source`, anonymous Firebase
+`ownerUid`, and the first-party `browserID`. Questionnaire answers and schema
+metadata are not copied into this collection.
 
 When a visitor opts in from the completed questionnaire, the site updates the
 same `webQuestionaire/{submissionId}` document that already contains the quiz
@@ -51,12 +52,11 @@ the identifier for the complete response.
 
 ## Rules deployment boundary
 
-The checked-in [firestore.rules](../firestore.rules) now includes the narrowly
-scoped questionnaire update and `warmNetwork` create paths described above. It
-has **not** been deployed by this code change. Before deploying, review the
-rules in the Firebase console and deploy them deliberately. The prior deployed
-rules deny questionnaire updates and do not allow `warmNetwork` creates, so
-without this rules deployment the new email writes will be rejected.
+The checked-in [firestore.rules](../firestore.rules) includes the narrowly
+scoped questionnaire update and `warmNetwork` create paths described above.
+Deploy the strict six-field `warmNetwork` rule with the matching website client:
+the new rule intentionally rejects the legacy questionnaire-envelope payload,
+while the new client will be rejected until that rule is live.
 
 ## Configuration boundary
 

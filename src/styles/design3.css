@@ -1223,36 +1223,6 @@ body,
   position: relative;
   width: 104vw;
 }
-.coach-trial__choices::before,
-.coach-trial__choices::after {
-  bottom: 0;
-  content: '';
-  pointer-events: none;
-  position: absolute;
-  top: 0;
-  width: 10%;
-  z-index: 4;
-}
-.coach-trial__choices::before {
-  background: linear-gradient(
-    to right,
-    #000 0%,
-    rgba(0, 0, 0, 0.9) 28%,
-    rgba(0, 0, 0, 0.4) 68%,
-    transparent 100%
-  );
-  left: 0;
-}
-.coach-trial__choices::after {
-  background: linear-gradient(
-    to left,
-    #000 0%,
-    rgba(0, 0, 0, 0.9) 28%,
-    rgba(0, 0, 0, 0.4) 68%,
-    transparent 100%
-  );
-  right: 0;
-}
 .coach-trial__card {
   background: transparent;
   border: 0;
@@ -1368,6 +1338,7 @@ body,
   display: flex;
   gap: 18px;
   height: 66px;
+  padding-inline: clamp(24px, 7vw, 100px);
   width: 100%;
 }
 .coach-trial__coach-tabs {
@@ -1388,6 +1359,7 @@ body,
   font-weight: 700;
   gap: 10px;
   height: 58px;
+  min-width: 0;
   padding: 8px 14px;
   transition:
     background-color 180ms ease,
@@ -1411,6 +1383,7 @@ body,
   background: #eef2e9;
 }
 .coach-trial__coach-tabs img {
+  flex: 0 0 auto;
   height: 40px;
   object-fit: contain;
   padding: 3px;
@@ -1435,6 +1408,7 @@ body,
   font-weight: 700;
   height: 58px;
   letter-spacing: 0.08em;
+  min-width: 0;
   transition:
     background-color 180ms ease,
     color 180ms ease;
@@ -1461,6 +1435,7 @@ body,
   background: transparent;
   border: 0;
   overflow: hidden;
+  padding-left: 100px;
   position: relative;
 }
 .coach-trial__stage--voice > .coach-trial__stage-portrait {
@@ -1515,7 +1490,7 @@ body,
   background: transparent;
   border: 0;
   display: block;
-  padding: 0;
+  padding: 0 100px;
   position: relative;
 }
 .coach-trial__mode-content {
@@ -1821,14 +1796,6 @@ body,
     transform: translateX(0);
   }
 }
-@keyframes d3-curtain-edge-fade-away {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
-}
 @supports (animation-timeline: view()) {
   .d3-page .coach-trial {
     view-timeline-axis: block;
@@ -1842,12 +1809,6 @@ body,
   .coach-trial__card:last-child {
     animation: d3-curtain-right linear both;
     animation-range: entry 0% entry 80%;
-    animation-timeline: --coach-section;
-  }
-  .coach-trial__choices::before,
-  .coach-trial__choices::after {
-    animation: d3-curtain-edge-fade-away linear both;
-    animation-range: entry 0% entry 100%;
     animation-timeline: --coach-section;
   }
   .d3-plan-live {
@@ -1914,11 +1875,6 @@ body,
   .coach-trial__mock-frequency {
     animation: none;
     opacity: 1;
-  }
-  .coach-trial__choices::before,
-  .coach-trial__choices::after {
-    animation: none;
-    opacity: 0;
   }
 }
 
@@ -5054,6 +5010,7 @@ body,
   .coach-trial__intro {
     height: auto;
     min-height: 0;
+    padding-inline: 0;
   }
   .coach-trial__intro h2 {
     font-size: 36px;
@@ -5114,21 +5071,34 @@ body,
     flex-direction: column;
     gap: 12px;
     height: auto;
+    padding-inline: 0;
     width: 100%;
   }
   .coach-trial__coach-tabs {
+    gap: 8px;
+    height: auto;
+    min-height: 58px;
     width: 100%;
   }
   .coach-trial__coach-tabs button {
     flex: 1;
+    min-height: 58px;
+    padding-inline: clamp(10px, 3.5vw, 14px);
     width: auto;
   }
+  .coach-trial__coach-tabs button span {
+    white-space: nowrap;
+  }
   .coach-trial__mode-tabs {
+    gap: 8px;
+    height: auto;
     margin: 0;
+    min-height: 58px;
     width: 100%;
   }
   .coach-trial__mode-tabs button {
     flex: 1;
+    min-height: 58px;
     width: auto;
   }
   .coach-trial__stage {

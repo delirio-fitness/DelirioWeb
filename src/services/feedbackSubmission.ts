@@ -1,6 +1,7 @@
 import { signInAnonymously } from 'firebase/auth';
 import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { getFirebaseServices } from './firebaseClient';
+import type { WarmNetworkLead } from './warmNetworkTypes';
 
 export type FeedbackAnswers = {
   wish: string;
@@ -39,26 +40,26 @@ export async function appendQuestionnaireEmailToFirestore(submissionId: string, 
 }
 
 /**
- * Creates an independent footer-only waitlist record. It uses the same safe
- * document envelope as questionnaire submissions, but writes to warmNetwork.
+ * Creates an independent footer-only waitlist record with the minimal
+ * warmNetwork lead schema.
  */
 export async function submitWarmNetworkWishlistToFirestore(
   browserId: string,
-  answers: FeedbackAnswers,
   email: string,
 ) {
   const { auth, database } = getFirebaseServices();
   const user = auth.currentUser ?? (await signInAnonymously(auth)).user;
 
-  const document = await addDoc(collection(database, 'warmNetwork'), {
-    browserId,
-    ownerUid: user.uid,
-    answers,
+  const lead = {
     email,
-    source: 'delirio-website-feedback',
-    schemaVersion: 2,
+    TimeSTamp: Date.now(),
     createdAt: serverTimestamp(),
-  });
+    source: 'delirio-website-wishlist',
+    ownerUid: user.uid,
+    browserID: browserId,
+  } satisfies WarmNetworkLead;
+
+  const document = await addDoc(collection(database, 'warmNetwork'), lead);
 
   return document.id;
 }

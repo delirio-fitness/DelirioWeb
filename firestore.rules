@@ -43,6 +43,19 @@ service cloud.firestore {
         && data.email.size() <= 254;
     }
 
+    function hasValidWarmNetworkLead(data) {
+      return data.keys().hasOnly([
+          'email', 'TimeSTamp', 'createdAt', 'source', 'ownerUid', 'browserID'
+        ])
+        && hasValidWebsiteEmail(data)
+        && data.TimeSTamp is int
+        && data.createdAt == request.time
+        && data.source == 'delirio-website-wishlist'
+        && data.ownerUid == request.auth.uid
+        && data.browserID is string
+        && data.browserID.matches('^[a-zA-Z0-9_-]{16,80}$');
+    }
+
     // These entitlement fields are owned by the verified App Store server flow.
     function lockedEntitlementFields() {
       return [
@@ -74,9 +87,7 @@ service cloud.firestore {
     // They are retained as separate, validated, create-only warm-network leads.
     match /warmNetwork/{submissionId} {
       allow create: if request.auth != null
-        && request.resource.data.createdAt == request.time
-        && hasValidWebsiteFeedbackEnvelope(request.resource.data)
-        && hasValidWebsiteEmail(request.resource.data);
+        && hasValidWarmNetworkLead(request.resource.data);
 
       allow read, update, delete: if false;
     }

@@ -49,11 +49,6 @@ describe('submitWishlistToFirestore', () => {
 
     expect(submitWarmNetworkWishlistMock).toHaveBeenCalledWith(
       'browser_id_1234567890',
-      {
-        wish: JSON.stringify({ submissionType: 'wishlist-opt-in' }),
-        coachingUsefulness: JSON.stringify({ placement: 'footer' }),
-        nextBuild: JSON.stringify({ consent: 'delirio-launch-and-product-updates' }),
-      },
       'person@example.com',
     );
   });

@@ -84,6 +84,12 @@ describe('SessionStudio', () => {
     expect(onSelectCoach).toHaveBeenCalledWith('iris');
   });
 
+  it('leaves control and stage spacing to responsive CSS', () => {
+    renderStudio({ selectedCoach: 'reed', mode: 'voice' });
+    expect(screen.getByRole('group', { name: /choose coach/i }).parentElement).not.toHaveAttribute('style');
+    expect(screen.getByRole('img', { name: /reed, selected delirio coach/i }).closest('.coach-trial__stage')).not.toHaveAttribute('style');
+  });
+
   it('shows large selectable coach personalities before a coach is selected', async () => {
     const user = userEvent.setup();
     const { onSelectCoach } = renderStudio({ selectedCoach: null });

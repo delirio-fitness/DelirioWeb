@@ -102,7 +102,7 @@ function ChooseCoach({ onSelectCoach }: { onSelectCoach: (coach: CoachId) => voi
 }
 
 function TrialControls({ coach, mode, onSelectCoach, onModeChange }: { coach: CoachId; mode: SessionMode; onSelectCoach: (coach: CoachId) => void; onModeChange: (mode: SessionMode) => void }) {
-  return <div className="coach-trial__controls" style = {{paddingInlineStart: 100, paddingInlineEnd: 100}} >
+  return <div className="coach-trial__controls">
     <div className="coach-trial__coach-tabs" role="group" aria-label="Choose coach">
       {(['iris', 'reed'] as const).map((id) => <button key={id} type="button" aria-pressed={coach === id} onClick={() => onSelectCoach(id)}><img src={coachProfiles[id].avatar} alt="" /><span>{coachProfiles[id].name.toUpperCase()}</span></button>)}
     </div>
@@ -126,7 +126,7 @@ function VoiceStage({ coach, voice }: { coach: (typeof coachProfiles)[CoachId]; 
 
   const transcript = [...voice.botTurns, voice.botTranscript].filter(Boolean).at(-1) || voice.userTranscript;
 
-  return <div style = {{paddingLeft: 100}} className={`coach-trial__stage coach-trial__stage--voice coach-trial__mode-content ${voice.isBotSpeaking ? 'is-coach-speaking' : ''} ${voice.sessionState === 'connected' ? 'is-connected' : ''}`}>
+  return <div className={`coach-trial__stage coach-trial__stage--voice coach-trial__mode-content ${voice.isBotSpeaking ? 'is-coach-speaking' : ''} ${voice.sessionState === 'connected' ? 'is-connected' : ''}`}>
     {(voice.sessionState === 'connecting' || voice.sessionState === 'connected') && <div className="coach-trial__voice-presence" aria-hidden="true">
       <VoiceFrequencyWaveform levels={voice.frequencyLevels} isListening={voice.isFrequencyListening} />
     </div>}
@@ -146,7 +146,7 @@ function VoiceStage({ coach, voice }: { coach: (typeof coachProfiles)[CoachId]; 
 function TextStage({ coach, text, chatRef }: { coach: (typeof coachProfiles)[CoachId]; text: Props['text']; chatRef: RefObject<HTMLDivElement> }) {
   const hasConnectionStatus = text.connectionState !== 'idle' || Boolean(text.error);
 
-  return <div style = {{paddingInlineStart: 100, paddingInlineEnd: 100}} className="coach-trial__stage coach-trial__stage--text coach-trial__mode-content">
+  return <div className="coach-trial__stage coach-trial__stage--text coach-trial__mode-content">
     <div className="coach-trial__text-content">
       <div className="coach-trial__text-header">
         <img className="coach-trial__stage-portrait" src={coach.avatar} alt={`${coach.name}, selected Delirio coach`} />

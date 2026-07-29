@@ -28,11 +28,6 @@ export function submitWishlistToFirestore(
 
   return submitWarmNetworkWishlistToFirestore(
     browserId,
-    {
-      wish: JSON.stringify({ submissionType: 'wishlist-opt-in' }),
-      coachingUsefulness: JSON.stringify({ placement }),
-      nextBuild: JSON.stringify({ consent: 'delirio-launch-and-product-updates' }),
-    },
     email,
   );
 }
