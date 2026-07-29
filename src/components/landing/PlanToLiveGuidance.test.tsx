@@ -149,7 +149,7 @@ describe('PlanToLiveGuidance', () => {
 
     const link = screen.getByRole('link', { name: /start voice session/i });
     expect(link).toHaveAttribute('href', '#coaches');
-    expect(screen.getByText(/choose iris or reed, then talk naturally/i)).toBeInTheDocument();
+    expect(screen.getByText(/choose iris or reed and talk naturally/i)).toBeInTheDocument();
 
     await user.click(link);
     expect(onStartVoice).toHaveBeenCalledTimes(1);

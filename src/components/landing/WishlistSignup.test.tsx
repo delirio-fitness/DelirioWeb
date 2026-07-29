@@ -21,6 +21,8 @@ describe('WishlistSignup', () => {
     submitWishlistMock.mockResolvedValue('wishlist-document-id');
     render(<WishlistSignup />);
 
+    expect(screen.getByText('DELIRIO')).toBeInTheDocument();
+
     await user.type(screen.getByRole('textbox', { name: /email address/i }), '  PERSON@Example.COM  ');
     await user.click(screen.getByRole('button', { name: /^join$/i }));
 

@@ -50,7 +50,7 @@ export function WishlistSignup({ placement = 'footer', questionnaire }: Wishlist
         {isQuestionnaire ? <p>ONE LAST STEP</p> : (
           <div className="d3-wishlist-brand">
             <Logo color="white" width="34" height="48" />
-            <span>Delirio</span>
+            <span>DELIRIO</span>
           </div>
         )}
         {isQuestionnaire ? (

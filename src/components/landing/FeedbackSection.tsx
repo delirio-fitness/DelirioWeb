@@ -526,6 +526,7 @@ function getDelirioFit(answers: QuestionnaireAnswers): DelirioFitReason[] {
 }
 
 const ANSWER_CONFIRMATION_MS = 450;
+const RESULT_REVEAL_DELAY_MS = 1000;
 
 type FeedbackSectionProps = {
   invocationId?: number;
@@ -675,10 +676,13 @@ export function FeedbackSection({
     try {
       setError(null);
       setStatus('submitting');
-      const documentId = await submitFeedbackToFirestore(
-        getBrowserFeedbackId(),
-        serializeAnswers(submissionAnswers),
-      );
+      const [documentId] = await Promise.all([
+        submitFeedbackToFirestore(
+          getBrowserFeedbackId(),
+          serializeAnswers(submissionAnswers),
+        ),
+        new Promise<void>((resolve) => window.setTimeout(resolve, RESULT_REVEAL_DELAY_MS)),
+      ]);
       setSubmissionId(documentId);
       setStatus('success');
     } catch (submissionError) {
@@ -703,13 +707,19 @@ export function FeedbackSection({
 
     setAnswers(nextAnswers);
     setError(null);
+
+    if (step >= nextFlow.length - 1) {
+      setIsAdvancing(false);
+      void submitFeedback(nextAnswers);
+      return;
+    }
+
     setIsAdvancing(true);
 
     advanceTimerRef.current = window.setTimeout(() => {
       setIsAdvancing(false);
       advanceTimerRef.current = null;
-      if (step < nextFlow.length - 1) setStep((current) => current + 1);
-      else void submitFeedback(nextAnswers);
+      setStep((current) => current + 1);
     }, ANSWER_CONFIRMATION_MS);
   };
 
@@ -730,7 +740,7 @@ export function FeedbackSection({
         tabIndex={-1}
       >
         <div className="d3-questionnaire-header">
-          {status !== 'success' && step > 0 && (
+          {status === 'idle' && step > 0 && (
             <button
               className="d3-questionnaire-back"
               type="button"
@@ -743,7 +753,7 @@ export function FeedbackSection({
               ← BACK
             </button>
           )}
-          {status !== 'success' && (
+          {status === 'idle' && (
             <div
               className="d3-questionnaire-progress"
               role="progressbar"
@@ -790,6 +800,15 @@ export function FeedbackSection({
               }
             />
           </div>
+        ) : status === 'submitting' ? (
+          <div className="d3-questionnaire-loading" role="status" aria-live="polite">
+            <span className="d3-questionnaire-loading-icon" aria-hidden="true" />
+            <h2 style = {{
+              fontSize: "1.5rem",
+            }} ref={questionHeadingRef} id="questionnaire-question" tabIndex={-1}>
+              Consulting the committee about what will work for you.
+            </h2>
+          </div>
         ) : (
           <div className="d3-questionnaire-form">
             <div className="d3-questionnaire-step">
@@ -813,7 +832,12 @@ export function FeedbackSection({
                       name={activeQuestion.id}
                       value={option.value}
                       checked={answers[activeQuestion.id] === option.value}
-                      disabled={status === 'submitting' || isAdvancing}
+                      disabled={isAdvancing}
+                      onClick={() => {
+                        if (answers[activeQuestion.id] === option.value) {
+                          selectAnswer(activeQuestion.id, option);
+                        }
+                      }}
                       onChange={() => selectAnswer(activeQuestion.id, option)}
                     />
                     <span>{option.label}</span>
@@ -824,11 +848,6 @@ export function FeedbackSection({
               {error && (
                 <p className="d3-questionnaire-error" role="alert">
                   {error}
-                </p>
-              )}
-              {status === 'submitting' && (
-                <p className="d3-questionnaire-saving" role="status">
-                  SAVING YOUR ANSWERS…
                 </p>
               )}
             </div>

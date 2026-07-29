@@ -78,14 +78,31 @@ describe('Landing journey', () => {
     expect(clearMessages).toHaveBeenCalled();
   });
 
-  it('filters the production FAQ content and opens only the first item', async () => {
+  it('shows three closed FAQs initially and reveals up to three more on each request', async () => {
     const user = userEvent.setup();
     render(<MemoryRouter><Landing /></MemoryRouter>);
 
-    expect(screen.getByRole('button', { name: /is this actually ai or a set of canned responses/i })).toHaveAttribute('aria-expanded', 'true');
+    const faqList = document.querySelector('.d3-faq-list');
+    expect(faqList).not.toBeNull();
+    expect(screen.getByRole('button', { name: /is this actually ai or a set of canned responses/i })).toHaveAttribute('aria-expanded', 'false');
+    expect(within(faqList as HTMLElement).getAllByRole('button', { expanded: false })).toHaveLength(3);
+    expect(screen.queryByRole('button', { name: /how does voice coaching work/i })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /^more\.\.\.$/i }));
+    expect(screen.getByRole('button', { name: /how does voice coaching work/i })).toHaveAttribute('aria-expanded', 'false');
+
+    await user.click(screen.getByRole('button', { name: 'About the coaching' }));
+    expect(within(faqList as HTMLElement).getAllByRole('button', { expanded: false })).toHaveLength(3);
+    await user.click(screen.getByRole('button', { name: /^more\.\.\.$/i }));
+    expect(within(faqList as HTMLElement).getAllByRole('button', { expanded: false })).toHaveLength(6);
+    expect(screen.queryByRole('button', { name: /will my coach push me too hard/i })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /^more\.\.\.$/i }));
+    expect(within(faqList as HTMLElement).getAllByRole('button', { expanded: false })).toHaveLength(9);
+    expect(screen.queryByRole('button', { name: /^more\.\.\.$/i })).not.toBeInTheDocument();
+
     await user.click(screen.getByRole('button', { name: 'About the price' }));
-    expect(screen.getByRole('button', { name: /why pay \$30\/month/i })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('button', { name: /why pay \$30\/month/i })).toHaveAttribute('aria-expanded', 'false');
     expect(screen.getByRole('button', { name: /can i cancel anytime/i })).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('button', { name: /more/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /can the ai actually see my form/i })).not.toBeInTheDocument();
   });
 
@@ -110,6 +127,9 @@ describe('Landing journey', () => {
     expect(screen.getByRole('heading', { name: /one coach.*no appointment to reschedule/i })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'About the product' }));
+    for (let batch = 0; batch < 4; batch += 1) {
+      await user.click(screen.getByRole('button', { name: /^more\.\.\.$/i }));
+    }
     expect(screen.getByRole('button', { name: /strength training while i use a glp-1 medication/i })).toBeInTheDocument();
   });
 
