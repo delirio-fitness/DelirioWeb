@@ -38,7 +38,12 @@ const frictionMoments = [
   },
 ] as const;
 
-const benefits = ['Plan built around your week', 'Voice + text coaching', 'Supported movement guidance', 'Check-ins between sessions', 'Context that carries forward', 'Strength exercise library'];
+const benefits = [
+  'Adaptive plans that change with your training',
+  'Real-time workout guidance',
+  'Camera-based form feedback for supported movements',
+  'Your coach by voice or text',
+];
 
 type FaqCategory = 'AI' | 'COACHING' | 'PRODUCT' | 'PRICE';
 
@@ -371,5 +376,5 @@ function PlanCard({ kind }: { kind: 'monthly' | 'annual' }) {
   const annual = kind === 'annual';
   const price = annual ? YEARLY_PRICE_USD : MONTHLY_PRICE_USD;
   const annualSavings = MONTHLY_PRICE_USD * 12 - YEARLY_PRICE_USD;
-  return <article className={`d3-plan d3-plan-${kind}`}><div className="d3-plan-tag">{annual ? 'BEST VALUE' : 'FLEXIBLE'}</div><p>{annual ? 'ANNUAL' : 'MONTHLY'}</p><h3>${price}</h3><strong>PER {annual ? 'YEAR' : 'MONTH'}</strong>{annual ? <><div className="d3-effective">${YEARLY_MONTHLY_EQUIVALENT_USD} / MONTH</div><small>SAVE ${annualSavings} VS. 12 MONTHLY PAYMENTS</small></> : <small>BILLED MONTHLY</small>}<ul>{benefits.map((benefit) => <li key={benefit}>—&nbsp;&nbsp; {benefit}</li>)}</ul><a href={APP_STORE_URL} rel="noopener noreferrer" target="_blank">DOWNLOAD ON THE APP STORE</a></article>;
+  return <article className={`d3-plan d3-plan-${kind}`}><div className="d3-plan-tag">{annual ? 'BEST VALUE' : 'FLEXIBLE'}</div><p>{annual ? 'ANNUAL' : 'MONTHLY'}</p><h3>${price}</h3><strong>PER {annual ? 'YEAR' : 'MONTH'}</strong>{annual ? <><div className="d3-effective">${YEARLY_MONTHLY_EQUIVALENT_USD} / MONTH</div><small>SAVE ${annualSavings} VS. 12 MONTHLY PAYMENTS</small></> : <small>BILLED MONTHLY</small>}<ul>{benefits.map((benefit) => <li key={benefit}>✓&nbsp;&nbsp; {benefit}</li>)}</ul><a href={APP_STORE_URL} rel="noopener noreferrer" target="_blank">DOWNLOAD ON THE APP STORE</a></article>;
 }
