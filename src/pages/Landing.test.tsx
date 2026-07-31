@@ -1,4 +1,4 @@
-import { render, screen, within } from '@testing-library/react';
+import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
@@ -44,6 +44,8 @@ jest.mock('../hooks/useTextChat', () => ({
 import Landing from './Landing';
 
 describe('Landing journey', () => {
+  afterEach(() => jest.useRealTimers());
+
   it('starts voice automatically after the initial coach choice', async () => {
     const user = userEvent.setup();
     render(<MemoryRouter><Landing /></MemoryRouter>);
@@ -154,39 +156,30 @@ describe('Landing journey', () => {
 
     expect(screen.getByRole('link', { name: /how it works/i })).toHaveAttribute('href', '#how-it-works');
     const problemBand = document.querySelector('.d3-problem-band');
-    const fadeTransition = document.querySelector('.d3-section-fade--dark-to-light');
     const carousel = document.getElementById('how-it-works');
     const coachStudio = document.getElementById('session');
     expect(carousel).toHaveClass('d3-plan-live');
     expect(carousel).toHaveAttribute('data-theme', 'light');
-    expect(fadeTransition).not.toBeNull();
-    expect(fadeTransition).toHaveAttribute('aria-hidden', 'true');
-    expect(Boolean((problemBand?.compareDocumentPosition(fadeTransition as Node) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
-    expect(Boolean((fadeTransition?.compareDocumentPosition(carousel as Node) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
+    expect(Boolean((problemBand?.compareDocumentPosition(carousel as Node) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
     expect(Boolean((carousel?.compareDocumentPosition(coachStudio as Node) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
     expect(document.querySelector('.d3-wheel-transition')).not.toBeInTheDocument();
   });
 
-  it('opens the questionnaire overlay from the default hero', async () => {
+  it('opens the first quiz question from the default hero', async () => {
     const user = userEvent.setup();
     render(<MemoryRouter><Landing /></MemoryRouter>);
 
     await user.click(screen.getByRole('button', { name: /take a quiz/i }));
-    expect(screen.getByRole('dialog', { name: /is a glp-1 medication/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /is a glp-1 medication currently part of your routine/i })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /take the 60-second quiz/i })).not.toBeInTheDocument();
   });
 
-  it('starts a new questionnaire run each time the hero action opens it', async () => {
-    const user = userEvent.setup();
+  it('opens the quiz invitation after two seconds', async () => {
+    jest.useFakeTimers();
     render(<MemoryRouter><Landing /></MemoryRouter>);
-    const launchButton = screen.getByRole('button', { name: /take a quiz/i });
 
-    await user.click(launchButton);
-    await user.click(screen.getByRole('radio', { name: 'No' }));
-    await user.click(screen.getByRole('button', { name: /close questionnaire/i }));
-    await screen.findByRole('button', { name: /take a quiz/i });
-
-    await user.click(launchButton);
-    expect(screen.getByLabelText('Question 1 of 5')).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: 'No' })).not.toBeChecked();
+    act(() => jest.advanceTimersByTime(2000));
+    expect(await screen.findByText(/see what could make staying fit feel easier/i)).toBeInTheDocument();
+    jest.useRealTimers();
   });
 });

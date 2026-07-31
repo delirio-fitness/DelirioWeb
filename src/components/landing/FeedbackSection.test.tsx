@@ -2,19 +2,13 @@ import { useState } from 'react';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { submitFeedbackToFirestore } from '../../services/feedbackSubmission';
-import { submitWishlistToFirestore } from '../../services/wishlistSubmission';
 import { FeedbackSection } from './FeedbackSection';
 
 jest.mock('../../services/feedbackSubmission', () => ({
   submitFeedbackToFirestore: jest.fn(),
 }));
 
-jest.mock('../../services/wishlistSubmission', () => ({
-  submitWishlistToFirestore: jest.fn(),
-}));
-
 const submitFeedbackMock = jest.mocked(submitFeedbackToFirestore);
-const submitWishlistMock = jest.mocked(submitWishlistToFirestore);
 
 describe('FeedbackSection', () => {
   jest.setTimeout(15_000);
@@ -39,22 +33,26 @@ describe('FeedbackSection', () => {
     );
   }
 
-  async function openQuestionnaire() {
+  async function openQuestionnaire(startQuiz = true) {
     const user = userEvent.setup();
     render(<FeedbackSection open />);
+    if (startQuiz) await user.click(screen.getByRole('button', { name: /take the 60-second quiz/i }));
     return user;
   }
 
   afterEach(() => {
     jest.restoreAllMocks();
     submitFeedbackMock.mockReset();
-    submitWishlistMock.mockReset();
     window.localStorage.clear();
     window.history.replaceState({}, '', '/');
   });
 
-  it('launches the questionnaire as an overlay with the GLP-1 filter first', async () => {
-    await openQuestionnaire();
+  it('introduces the questionnaire before showing the GLP-1 filter', async () => {
+    const user = await openQuestionnaire(false);
+
+    expect(screen.getByRole('dialog')).toHaveTextContent(/see what could make staying fit feel easier/i);
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /take the 60-second quiz/i }));
 
     expect(screen.getByRole('dialog', { name: /is a glp-1 medication/i })).toHaveAttribute(
       'aria-modal',
@@ -70,6 +68,18 @@ describe('FeedbackSection', () => {
     expect(screen.queryByText('1/5')).not.toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'Prefer not to say' })).toBeInTheDocument();
     expect(screen.queryByLabelText(/email|phone/i)).not.toBeInTheDocument();
+  });
+
+  it('can open directly on the first question', () => {
+    render(<FeedbackSection open startAtFirstQuestion />);
+
+    expect(
+      screen.getByRole('heading', {
+        name: /is a glp-1 medication currently part of your routine/i,
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole('radio')).toHaveLength(4);
+    expect(screen.queryByRole('button', { name: /take the 60-second quiz/i })).not.toBeInTheDocument();
   });
 
   it('extends the denominator only when an answer reveals another question', async () => {
@@ -156,7 +166,6 @@ describe('FeedbackSection', () => {
 
   it('posts one answer per question in the Firestore-compatible envelope', async () => {
     submitFeedbackMock.mockResolvedValue('firestore-document-id');
-    submitWishlistMock.mockResolvedValue('firestore-document-id');
     window.localStorage.setItem('delirio_feedback_browser_id', 'browser_id_1234567890');
     const user = await openQuestionnaire();
 
@@ -258,28 +267,13 @@ describe('FeedbackSection', () => {
     expect(result).toHaveTextContent(/a plan built to handle schedule changes/i);
     expect(result).toHaveTextContent(/coaching that does not add another appointment/i);
     expect(within(result).getAllByRole('listitem')).toHaveLength(3);
-    expect(screen.getByRole('heading', { name: /join the waitlist/i })).toBeInTheDocument();
-    expect(screen.getByRole('textbox', { name: /email address/i })).toHaveAttribute(
-      'autocomplete',
-      'email',
-    );
-    expect(screen.getByRole('button', { name: /^join$/i })).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /join the wishlist/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /you.re one click away/i })).toBeInTheDocument();
+    expect(result).toHaveTextContent(/tackle these challenges today with delirio/i);
+    const download = screen.getByRole('link', { name: /download delirio now on the app store/i });
+    expect(download).toHaveAttribute('href', 'https://apps.apple.com/');
+    expect(download).toHaveAttribute('target', '_blank');
+    expect(screen.queryByRole('textbox', { name: /email address/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /answer again/i })).not.toBeInTheDocument();
-
-    await user.type(screen.getByRole('textbox', { name: /email address/i }), 'PERSON@Example.com');
-    await user.click(screen.getByRole('button', { name: /^join$/i }));
-    await waitFor(() => expect(submitWishlistMock).toHaveBeenCalledTimes(1));
-
-    expect(submitWishlistMock).toHaveBeenCalledWith(
-      'browser_id_1234567890',
-      'person@example.com',
-      'questionnaire',
-      expect.objectContaining({
-        submissionId: 'firestore-document-id',
-        answers: payload,
-      }),
-    );
   });
 
   it('closes with Escape and restores focus to the hero trigger', async () => {
@@ -316,12 +310,15 @@ describe('FeedbackSection', () => {
     const launchButton = screen.getByRole('button', { name: /shape what’s next/i });
 
     await user.click(launchButton);
+    await user.click(screen.getByRole('button', { name: /take the 60-second quiz/i }));
     await user.click(screen.getByRole('radio', { name: 'No' }));
     expect(screen.getByRole('radio', { name: 'No' })).toBeChecked();
     await user.click(screen.getByRole('button', { name: /close questionnaire/i }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
 
     await user.click(launchButton);
+    expect(screen.getByRole('button', { name: /take the 60-second quiz/i })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /take the 60-second quiz/i }));
     expect(screen.getByLabelText('Question 1 of 5')).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'No' })).not.toBeChecked();
   });

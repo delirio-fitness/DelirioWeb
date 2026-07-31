@@ -6,7 +6,7 @@ import { FeedbackSection } from './FeedbackSection';
 expect.extend(toHaveNoViolations);
 
 describe('FeedbackSection accessibility', () => {
-  it('has no detectable accessibility violations on the initial question', async () => {
+  it('has no detectable accessibility violations on the questionnaire intro', async () => {
     render(<FeedbackSection open />);
 
     expect(await axe(document.body)).toHaveNoViolations();
@@ -16,6 +16,7 @@ describe('FeedbackSection accessibility', () => {
     const user = userEvent.setup();
     render(<FeedbackSection open />);
 
+    await user.click(screen.getByRole('button', { name: 'TAKE THE 60-SECOND QUIZ' }));
     await user.click(screen.getByRole('radio', { name: 'Prefer not to say' }));
     await screen.findByRole('radio', {
       name: 'I stay active, but planning it takes too much effort',

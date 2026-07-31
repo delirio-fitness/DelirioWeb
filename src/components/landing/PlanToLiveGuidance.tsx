@@ -26,6 +26,7 @@ const sequence = [
     number: '02', label: 'PLAN', detail: 'COACH BUILDS THE WEEK', capture: 'YOUR TRAINING PLAN', image: workoutPlan,
     heading: ['A PLAN BUILT FOR', 'THE WEEK YOU HAVE.'],
     body: 'Your coach builds around the time, energy, experience, and equipment you have now—not an ideal week you have to keep chasing.',
+    quizCta: true,
   },
   {
     number: '03', label: 'START', detail: 'ENTER THE WORKOUT', capture: 'EXERCISES + SESSION START', image: clickStart,
@@ -49,7 +50,13 @@ const sequence = [
 
 const SEQUENCE_INTERVAL_MS = 6000;
 
-export function PlanToLiveGuidance({ onStartVoice }: { onStartVoice?: () => void }) {
+export function PlanToLiveGuidance({
+  onStartVoice,
+  onTakeQuiz,
+}: {
+  onStartVoice?: () => void;
+  onTakeQuiz?: () => void;
+}) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [progressCycle, setProgressCycle] = useState(0);
   const activeIndexRef = useRef(0);
@@ -145,6 +152,12 @@ export function PlanToLiveGuidance({ onStartVoice }: { onStartVoice?: () => void
               {activeStage.heading.map((line) => <span key={line}>{line}</span>)}
             </h2>
             <p className="d3-plan-live-body">{activeStage.body}</p>
+            {'quizCta' in activeStage && activeStage.quizCta && (
+              <div className="d3-plan-live-quiz">
+                <button type="button" onClick={onTakeQuiz}>TAKE QUIZ</button>
+                <small>See how Delirio can help you.</small>
+              </div>
+            )}
             {'voiceCta' in activeStage && activeStage.voiceCta && (
               <a className="d3-voice-cta d3-plan-live-voice-cta" href="#coaches" onClick={onStartVoice}>
                 <b>START VOICE SESSION</b>

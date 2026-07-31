@@ -154,4 +154,16 @@ describe('PlanToLiveGuidance', () => {
     await user.click(link);
     expect(onStartVoice).toHaveBeenCalledTimes(1);
   });
+
+  it('offers the questionnaire from the plan chapter', async () => {
+    const user = userEvent.setup();
+    const onTakeQuiz = jest.fn();
+    render(<PlanToLiveGuidance onTakeQuiz={onTakeQuiz} />);
+
+    await user.click(screen.getByRole('button', { name: /plan coach builds the week/i }));
+
+    expect(screen.getByText('See how Delirio can help you.')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'TAKE QUIZ' }));
+    expect(onTakeQuiz).toHaveBeenCalledTimes(1);
+  });
 });

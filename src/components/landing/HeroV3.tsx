@@ -6,7 +6,7 @@ import { HeroTypewriterWord } from './HeroTypewriterWord';
 const content = heroText.heroTextV3;
 
 /** V3 — focused adaptive-coaching promise without secondary tracking UI. */
-export function HeroV3({ onOpenQuestionnaire = () => undefined }: { onOpenQuestionnaire?: () => void }) {
+export function HeroV3({ onTakeQuiz = () => undefined }: { onTakeQuiz?: () => void }) {
   return <section className="d3-hero d3-hero--v3" aria-labelledby="hero-v3-title">
     <img className="d3-hero-image" src={heroImage} alt="" aria-hidden="true" />
     <div className="d3-hero-contrast" aria-hidden="true" />
@@ -38,7 +38,7 @@ export function HeroV3({ onOpenQuestionnaire = () => undefined }: { onOpenQuesti
             <span className="d3-hero-action-arrow" aria-hidden="true"><ArrowUpRight strokeWidth={3} /></span>
             <b className="d3-hero-action-label">{content.cta.label}</b>
           </a>
-          <button className="d3-hero-questionnaire-action" type="button" onClick={onOpenQuestionnaire}>
+          <button className="d3-hero-questionnaire-action" type="button" onClick={onTakeQuiz}>
             <b className="d3-hero-questionnaire-label">{content.cta.label}</b>
             <span aria-hidden="true"><ArrowUpRight strokeWidth={3} /></span>
           </button>

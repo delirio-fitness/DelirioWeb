@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { getBrowserFeedbackId } from '../../utils/browserFeedbackId';
 import { submitFeedbackToFirestore, type FeedbackAnswers } from '../../services/feedbackSubmission';
-import { WishlistSignup } from './WishlistSignup';
+import { AppStoreBadge } from './AppStoreBadge';
 
 type QuestionId =
   | 'glp1Context'
@@ -532,6 +532,7 @@ type FeedbackSectionProps = {
   invocationId?: number;
   open?: boolean;
   onClose?: () => void;
+  startAtFirstQuestion?: boolean;
 };
 
 const focusableSelector = [
@@ -545,12 +546,13 @@ export function FeedbackSection({
   invocationId,
   open: controlledOpen,
   onClose,
+  startAtFirstQuestion = false,
 }: FeedbackSectionProps = {}) {
   const [internalOpen, setInternalOpen] = useState(false);
+  const [showIntro, setShowIntro] = useState(() => !startAtFirstQuestion);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<QuestionnaireAnswers>({});
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
-  const [submissionId, setSubmissionId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isAdvancing, setIsAdvancing] = useState(false);
   const advanceTimerRef = useRef<number | null>(null);
@@ -570,12 +572,12 @@ export function FeedbackSection({
       advanceTimerRef.current = null;
     }
     setStep(0);
+    setShowIntro(!startAtFirstQuestion);
     setAnswers({});
     setStatus('idle');
-    setSubmissionId(null);
     setError(null);
     setIsAdvancing(false);
-  }, []);
+  }, [startAtFirstQuestion]);
 
   const closeQuestionnaire = useCallback(() => {
     if (!isOpen) return;
@@ -669,21 +671,20 @@ export function FeedbackSection({
     if (!isOpen) return;
     const focusFrame = window.requestAnimationFrame(() => questionHeadingRef.current?.focus());
     return () => window.cancelAnimationFrame(focusFrame);
-  }, [isOpen, status, step]);
+  }, [isOpen, showIntro, status, step]);
 
   const submitFeedback = async (submissionAnswers: QuestionnaireAnswers) => {
     if (status === 'submitting') return;
     try {
       setError(null);
       setStatus('submitting');
-      const [documentId] = await Promise.all([
+      await Promise.all([
         submitFeedbackToFirestore(
           getBrowserFeedbackId(),
           serializeAnswers(submissionAnswers),
         ),
         new Promise<void>((resolve) => window.setTimeout(resolve, RESULT_REVEAL_DELAY_MS)),
       ]);
-      setSubmissionId(documentId);
       setStatus('success');
     } catch (submissionError) {
       setError(
@@ -740,7 +741,7 @@ export function FeedbackSection({
         tabIndex={-1}
       >
         <div className="d3-questionnaire-header">
-          {status === 'idle' && step > 0 && (
+          {status === 'idle' && !showIntro && step > 0 && (
             <button
               className="d3-questionnaire-back"
               type="button"
@@ -753,7 +754,7 @@ export function FeedbackSection({
               ← BACK
             </button>
           )}
-          {status === 'idle' && (
+          {status === 'idle' && !showIntro && (
             <div
               className="d3-questionnaire-progress"
               role="progressbar"
@@ -793,12 +794,18 @@ export function FeedbackSection({
                 ))}
               </ul>
             </div>
-            <WishlistSignup
-              placement="questionnaire"
-              questionnaire={
-                submissionId ? { answers: serializeAnswers(answers), submissionId } : undefined
-              }
-            />
+            <div className="d3-questionnaire-download">
+              <p>READY WHEN YOU ARE</p>
+              <h3>YOU’RE ONE CLICK AWAY.</h3>
+              <span>
+                Tackle these challenges today with Delirio. Download now and start building a
+                plan that works around you.
+              </span>
+              <AppStoreBadge
+                className="d3-questionnaire-app-store-badge"
+                label="Download Delirio now on the App Store"
+              />
+            </div>
           </div>
         ) : status === 'submitting' ? (
           <div className="d3-questionnaire-loading" role="status" aria-live="polite">
@@ -808,6 +815,20 @@ export function FeedbackSection({
             }} ref={questionHeadingRef} id="questionnaire-question" tabIndex={-1}>
               Consulting the committee about what will work for you.
             </h2>
+          </div>
+        ) : showIntro ? (
+          <div className="d3-questionnaire-intro">
+            <p>YOUR PERSONALIZED DELIRIO PREVIEW</p>
+            <h2 ref={questionHeadingRef} id="questionnaire-question" tabIndex={-1}>
+              SEE WHAT COULD MAKE STAYING FIT FEEL EASIER.
+            </h2>
+            <span>
+              Answer a few short questions and see where Delirio could reduce the planning,
+              uncertainty, and friction in your routine.
+            </span>
+            <button type="button" onClick={() => setShowIntro(false)}>
+              TAKE THE 60-SECOND QUIZ
+            </button>
           </div>
         ) : (
           <div className="d3-questionnaire-form">

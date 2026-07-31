@@ -93,11 +93,11 @@ body,
   border: 0;
   border-bottom: 1px solid rgba(235, 229, 214, 0.1);
   display: flex;
-  height: 60px;
+  height: 68px;
   justify-content: space-between;
   left: 0;
   margin: 0;
-  padding: 10px 48px;
+  padding: 12px 48px;
   position: fixed;
   top: 0;
   transition:
@@ -116,8 +116,8 @@ body,
   border-bottom-color: transparent;
 }
 .d3-header:not(.is-at-top) {
-  height: 48px;
-  padding-block: 4px;
+  height: 56px;
+  padding-block: 6px;
 }
 .d3-header .d3-logo,
 .d3-header .d3-menu {
@@ -174,7 +174,6 @@ body,
     padding 220ms ease;
 }
 .d3-header:not(.is-at-top) .d3-nav a {
-  font-size: 9px;
   padding: 7px 10px;
 }
 .d3-nav a:hover {
@@ -203,10 +202,11 @@ body,
   border-radius: var(--radius-sm);
   color: #121211 !important;
   display: flex;
-  height: 40px;
+  height: auto;
   justify-content: center;
+  min-height: 44px;
   opacity: 1;
-  padding: 0 18px;
+  padding: 12px 18px;
   transform: none;
   transition:
     background-color 160ms ease,
@@ -239,7 +239,7 @@ body,
   width: 44px;
 }
 .d3-top-announcement {
-  border-radius: 0 0 24px 24px;
+
   -webkit-backdrop-filter: blur(18px) saturate(140%);
   backdrop-filter: blur(18px) saturate(140%);
   background: rgba(255, 255, 255, 0.86);
@@ -247,7 +247,7 @@ body,
   height: 40px;
   left: 0;
   position: fixed;
-  top: 60px;
+  top: 68px;
   transition:
     opacity 240ms ease,
     transform 240ms ease,
@@ -2659,6 +2659,36 @@ body,
   line-height: 1.42;
   max-width: 420px;
 }
+.d3-plan-live-quiz {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 30px;
+}
+.d3-plan-live-quiz button {
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  border-radius: var(--radius-md);
+  color: var(--paper);
+  cursor: pointer;
+  font: 800 12px/1 'Exo 2';
+  letter-spacing: 0.1em;
+  min-height: 50px;
+  padding: 0 28px;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+.d3-plan-live-quiz button:hover {
+  background: transparent;
+  color: var(--ink);
+}
+.d3-plan-live-quiz button:focus-visible {
+  outline-color: var(--ink);
+}
+.d3-plan-live-quiz small {
+  color: rgba(18, 19, 15, 0.62);
+  font: 600 12px/1.4 'Exo 2';
+}
 .d3-plan-live-voice-cta {
   margin-top: 40px;
 }
@@ -3690,6 +3720,56 @@ body,
   max-width: 680px;
   outline: 0;
 }
+.d3-questionnaire-intro {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  margin: auto;
+  max-width: 860px;
+  padding: 48px 72px 96px;
+  width: 100%;
+}
+.d3-questionnaire-intro > p {
+  color: #64715d;
+  font: 700 11px/1 'Exo 2';
+  letter-spacing: 0.13em;
+  margin: 0 0 22px;
+}
+.d3-questionnaire-intro h2 {
+  font: 700 clamp(38px, 5vw, 62px)/1.02 'Exo 2';
+  letter-spacing: -0.04em;
+  margin: 0;
+  max-width: 760px;
+  outline: 0;
+}
+.d3-questionnaire-intro > span {
+  color: #55564f;
+  display: block;
+  font-size: 17px;
+  line-height: 1.5;
+  margin-top: 28px;
+  max-width: 650px;
+}
+.d3-questionnaire-intro > button {
+  align-items: center;
+  align-self: flex-start;
+  background: var(--ink);
+  border: 0;
+  border-radius: var(--radius-md);
+  color: var(--paper);
+  cursor: pointer;
+  display: flex;
+  font: 800 12px/1 'Exo 2';
+  justify-content: center;
+  letter-spacing: 0.09em;
+  margin-top: 38px;
+  min-height: 58px;
+  padding: 0 28px;
+}
+.d3-questionnaire-intro > button:hover {
+  background: #64715d;
+}
 @keyframes d3-questionnaire-loading-spin {
   to {
     transform: rotate(360deg);
@@ -3739,6 +3819,35 @@ body,
   color: #4e4d46;
   font-size: 15px;
   line-height: 1.5;
+}
+.d3-questionnaire-download {
+  border-top: 1px solid rgba(18, 19, 15, 0.2);
+  margin-top: 22px;
+  padding-top: 36px;
+  text-align: center;
+}
+.d3-questionnaire-download > p {
+  color: #64715d;
+  font: 700 11px/1 'Exo 2';
+  letter-spacing: 0.12em;
+  margin: 0 0 14px;
+}
+.d3-questionnaire-download h3 {
+  font: 700 clamp(28px, 3vw, 42px)/1.05 'Exo 2';
+  letter-spacing: -0.035em;
+  margin: 0 0 14px;
+}
+.d3-questionnaire-download > span {
+  color: #4e4d46;
+  display: block;
+  font-size: 16px;
+  line-height: 1.5;
+  margin-inline: auto;
+  max-width: 680px;
+}
+.d3-questionnaire-app-store-badge {
+  margin: 24px auto 0;
+  width: min(210px, 100%);
 }
 
 .d3-faq {
@@ -4098,6 +4207,67 @@ body,
   position: relative;
   z-index: 0;
 }
+.d3-footer-feature {
+  align-items: center;
+  border-bottom: 1px solid #d8d4cc;
+  display: grid;
+  gap: clamp(48px, 8vw, 120px);
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 520px);
+  padding: 72px 0 88px;
+}
+.d3-footer-copy h2 {
+  font-size: clamp(42px, 5vw, 72px);
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+  margin: 0 0 24px;
+}
+.d3-footer-copy p {
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 590px;
+}
+.d3-app-card {
+  align-content: center;
+  display: grid;
+  gap: 20px;
+  justify-items: center;
+  text-align: center;
+}
+.d3-app-download {
+  align-items: center;
+  display: flex;
+  gap: 26px;
+  justify-content: center;
+  width: 100%;
+}
+.d3-app-icon {
+  align-items: center;
+  display: flex;
+  height: 112px;
+  justify-content: center;
+  width: 90px;
+}
+.d3-app-icon svg {
+  height: 100px;
+  width: 72px;
+}
+.d3-footer-app-badge {
+  flex: 0 1 216px;
+  width: min(216px, 100%);
+}
+.d3-app-copy small {
+  color: var(--muted);
+  display: block;
+  font-size: 12px;
+}
+.d3-app-copy b {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  margin-top: 9px;
+}
 .d3-wishlist {
   align-items: end;
   border-bottom: 1px solid #d8d4cc;
@@ -4403,7 +4573,7 @@ body,
   }
 }
 @media (min-width: 761px) and (max-width: 1023px) {
-  .d3-plan-live-canvas {
+  .d3-plan-live .d3-plan-live-canvas {
     display: block;
     padding-inline: 0;
   }
@@ -4497,38 +4667,385 @@ body,
     width: min(520px, 100%);
   }
 }
+@media (min-width: 761px) and (max-width: 1199px) {
+  .d3-system {
+    min-height: 0;
+    padding: 48px 40px 88px;
+  }
+  .d3-problem-intro {
+    padding: 24px 0 48px;
+  }
+  .d3-problem-intro h2 {
+    font-size: clamp(36px, 5vw, 54px);
+    max-width: 900px;
+  }
+  .d3-movements {
+    border-bottom: 1px solid #59574f;
+    border-top: 1px solid #59574f;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .d3-movements article {
+    border-left: 1px solid #59574f;
+    column-gap: 18px;
+    grid-template-columns: 34px minmax(0, 1fr);
+    min-height: 290px;
+    padding: 34px 28px 38px;
+  }
+  .d3-movements article:nth-child(odd) {
+    border-left: 0;
+  }
+  .d3-movements article:nth-child(n + 3) {
+    border-top: 1px solid #59574f;
+  }
+  .d3-problem-band .d3-movements h3 {
+    font-size: clamp(27px, 3.2vw, 36px);
+    max-width: 420px;
+    min-height: 86px;
+    text-wrap: balance;
+  }
+  .d3-movements p {
+    font-size: 16px;
+    line-height: 1.5;
+    margin-top: 24px;
+    max-width: 420px;
+  }
+
+  .d3-footer {
+    padding: 80px 40px;
+  }
+  .d3-footer-feature {
+    gap: 40px;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 0.75fr);
+    padding: 48px 0 64px;
+  }
+  .d3-footer-copy h2 {
+    font-size: clamp(44px, 6vw, 62px);
+  }
+  .d3-app-download {
+    gap: 18px;
+  }
+  .d3-footer-app-badge {
+    flex-basis: 190px;
+  }
+  .d3-wishlist {
+    align-items: stretch;
+    gap: 36px;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 56px 0 72px;
+  }
+  .d3-wishlist-copy,
+  .d3-wishlist-entry {
+    max-width: 100%;
+    width: 100%;
+  }
+  .d3-wishlist-copy h2 {
+    font-size: clamp(48px, 7vw, 68px);
+    max-width: 720px;
+  }
+  .d3-wishlist-copy > span {
+    max-width: 620px;
+  }
+  .d3-footer-links {
+    gap: 32px;
+  }
+  .d3-footer-bottom {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 20px 32px;
+  }
+
+  .d3-faq-wrap {
+    padding: 32px;
+  }
+  .d3-faq {
+    column-gap: 36px;
+    grid-template-areas: 'intro intro' 'categories list';
+    grid-template-columns: minmax(210px, 0.38fr) minmax(0, 0.62fr);
+    grid-template-rows: auto auto;
+    min-height: 0;
+    padding: 44px;
+    row-gap: 32px;
+  }
+  .d3-faq-intro h2 {
+    max-width: 720px;
+    width: 100%;
+  }
+  .d3-faq-list {
+    min-width: 0;
+    transform: none;
+  }
+  .d3-faq-list button {
+    gap: 16px;
+    grid-template-columns: 30px minmax(0, 1fr) 20px;
+  }
+  .d3-faq-list button b {
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+
+  .d3-questionnaire-backdrop {
+    padding: 20px;
+  }
+  .d3-questionnaire {
+    height: calc(100dvh - 40px);
+    max-width: 920px;
+    min-height: 0;
+    width: calc(100vw - 40px);
+  }
+  .d3-questionnaire-success {
+    margin: 0 auto;
+    padding: 42px 48px 52px;
+  }
+  .d3-questionnaire-success .d3-questionnaire-fit h2 {
+    font-size: clamp(38px, 5vw, 50px);
+    margin-bottom: 44px;
+  }
+  .d3-questionnaire-fit li {
+    gap: 24px;
+    grid-template-columns: minmax(190px, 0.42fr) minmax(0, 1fr);
+  }
+  .d3-wishlist--questionnaire {
+    margin-top: 36px;
+  }
+
+  .d3-plan-live {
+    height: auto;
+    min-height: 820px;
+  }
+  .d3-plan-live .d3-plan-live-canvas {
+    align-items: center;
+    display: grid;
+    gap: 40px;
+    grid-template-areas:
+      'menu menu'
+      'editorial stage';
+    grid-template-columns: minmax(280px, 0.42fr) minmax(380px, 0.58fr);
+    height: auto;
+    inset: auto;
+    min-height: 820px;
+    padding: 48px;
+    position: relative;
+  }
+  .d3-plan-live-menu,
+  .d3-plan-live .d3-plan-live-menu {
+    display: flex;
+    gap: 12px;
+    grid-area: menu;
+    left: auto;
+    overflow-x: auto;
+    padding: 0 0 10px;
+    position: relative;
+    scrollbar-width: none;
+    top: auto;
+    transform: none;
+    width: 100%;
+  }
+  .d3-plan-live-menu::-webkit-scrollbar {
+    display: none;
+  }
+  .d3-plan-live .d3-plan-live-menu button,
+  .d3-plan-live .d3-plan-live-menu button.is-active {
+    flex: 1 0 128px;
+    min-height: 72px;
+    padding: 10px 12px 16px;
+  }
+  .d3-plan-live .d3-plan-live-menu button::before,
+  .d3-plan-live .d3-plan-live-menu button::after {
+    bottom: 0;
+    height: 2px;
+    left: 12px;
+    right: auto;
+    top: auto;
+  }
+  .d3-plan-live .d3-plan-live-menu button::before {
+    width: calc(100% - 24px);
+  }
+  .d3-plan-live .d3-plan-live-menu button::after {
+    transform-origin: left center;
+    width: calc(100% - 24px);
+  }
+  .d3-plan-live .d3-plan-live-menu button[data-progress-cycle='0']::after {
+    animation: d3-plan-tablet-progress-a var(--sequence-duration) linear forwards;
+  }
+  .d3-plan-live .d3-plan-live-menu button[data-progress-cycle='1']::after {
+    animation: d3-plan-tablet-progress-b var(--sequence-duration) linear forwards;
+  }
+  .d3-plan-live-editorial {
+    grid-area: editorial;
+    left: auto;
+    max-width: 440px;
+    position: relative;
+    top: auto;
+    width: 100%;
+  }
+  .d3-plan-live .d3-plan-live-editorial h2 {
+    font-size: clamp(36px, 4.7vw, 48px);
+  }
+  .d3-plan-live .d3-plan-live-body {
+    font-size: clamp(17px, 2vw, 20px);
+  }
+  .d3-plan-live-stage {
+    bottom: auto;
+    grid-area: stage;
+    min-width: 0;
+    position: relative;
+    right: auto;
+    width: 100%;
+  }
+  .d3-plan-live-capture {
+    max-width: 100%;
+  }
+  .d3-plan-live .d3-plan-live-capture--photo.is-square .d3-plan-live-photo {
+    height: min(46vw, 500px);
+    width: min(46vw, 500px);
+  }
+  .d3-plan-live .d3-plan-live-capture--photo.is-portrait .d3-plan-live-photo {
+    height: min(60vw, 620px);
+    width: min(40vw, 420px);
+  }
+  .d3-plan-live-capture--coach-collage {
+    height: min(48vw, 520px);
+    max-width: 500px;
+    width: 100%;
+  }
+  .d3-plan-live-capture--channels {
+    height: min(48vw, 500px);
+    max-width: 400px;
+    width: 100%;
+  }
+  .d3-plan-live-channel-phones {
+    height: min(42vw, 430px);
+  }
+  .d3-plan-live-channel-phone {
+    height: min(39vw, 400px);
+    width: min(18vw, 185px);
+  }
+}
+@keyframes d3-plan-tablet-progress-a {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes d3-plan-tablet-progress-b {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@media (min-width: 761px) and (max-width: 899px) {
+  .d3-faq {
+    display: grid;
+    gap: 28px;
+    grid-template-areas: 'intro' 'categories' 'list';
+    grid-template-columns: minmax(0, 1fr);
+    padding: 40px;
+  }
+  .d3-faq-categories {
+    display: flex;
+    flex-flow: row wrap;
+    gap: 0 20px;
+  }
+  .d3-faq-categories button {
+    flex: 1 0 130px;
+  }
+  .d3-faq-contact {
+    flex: 1 0 100%;
+  }
+  .d3-questionnaire-success {
+    padding-inline: 40px;
+  }
+  .d3-questionnaire-fit li {
+    gap: 10px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .d3-plan-live {
+    min-height: 0;
+  }
+  .d3-plan-live .d3-plan-live-canvas {
+    gap: 30px;
+    grid-template-areas: 'menu' 'editorial' 'stage';
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+    padding: 44px 40px 54px;
+  }
+  .d3-plan-live-editorial {
+    max-width: 620px;
+  }
+  .d3-plan-live-stage {
+    min-height: 460px;
+  }
+  .d3-plan-live .d3-plan-live-capture--photo.is-square .d3-plan-live-photo {
+    height: min(64vw, 500px);
+    width: min(64vw, 500px);
+  }
+  .d3-plan-live .d3-plan-live-capture--photo.is-portrait .d3-plan-live-photo {
+    height: min(76vw, 620px);
+    width: min(52vw, 420px);
+  }
+  .d3-plan-live-capture--coach-collage {
+    height: min(66vw, 520px);
+    width: min(100%, 500px);
+  }
+  .d3-plan-live-capture--channels {
+    height: 480px;
+    width: min(100%, 400px);
+  }
+  .d3-plan-live-channel-phones {
+    height: 420px;
+  }
+  .d3-plan-live-channel-phone {
+    height: 390px;
+    width: 181px;
+  }
+}
+@media (min-width: 761px) and (max-width: 1199px) and (prefers-reduced-motion: reduce) {
+  .d3-plan-live .d3-plan-live-menu button.is-active::after {
+    animation: none;
+    height: 2px;
+    transform: scaleX(1);
+    width: calc(100% - 24px);
+  }
+}
 @media (max-width: 760px) {
   .d3-page {
     --radius-section: 20px;
+  }
+  .d3-plan-live-background {
+    display: none;
   }
   .d3-section-fade--dark-to-light {
     height: 90px;
   }
   .d3-plan-live {
-    height: 830px;
+    height: 990px;
     margin: 0;
     margin-top: clamp(80px, 10vw, 140px);
-    min-height: 830px;
+    min-height: 990px;
     padding: 0;
   }
   .d3-plan-live-canvas {
     display: flex;
     flex-direction: column;
     gap: 0;
-    height: 830px;
+    height: 990px;
     inset: auto;
-    min-height: 830px;
+    min-height: 990px;
     padding: 44px 20px 40px;
     position: relative;
   }
   .d3-plan-live-menu {
     display: flex;
-    gap: 24px;
+    gap: 12px;
     left: auto;
     margin-inline: -20px;
     order: 1;
     overflow-x: auto;
-    padding: 4px 20px 10px;
+    padding: 4px 20px 12px;
     position: relative;
     scrollbar-width: none;
     scroll-padding-inline: 20px;
@@ -4543,17 +5060,17 @@ body,
   .d3-plan-live-menu button {
     align-items: center;
     background: transparent;
-    border: 0;
-    border-radius: 0;
+    border: 2px solid rgba(18, 19, 15, 0.42);
+    border-radius: 999px;
     display: flex;
     flex: 0 0 auto;
     gap: 8px;
     grid-template-columns: none;
     isolation: isolate;
-    height: 34px;
-    min-height: 34px;
-    opacity: 0.45;
-    padding: 0 1px;
+    height: 54px;
+    min-height: 54px;
+    opacity: 0.55;
+    padding: 0 22px;
     scroll-snap-align: center;
     transform: none;
   }
@@ -4562,12 +5079,14 @@ body,
     content: none;
   }
   .d3-plan-live-menu button.is-active {
+    background: #12130f;
+    border-color: #12130f;
     opacity: 1;
     transform: none;
   }
   .d3-plan-live-menu button.is-active {
-    height: 34px;
-    min-height: 34px;
+    height: 54px;
+    min-height: 54px;
   }
   .d3-plan-live-menu button > span {
     color: #12130f;
@@ -4575,18 +5094,17 @@ body,
     z-index: 1;
   }
   .d3-plan-live-menu strong {
-    font-size: 12px;
+    font-size: 13px;
     letter-spacing: 0.04em;
     line-height: 1;
     transition: font-size 180ms ease;
     white-space: nowrap;
   }
   .d3-plan-live-menu button.is-active strong {
-    font-size: 17px;
+    color: #f4f0e7;
+    font-size: 14px;
     line-height: 1;
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 3px;
+    text-decoration: none;
   }
   .d3-plan-live-menu small {
     display: none;
@@ -4619,6 +5137,14 @@ body,
     font-size: 17px;
     line-height: 1.35;
   }
+  .d3-plan-live-quiz {
+    gap: 7px;
+    margin-top: 22px;
+  }
+  .d3-plan-live-quiz button {
+    min-height: 46px;
+    padding-inline: 24px;
+  }
   .d3-plan-live-voice-cta {
     height: 60px;
     margin-top: 20px;
@@ -4630,8 +5156,8 @@ body,
   }
   .d3-plan-live-stage {
     bottom: auto;
-    flex: 0 0 270px;
-    height: 270px;
+    flex: 0 0 450px;
+    height: 450px;
     left: auto;
     margin-top: 18px;
     order: 2;
@@ -4642,9 +5168,9 @@ body,
     width: 100%;
   }
   .d3-plan-live-capture {
-    height: 240px;
-    max-width: 120px;
-    width: 34%;
+    height: 400px;
+    max-width: 185px;
+    width: 52%;
   }
   .d3-plan-live-capture--photo {
     height: auto;
@@ -4652,9 +5178,9 @@ body,
     width: auto;
   }
   .d3-plan-live-capture--coach-collage {
-    height: 250px;
-    max-width: 215px;
-    width: 50%;
+    height: 400px;
+    max-width: 350px;
+    width: 100%;
   }
   .d3-coach-collage {
     gap: 8px;
@@ -4674,29 +5200,29 @@ body,
   .d3-coach-chat.is-woman {
     right: 4px;
     top: 10px;
-    width: 76%;
+    width: 70%;
   }
   .d3-coach-chat.is-man {
     left: 3px;
     top: 8px;
-    width: 88%;
+    width: 82%;
   }
   .d3-coach-chat__row {
     gap: 3px;
   }
   .d3-coach-chat__avatar {
-    flex-basis: 18px;
-    height: 18px;
-    width: 18px;
+    flex-basis: 22px;
+    height: 22px;
+    width: 22px;
   }
   .d3-coach-chat__bubble {
-    border-radius: 10px;
-    font-size: 7px;
+    border-radius: 12px;
+    font-size: 9px;
     line-height: 1.18;
-    padding: 5px 6px;
+    padding: 7px 8px;
   }
   .d3-coach-chat__row.is-coach .d3-coach-chat__bubble {
-    max-width: calc(100% - 21px);
+    max-width: calc(100% - 25px);
   }
   .d3-coach-chat__row.is-user .d3-coach-chat__bubble {
     border-bottom-right-radius: 3px;
@@ -4708,17 +5234,17 @@ body,
     width: 8px;
   }
   .d3-plan-live-capture--channels {
-    height: 250px;
-    max-width: none;
-    width: 50%;
+    height: 420px;
+    max-width: 360px;
+    width: 100%;
   }
   .d3-plan-live-channel-phones {
-    height: 210px;
-    max-width: 175px;
+    height: 380px;
+    max-width: 330px;
   }
   .d3-plan-live-channel-phone {
-    height: 205px;
-    width: 95px;
+    height: 350px;
+    width: 162px;
   }
   .d3-plan-live-channel-phone.is-app {
     right: 0;
@@ -4732,7 +5258,7 @@ body,
     box-sizing: border-box;
     gap: 9px;
     grid-template-columns: 34px minmax(0, 1fr);
-    left: 80px;
+    left: 44%;
     max-width: none;
     padding: 8px 10px;
     top: -34px;
@@ -4764,21 +5290,21 @@ body,
     line-height: 1.2;
   }
   .d3-plan-live-capture--photo.is-square .d3-plan-live-photo {
-    height: min(calc(50vw - 12px), 215px);
-    max-height: 215px;
-    max-width: 215px;
-    width: min(calc(50vw - 12px), 215px);
+    height: min(calc(100vw - 24px), 360px);
+    max-height: 360px;
+    max-width: 360px;
+    width: min(calc(100vw - 24px), 360px);
   }
   .d3-plan-live-capture--photo.is-portrait .d3-plan-live-photo {
-    height: min(71vw, 285px);
-    width: min(calc(50vw - 12px), 215px);
+    height: min(122vw, 440px);
+    width: min(calc(100vw - 40px), 330px);
   }
   .d3-sequence-content {
     position: static;
   }
   .d3-header {
-    height: 56px;
-    padding: 8px 20px;
+    height: 64px;
+    padding: 10px 20px;
   }
   .d3-header-cta {
     margin-left: auto;
@@ -4788,12 +5314,12 @@ body,
     display: block;
   }
   .d3-header:not(.is-at-top) {
-    height: 48px;
-    padding-block: 2px;
+    height: 56px;
+    padding-block: 6px;
   }
   .d3-top-announcement {
     height: 46px;
-    top: 56px;
+    top: 64px;
   }
   .d3-top-announcement > div {
     gap: 12px;
@@ -4824,7 +5350,7 @@ body,
     padding: 18px 20px;
     position: absolute;
     right: 0;
-    top: 55px;
+    top: 63px;
   }
   .d3-nav.is-open {
     display: flex;
@@ -4834,7 +5360,7 @@ body,
     padding: 16px 0;
   }
   .d3-header:not(.is-at-top) .d3-nav {
-    top: 47px;
+    top: 55px;
   }
   .d3-header:not(.is-at-top) .d3-nav a {
     font-size: 11px;
@@ -5276,6 +5802,18 @@ body,
   .d3-questionnaire-success {
     padding: 30px 20px;
   }
+  .d3-questionnaire-download {
+    padding-top: 28px;
+  }
+  .d3-questionnaire-download h3 {
+    font-size: 30px;
+  }
+  .d3-questionnaire-download > span {
+    font-size: 15px;
+  }
+  .d3-questionnaire-app-store-badge {
+    width: 190px;
+  }
   .d3-questionnaire-success h2 {
     font-size: 48px;
   }
@@ -5314,6 +5852,37 @@ body,
   .d3-footer {
     padding-top: 60px;
   }
+  .d3-footer-feature {
+    gap: 42px;
+    grid-template-columns: minmax(0, 1fr);
+    padding: 48px 0 60px;
+  }
+  .d3-footer-copy h2 {
+    font-size: 40px;
+  }
+  .d3-footer-copy p {
+    font-size: 16px;
+  }
+  .d3-app-card {
+    justify-items: start;
+    text-align: left;
+  }
+  .d3-app-download {
+    gap: 20px;
+    justify-content: flex-start;
+  }
+  .d3-app-icon {
+    height: 96px;
+    width: 72px;
+  }
+  .d3-app-icon svg {
+    height: 88px;
+    width: 64px;
+  }
+  .d3-footer-app-badge {
+    flex-basis: 180px;
+    max-width: 180px;
+  }
   .d3-wishlist {
     align-items: stretch;
     gap: 40px;
@@ -5350,6 +5919,20 @@ body,
 @media (max-width: 760px) {
   .d3-questionnaire-success {
     padding: 30px 20px 40px;
+  }
+  .d3-questionnaire-intro {
+    padding: 36px 20px 60px;
+  }
+  .d3-questionnaire-intro h2 {
+    font-size: clamp(36px, 10.5vw, 48px);
+  }
+  .d3-questionnaire-intro > span {
+    font-size: 15px;
+    margin-top: 22px;
+  }
+  .d3-questionnaire-intro > button {
+    margin-top: 30px;
+    width: 100%;
   }
   .d3-questionnaire-success .d3-questionnaire-fit h2 {
     font-size: 34px;

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react';
 import { Link } from 'react-router-dom';
 import { Activity, ChevronDown, ChevronRight, Flame, Headset, Menu, Timer, TrendingUp, X } from 'lucide-react';
-import { MONTHLY_PRICE_USD, YEARLY_MONTHLY_EQUIVALENT_USD, YEARLY_PRICE_USD } from '../config/product';
+import { APP_STORE_URL, MONTHLY_PRICE_USD, YEARLY_MONTHLY_EQUIVALENT_USD, YEARLY_PRICE_USD } from '../config/product';
 import { ConfirmDialog } from '../components/landing/ConfirmDialog';
 import { FeedbackSection } from '../components/landing/FeedbackSection';
 import { HeroExperiment } from '../components/landing/HeroExperiment';
@@ -107,20 +107,40 @@ export default function Landing() {
   const [hasVoiceEnded, setHasVoiceEnded] = useState(false);
   const [questionnaireOpen, setQuestionnaireOpen] = useState(false);
   const [questionnaireInvocation, setQuestionnaireInvocation] = useState(0);
+  const [questionnaireStartsAtFirstQuestion, setQuestionnaireStartsAtFirstQuestion] = useState(false);
+  const [autoQuestionnaireReady, setAutoQuestionnaireReady] = useState(false);
   const [sessionUserId] = useState(() => generateDiscoveryId());
   const faqPanelRef = useRef<HTMLDivElement>(null);
   const previousFaqHeightRef = useRef<number | null>(null);
+  const hasAutoOpenedQuestionnaireRef = useRef(false);
 
   const activePersonality = selectedCoach ?? 'reed';
   const voice = useVoiceSession({ personality: activePersonality, userId: sessionUserId, context: 'default_app' });
   const { connect: connectVoice, disconnect: disconnectVoice, sessionState: voiceSessionState } = voice;
   const text = useTextChat({ personality: activePersonality, userId: sessionUserId, context: 'default_app' });
   const hasDestructiveContext = voiceSessionState === 'connected' || voiceSessionState === 'connecting' || text.messages.length > 0;
-  const openQuestionnaire = useCallback(() => {
+  const openQuestionnaire = useCallback((startAtFirstQuestion = false) => {
+    hasAutoOpenedQuestionnaireRef.current = true;
+    setQuestionnaireStartsAtFirstQuestion(startAtFirstQuestion);
     setQuestionnaireInvocation((current) => current + 1);
     setQuestionnaireOpen(true);
   }, []);
   const closeQuestionnaire = useCallback(() => setQuestionnaireOpen(false), []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setAutoQuestionnaireReady(true), 2000);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (
+      !autoQuestionnaireReady
+      || questionnaireOpen
+      || hasAutoOpenedQuestionnaireRef.current
+    ) return;
+    hasAutoOpenedQuestionnaireRef.current = true;
+    openQuestionnaire();
+  }, [autoQuestionnaireReady, openQuestionnaire, questionnaireOpen]);
 
   useEffect(() => {
     let frame = 0;
@@ -244,13 +264,13 @@ export default function Landing() {
           <a href="#coaches" onClick={() => setMenuOpen(false)}>Coaches</a>
           <a href="#pricing" onClick={() => setMenuOpen(false)}>Pricing</a>
         </nav>
-        <a className="d3-header-cta" href="#wishlist" tabIndex={headerAtTop ? -1 : undefined} aria-hidden={headerAtTop}>JOIN THE WISHLIST</a>
+        <a className="d3-header-cta" href={APP_STORE_URL} rel="noopener noreferrer" target="_blank" tabIndex={headerAtTop ? -1 : undefined} aria-hidden={headerAtTop}>TRY 1 WEEK FREE</a>
         <button className="d3-menu" type="button" aria-label={menuOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X /> : <Menu />}</button>
       </header>
       <TopAnnouncementStrip visible={headerAtTop} />
 
       <main id="main-content">
-        <HeroExperiment onOpenQuestionnaire={openQuestionnaire} />
+        <HeroExperiment onTakeQuiz={() => openQuestionnaire(true)} />
 
         <section id="product" className="d3-system" aria-label="Delirio coaching experience">
           <section className="d3-problem-band" aria-labelledby="problem-band-title">
@@ -269,7 +289,10 @@ export default function Landing() {
               ))}
             </div>
           </section>
-          <ProductMomentsSection onStartVoice={startVoiceWithIris} />
+          <ProductMomentsSection
+            onStartVoice={startVoiceWithIris}
+            onTakeQuiz={() => openQuestionnaire(true)}
+          />
           <SessionStudio
             selectedCoach={selectedCoach} onSelectCoach={requestCoach}
             mode={mode} onModeChange={handleModeChange}
@@ -290,7 +313,12 @@ export default function Landing() {
           </div>
         </section>
 
-        <FeedbackSection invocationId={questionnaireInvocation} open={questionnaireOpen} onClose={closeQuestionnaire} />
+        <FeedbackSection
+          invocationId={questionnaireInvocation}
+          open={questionnaireOpen}
+          onClose={closeQuestionnaire}
+          startAtFirstQuestion={questionnaireStartsAtFirstQuestion}
+        />
 
         <section id="faq" className="d3-faq-wrap" aria-labelledby="faq-title">
           <div ref={faqPanelRef} className="d3-faq">
@@ -343,5 +371,5 @@ function PlanCard({ kind }: { kind: 'monthly' | 'annual' }) {
   const annual = kind === 'annual';
   const price = annual ? YEARLY_PRICE_USD : MONTHLY_PRICE_USD;
   const annualSavings = MONTHLY_PRICE_USD * 12 - YEARLY_PRICE_USD;
-  return <article className={`d3-plan d3-plan-${kind}`}><div className="d3-plan-tag">{annual ? 'BEST VALUE' : 'FLEXIBLE'}</div><p>{annual ? 'ANNUAL' : 'MONTHLY'}</p><h3>${price}</h3><strong>PER {annual ? 'YEAR' : 'MONTH'}</strong>{annual ? <><div className="d3-effective">${YEARLY_MONTHLY_EQUIVALENT_USD} / MONTH</div><small>SAVE ${annualSavings} VS. 12 MONTHLY PAYMENTS</small></> : <small>BILLED MONTHLY</small>}<ul>{benefits.map((benefit) => <li key={benefit}>—&nbsp;&nbsp; {benefit}</li>)}</ul><a href="#wishlist">JOIN THE WISHLIST</a></article>;
+  return <article className={`d3-plan d3-plan-${kind}`}><div className="d3-plan-tag">{annual ? 'BEST VALUE' : 'FLEXIBLE'}</div><p>{annual ? 'ANNUAL' : 'MONTHLY'}</p><h3>${price}</h3><strong>PER {annual ? 'YEAR' : 'MONTH'}</strong>{annual ? <><div className="d3-effective">${YEARLY_MONTHLY_EQUIVALENT_USD} / MONTH</div><small>SAVE ${annualSavings} VS. 12 MONTHLY PAYMENTS</small></> : <small>BILLED MONTHLY</small>}<ul>{benefits.map((benefit) => <li key={benefit}>—&nbsp;&nbsp; {benefit}</li>)}</ul><a href={APP_STORE_URL} rel="noopener noreferrer" target="_blank">DOWNLOAD ON THE APP STORE</a></article>;
 }

@@ -58,13 +58,13 @@ describe('HeroExperiment', () => {
     expect(screen.getByLabelText(/context updated.*next step ready/i)).toBeInTheDocument();
   });
 
-  it('opens the research questionnaire from the default hero', async () => {
+  it('opens the quiz from the default hero', async () => {
     const user = userEvent.setup();
-    const onOpenQuestionnaire = jest.fn();
-    render(<HeroExperiment onOpenQuestionnaire={onOpenQuestionnaire} />);
+    const onTakeQuiz = jest.fn();
+    render(<HeroExperiment onTakeQuiz={onTakeQuiz} />);
 
     await user.click(screen.getByRole('button', { name: /take a quiz/i }));
-    expect(onOpenQuestionnaire).toHaveBeenCalledTimes(1);
+    expect(onTakeQuiz).toHaveBeenCalledTimes(1);
   });
 
   it('preserves the unused workout scoreboard for future sections', () => {

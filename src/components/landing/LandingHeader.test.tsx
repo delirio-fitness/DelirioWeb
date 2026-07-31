@@ -12,8 +12,8 @@ describe('LandingHeader', () => {
     expect(navigation).toHaveTextContent('How it works');
     expect(navigation).toHaveTextContent('Coaches');
     expect(navigation).toHaveTextContent('Pricing');
-    const wishlist = screen.getByRole('link', { name: /join the wishlist/i });
-    expect(wishlist).toHaveAttribute('href', '#wishlist');
-    expect(wishlist).not.toHaveAttribute('target');
+    const download = screen.getByRole('link', { name: /try 1 week free/i });
+    expect(download).toHaveAttribute('href', 'https://apps.apple.com/');
+    expect(download).toHaveAttribute('target', '_blank');
   });
 });
