@@ -72,6 +72,33 @@ of what you took. **Commit that lockfile alongside the bytes.** It is the only
 thing that can later answer "which render is in the shipped build" — the copied
 file carries no identity of its own.
 
+### The catalog holds masters. Check the size before you ship one.
+
+Most assets are **full-resolution originals**: coach renders are 2880×2880 and
+5–8 MB each. Committing one into an app bundle or a web build is almost always
+wrong, and nothing will stop you — the fetch succeeds and looks correct.
+
+`show <id>` reports `extracted.width`, `height` and `bytes`. **Look before you
+fetch.** If it is large, take a resized copy instead:
+
+```bash
+delirio-assets fetch coach-reed_celebrate_v3 --to ./Resources/Coaches --resize 960
+```
+
+- The number is the **longest edge**, and aspect ratio is preserved — a
+  2880×2880 head at `--resize 960` is 960×960; a 1000×1400 logo is 686×960.
+- Transparency is preserved. It only ever reduces; asking for more pixels than
+  the master has is refused rather than upscaled.
+- **`--resize` implies `--lock`.** A resized copy matches no asset by checksum,
+  so if it were not recorded the moment it was written, nothing afterwards could
+  say where it came from. The pin stores the exact command, so refreshing it
+  later is a paste rather than a guess.
+- Vectors are refused, on purpose: an SVG or a Lottie bundle already renders at
+  any size, so fetch those unresized and set the size where you use them.
+
+Match whatever size this repo already uses — check `.delirio-assets.lock` for a
+`derived_by` on a similar asset before inventing a new one.
+
 `fetch` refuses to overwrite an existing file and names `--force` if you really
 mean it. That refusal is deliberate: an asset id can collide with a hand-written
 file in this repo, and silently replacing it would be the worst outcome. Look at
@@ -107,8 +134,9 @@ you:
   unrelated image.
 
 Use `pin` when you add an asset to this repo in any form other than a straight
-copy — a resize, a re-encode, a format conversion, a rename. An unpinned file is
-invisible to `check` forever after.
+copy — a re-encode, a format conversion, a rename, or a resize you did yourself.
+An unpinned file is invisible to `check` forever after. (You do not need `pin`
+after `fetch --resize`; that records itself.)
 
 ## Checking what you already have
 
