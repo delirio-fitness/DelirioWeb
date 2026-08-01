@@ -68,6 +68,13 @@ means "we don't know," which must never collapse into "you're current." If it is
 non-zero, say the catalog may be out of date rather than reporting that an asset
 is missing.
 
+`--human` prints only the data, and puts the staleness warning on **stderr** —
+but only when there is something to warn about. Silence there means `behind: 0`.
+That is a fine signal for a person watching a terminal and a poor one for you:
+you cannot tell "verified current" from "this mode does not report it" without
+knowing the mechanism. **Use the default JSON when the answer matters**, and read
+the field rather than inferring it from the absence of a warning.
+
 ## Pulling one into this repo
 
 ```bash
