@@ -1,5 +1,5 @@
 export const APP_STORE_URL =
-  import.meta.env.VITE_APP_STORE_URL || 'https://apps.apple.com/';
+  import.meta.env.VITE_APP_STORE_URL || 'https://apps.apple.com/us/app/delirio-ai-personal-trainer/id6756231078';
 
 export const MONTHLY_PRICE_USD = 30;
 export const YEARLY_PRICE_USD = 180;
