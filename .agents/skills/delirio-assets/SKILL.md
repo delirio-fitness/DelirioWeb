@@ -40,6 +40,13 @@ delirio-assets show coach-reed_celebrate_v3
 - Filters: `--kind` `--subject` `--variant` `--treatment` `--format` `--status`
   `--review`. `kind` is one of `coach | icon | logo | background | marketing`;
   `subject` is `reed | iris | base | brand | none`.
+- **A misspelt filter is an error, not an empty result.** `--kind cocah` and
+  `--staus current` both fail with a suggestion instead of quietly returning the
+  wrong set. So an empty result from a valid filter is a real answer — you do not
+  need to second-guess your own spelling.
+- `--variant` is the one exception: variants are names rather than a closed list,
+  so a typo there genuinely does come back empty. Confirm one with `search` before
+  filtering on it.
 - The free-text query matches the description, which is where the useful detail
   lives — what the asset depicts, what ground it needs, and what it is wrong for.
   **Read the description before choosing.** It will often tell you an asset is
@@ -71,6 +78,13 @@ delirio-assets fetch coach-reed_celebrate_v3 --to ./Resources/Coaches --lock
 of what you took. **Commit that lockfile alongside the bytes.** It is the only
 thing that can later answer "which render is in the shipped build" — the copied
 file carries no identity of its own.
+
+**Run it from the repo the copy belongs to.** The lockfile is written in the
+current directory while `--to` can point anywhere, so recording a copy outside it
+is refused rather than written as a `../../..` path that means nothing to the next
+reader. If you just want to look at an asset, `cd` to a scratch directory first
+and fetch there — do not fetch out of this repo into `/tmp` with `--lock`, and
+remember `--resize` locks whether you asked it to or not.
 
 ### The catalog holds masters. Check the size before you ship one.
 
@@ -144,15 +158,36 @@ after `fetch --resize`; that records itself.)
 delirio-assets check
 ```
 
-Run it from this repo (it reads the local `.delirio-assets.lock`). It reports
-anything **superseded**, **deprecated**, **renamed**, or **byte-drifted** since
-you took it, each with a remedy. Worth running when something looks out of date,
-and worth wiring into CI.
+Run it from this repo (it reads the local `.delirio-assets.lock`). It answers two
+questions:
+
+- **Did the catalog move?** Anything **superseded**, **deprecated**, **renamed**,
+  or **byte-drifted** since you took it.
+- **Is this repo still what the lockfile claims?** Every recorded file is looked
+  at: missing ones are reported, and an exact copy is re-hashed against the
+  checksum recorded for it.
+
+Worth running when something looks out of date, and worth wiring into CI.
+
+`verified` says what was actually inspected, and you should read it rather than
+stopping at `ok`:
+
+```
+{ present, missing, checked, presenceOnly }
+```
+
+`checked` counts files whose bytes were verified. `presenceOnly` counts **derived**
+copies — their bytes cannot be reproduced from here, so they are confirmed to
+exist and no further. A repo of entirely derived copies can be `ok: true` with
+`checked: 0`; that is honest, not a clean bill of health.
 
 The remedy differs by how the file got here, which is why `pin` measures it: an
 exact copy is re-fetched, a derived one is re-derived with the transform the
 lockfile recorded. **Follow the remedy given** — running `fetch` over a derived
-file replaces a bundle-sized asset with a full-resolution master.
+file replaces a bundle-sized asset with a full-resolution master. Where a copy
+sits under a name its host dictates, the remedy includes the rename and the
+re-pin, because `fetch` writes the catalog's filename and would otherwise leave
+the file that actually ships untouched.
 
 ## What you cannot do from here
 
@@ -170,3 +205,9 @@ asset that is **already in the catalog**; it cannot put anything into one.
 JSON by default; `--human` pretty-prints. Success is
 `{ ok: true, stale, data }`; failure is `{ ok: false, stale, error, remedy }`.
 **Read `remedy` before improvising** — it names the actual next command.
+
+**Unknown flags are rejected, not ignored.** A flag this CLI does not define
+fails with a suggestion and the list of what the command accepts, so you never
+get a result computed without the constraint you thought you passed. There is no
+`--no-<flag>` form: a boolean is off unless you pass it. `delirio-assets --help`
+lists every command with its flags.
