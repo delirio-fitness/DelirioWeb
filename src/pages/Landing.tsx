@@ -133,7 +133,7 @@ export default function Landing() {
   const closeQuestionnaire = useCallback(() => setQuestionnaireOpen(false), []);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setAutoQuestionnaireReady(true), 2000);
+    const timer = window.setTimeout(() => setAutoQuestionnaireReady(true), 10000);
     return () => window.clearTimeout(timer);
   }, []);
 
