@@ -217,6 +217,13 @@ things it will tell you that are easy to get wrong from the flags alone:
 
 - Every generation is built from **canonical catalog references** — a file path
   is refused. That is what keeps a generated Iris looking like Iris.
+- Because there is always a reference, this is an **edit, not a text-to-image
+  generation**, and the prompt is written completely differently: it says only
+  what *changes*. No character name, nothing already visible in the reference,
+  nothing about background or transparency, nothing about framing. Working
+  prompts here are one sentence.
+  [`references/prompting.md`](references/prompting.md) is the standard, and it is
+  worth reading before you write one rather than after.
 - It **spends real money** (~$1.32 for a coach-sized render) and mints a
   **permanent ID other repos will pin**. Two approval gates exist because of
   that, and the tool cannot enforce either one — you have to actually ask.

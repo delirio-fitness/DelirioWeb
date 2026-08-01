@@ -72,6 +72,14 @@ delirio-assets generate --plan \
 Nothing is spent. You get back the resolved references, the cost, the ID this
 will get, and a token.
 
+**On `--prompt`. Read [`prompting.md`](prompting.md) before you write one.** It
+is short, and it is the difference between a $1.32 render you keep and one you
+throw away. The one-line version: this is an *edit* of the reference, not a
+text-to-image generation, so the prompt says **only what changes** — no character
+name, nothing already visible in the reference, nothing about the background or
+transparency, nothing about framing. Prompts that work here are one sentence. If
+yours is a paragraph, `prompting.md` will tell you which rule you broke.
+
 **On `--size`, which has no default.** Cost scales with pixel count — a 2880×2880
 render costs about $1.32; 1024×1024 costs about $0.17. The question you have to
 answer is *will this asset be reused elsewhere?*
@@ -81,6 +89,11 @@ answer is *will this asset be reused elsewhere?*
   always available later; `fetch --resize` refuses to upscale, so a 1024px master
   can never serve a 2880px use.
 - **No — a one-off for one screen** → generate at the size that screen needs.
+
+For a coach asset the shape is not a free choice, and it is how framing gets
+specified instead of being asked for in the prompt. All 80 `crop: head` assets
+are square 2880×2880; all 24 `crop: full-body` assets are portrait 2160×3840.
+Match whichever you are making.
 
 **On `--variant`.** It becomes part of a permanent ID that other repos pin.
 Reuse the family's existing pattern: if `head-default` and `head-talking` exist,
