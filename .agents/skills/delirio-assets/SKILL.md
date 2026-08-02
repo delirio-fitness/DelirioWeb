@@ -235,8 +235,12 @@ things it will tell you that are easy to get wrong from the flags alone:
 - It **spends real money** (~$1.32 for a coach-sized render) and mints a
   **permanent ID other repos will pin**. Two approval gates exist because of
   that, and the tool cannot enforce either one — you have to actually ask.
-- Coach assets are transparent, so they need `--nobg`. Without it, approval is
-  refused rather than an opaque rectangle being shipped.
+- Coach assets are transparent, so one has to be **cut out before approval** —
+  approval refuses an opaque one rather than shipping a rectangle. Do that as a
+  separate step once you have a keeper: `delirio-assets cutout <gen-id>#<n>` is
+  free and needs no re-render. Do **not** cut out every candidate while
+  iterating, and do not reach for `--nobg` to fix an existing render — that flag
+  is chosen before a render exists and cannot be applied to one afterwards.
 
 ## What still cannot be done from here
 

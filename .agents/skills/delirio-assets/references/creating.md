@@ -68,8 +68,7 @@ delirio-assets generate --plan \
   --ref coach-iris_head-default_v1 \
   --prompt "…" \
   --kind coach --subject iris --variant celebrate \
-  --size 2880x2880 \
-  --nobg
+  --size 2880x2880
 ```
 
 Nothing is spent. You get back the resolved references, the cost, the ID this
@@ -102,13 +101,30 @@ Match whichever you are making.
 Reuse the family's existing pattern: if `head-default` and `head-talking` exist,
 the next one is `head-listening`, not `listening-head`. Check with `search`.
 
-**On `--nobg`.** Coach assets are transparent — all 104 of them — because they
-composite over app UI. `--nobg` runs the cutout through the local BG-removal
-sidecar. Without it a coach asset will be **refused at approval** rather than
-shipped as an opaque rectangle.
+**On transparency — do NOT reach for `--nobg` here.** Coach assets are
+transparent, all 104 of them, because they composite over app UI, and an opaque
+one is **refused at approval** rather than shipped as a rectangle. So the cutout
+is not optional. But it is a *separate step*, and doing it at generation time is
+usually wrong:
 
-The sidecar has to be running on this machine; the command starts it and waits.
-If it cannot, you get an error before anything is spent, never a silent skip.
+```bash
+delirio-assets cutout <generation-id>#<n>     # free, local, no re-render
+```
+
+The reasoning is about when each decision can be made. `--nobg` has to be chosen
+**before** the render exists; which render you want to keep can only be known
+**after**. Cutting out every candidate of every step of an iteration chain wastes
+time on images you are about to discard, and cutting out none of them used to
+leave you stuck — the only way to make a keeper transparent was to pay for
+another render of an image you already had. `cutout` is the way out of that, and
+it costs nothing.
+
+So: **generate opaque, iterate, then cut out the one you are keeping.** `--nobg`
+still exists and is fine when you are confident in one shot — it probes the
+sidecar before spending, so a dead sidecar fails before the money does.
+
+Either way, **look at the cutout on the checkerboard before approving it.** A
+fringe is invisible on white and is the thing a cutout gets wrong.
 
 **On the supersede warning.** If the plan says `supersedes`, this generation will
 retire an existing asset — and the warning names which repos ship it. That is a
@@ -224,21 +240,43 @@ result against that asset before approving it**, and if it has drifted, start
 again from the canonical reference rather than trying to correct your way back.
 
 Both `--size` and `--nobg` have chain rules — see
-[`prompting.md`](prompting.md).
+[`prompting.md`](prompting.md). Do not add a step to "clean up the edges": that
+is never a render problem, and step 5c is where it belongs.
+
+## Step 5c — cut out the keeper
+
+Once a candidate is the one, and **before** you ask for approval of anything:
+
+```bash
+delirio-assets cutout <generation-id>#<n>
+```
+
+Free — the sidecar is local and no re-render happens. It writes the cutout as a
+variant of that candidate, so `approve --pick <n>` promotes the cutout with no
+extra flag, and it writes a fresh checkerboard preview.
+
+**Skip this only if the asset is genuinely meant to be opaque** (a background, a
+marketing composite). For `kind: coach` it is not optional: approval refuses an
+opaque one, and it refuses it *after* you have asked a person to look at
+something you cannot promote.
+
+Read the new preview and **look at the edges**. `has_alpha` in the output tells
+you the cutout produced real transparency at all — if it is `false`, the cutout
+failed rather than the image having had no background, and approving is not the
+next step.
 
 > **A fringed cutout is not a refine case.** Do not approve it, do not
-> regenerate, and do not run another step to "clean up the edges" — the render
-> is fine, the cutout is what failed, and a further generation would pay $1.32
-> to re-render an image that was already right. The opaque original is saved in
-> the catalog's `data/images/` with its generation record — **give its full
-> `original_path`**, since redoing the cutout means opening that exact file.
-> Say that the cutout needs redoing in the Images tab with different edge
-> settings —
-> `refine_foreground` off preserves solid bright regions like eye whites that
-> the refinement pass erodes. That costs nothing.
+> regenerate, and do not run another generation step to "clean up the edges" —
+> the render is fine, the cutout is what failed, and another generation pays
+> $1.32 to re-render an image that was already right. `original_path` is the
+> untouched opaque render; **give it in full**, because redoing the cutout means
+> opening that exact file. It gets redone in the Images tab in the catalog
+> checkout, where the matting model and edge settings are compared by eye —
+> `refine_foreground` off preserves solid bright regions like eye whites that the
+> refinement pass erodes. That costs nothing.
 >
 > The distinction worth holding: **refine when the IMAGE is wrong, redo the
-> cutout when only its EDGES are.**
+> cutout when only its EDGES are, and never pay for a render to fix either.**
 
 ## Step 6 — write the description, then approve
 

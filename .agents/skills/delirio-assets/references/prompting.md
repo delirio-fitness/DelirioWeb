@@ -174,11 +174,13 @@ Two things that are specifically about chains:
 - **Keep `--size` the same across a chain.** Refining a 1024px candidate at
   2880px does not add detail, it invents it. Pick the final size at step 1. The
   plan warns if you change it.
-- **Leave `--nobg` until the last step.** A cutout is not a better thing to edit
-  — the model composites onto its own background anyway, and a fringe in an
-  intermediate cutout becomes subject matter in the next render. Refining a
-  `--nobg` step automatically uses the opaque original, so you do not have to
-  undo anything, but running the cutout at every step just costs time.
+- **Do not use `--nobg` while iterating at all.** A cutout is not a better thing
+  to edit — the model composites onto its own background anyway, and a fringe in
+  an intermediate cutout becomes subject matter in the next render. Cut out the
+  keeper afterwards with `delirio-assets cutout <generation-id>#<n>`, which is
+  free and needs no re-render. (Earlier advice here said "leave `--nobg` until
+  the last step", which was unfollowable: `--nobg` is chosen *before* a render
+  exists and you only know which step was the last *after*.)
 
 ## The worked example
 
