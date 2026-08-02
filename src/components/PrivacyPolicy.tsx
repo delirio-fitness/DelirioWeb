@@ -10,7 +10,7 @@ export default function PrivacyPolicy() {
     <LandingLegalShell>
       <div className="max-w-3xl mx-auto px-6 py-10 md:py-16 min-h-screen bg-white text-black">
         <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
-        <p className="mb-2 text-sm text-gray-500">Last updated: July 22, 2026</p>
+        <p className="mb-2 text-sm text-gray-500">Last updated: August 2, 2026</p>
         <p className="mb-4">
           Delirio (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) provides an AI-powered fitness coaching
           mobile application. This Privacy Policy explains what information we collect, how we use and share it, and the
@@ -123,8 +123,35 @@ export default function PrivacyPolicy() {
         <h3 className="text-xl font-semibold mb-2 mt-6">Usage, Analytics, and Diagnostics</h3>
         <p className="mb-4">
           We collect information about how you use the app, a user identifier, and crash and performance diagnostics to
-          operate, secure, and improve Delirio. Delirio does not track you across other companies&rsquo; apps or
-          websites.
+          operate, secure, and improve Delirio.
+        </p>
+
+        <h3 className="text-xl font-semibold mb-2 mt-6">Advertising and Attribution</h3>
+        <p className="mb-4">
+          To measure how our advertising performs and, with your permission, to show you more relevant ads, the app
+          shares a limited set of advertising and attribution data with Meta Platforms, Inc. through the Meta software
+          development kit (SDK):
+        </p>
+        <ul className="mb-4 list-disc pl-6">
+          <li>
+            <strong>Identifiers.</strong> The Advertising Identifier (IDFA), only if you grant tracking permission; a
+            device-scoped identifier; and an anonymous install identifier.
+          </li>
+          <li>
+            <strong>Device and technical data.</strong> Device model, operating system version, app version, language
+            and region, time zone, network or carrier, and screen attributes.
+          </li>
+          <li>
+            <strong>App activity.</strong> App installs, launches, and sessions.
+          </li>
+          <li>
+            <strong>Purchase events.</strong> Purchases, subscriptions, and free-trial starts, including the amount and
+            currency.
+          </li>
+        </ul>
+        <p className="mb-4">
+          We do not share your health, workout, voice, camera, photo, conversation, or profile information with Meta.
+          See <strong>Advertising, Attribution, and Tracking</strong> below for how this works and the choices you have.
         </p>
 
         <h2 className="text-2xl font-semibold mb-4 mt-8">How We Use Your Information</h2>
@@ -138,6 +165,7 @@ export default function PrivacyPolicy() {
           <li>Secure the app, prevent abuse, and diagnose problems</li>
           <li>Improve our app and services</li>
           <li>Review product feedback you submit</li>
+          <li>Measure how our advertising performs and, with your permission, show you more relevant ads</li>
         </ul>
 
         <h2 className="text-2xl font-semibold mb-4 mt-8">AI Features and Your Consent</h2>
@@ -173,9 +201,12 @@ export default function PrivacyPolicy() {
 
         <h2 className="text-2xl font-semibold mb-4 mt-8">How We Share Your Information</h2>
         <p className="mb-4">
-          We do not sell your personal information. We share it with service providers who process it on our behalf to
-          operate the app and deliver its features. These providers are permitted to use your information only to provide
-          services to us. We use the following categories of providers:
+          We share personal information with service providers who process it on our behalf to operate the app and
+          deliver its features. These providers are permitted to use your information only to provide services to us. We
+          also share a limited set of advertising and attribution data with Meta Platforms, Inc., which may use it for
+          its own purposes, as described under <strong>Advertising, Attribution, and Tracking</strong> below. Aside from
+          that advertising sharing, we do not sell your personal information. We share information with the following
+          categories of recipients:
         </p>
         <ul className="mb-4 list-disc pl-6">
           <li>
@@ -195,10 +226,80 @@ export default function PrivacyPolicy() {
           <li>
             <strong>Messaging providers</strong> for SMS and WhatsApp communication
           </li>
+          <li>
+            <strong>Meta Platforms, Inc.</strong> for advertising attribution and measurement and, with your
+            permission, ad personalization (see <strong>Advertising, Attribution, and Tracking</strong> below)
+          </li>
         </ul>
         <p className="mb-4">
           We may also disclose information if required by law, to protect our rights or the safety of others, or in
           connection with a business transfer.
+        </p>
+
+        <h2 className="text-2xl font-semibold mb-4 mt-8">Advertising, Attribution, and Tracking</h2>
+        <p className="mb-4">
+          We run ads to promote Delirio, and we work with Meta Platforms, Inc. to measure how those ads perform and,
+          with your permission, to show you more relevant ads. To do this, the app includes Meta&rsquo;s software
+          development kit (SDK), which reports advertising and attribution events to Meta. The categories of data
+          involved are listed under <strong>Advertising and Attribution</strong> above.
+        </p>
+        <p className="mb-4">
+          <strong>App Tracking Transparency.</strong> Before any tracking occurs, iOS asks for your permission through
+          the App Tracking Transparency prompt. If you allow tracking, the Advertising Identifier is used to measure ad
+          performance and to help show you more relevant ads. If you decline, the app relies only on privacy-preserving
+          attribution and does not use the Advertising Identifier. Where consent is the legal basis for this tracking,
+          you provide it through that prompt and can withdraw it at any time. You can change your choice in iOS Settings
+          under Privacy &amp; Security, then Tracking.
+        </p>
+        <p className="mb-4">
+          <strong>Privacy-preserving attribution.</strong> Whether or not you allow tracking, we use Apple&rsquo;s
+          SKAdNetwork and Meta&rsquo;s Aggregated Event Measurement to attribute installs and purchases in aggregate,
+          without identifying you individually.
+        </p>
+        <p className="mb-4">
+          <strong>Your choices.</strong> You can decline or turn off tracking at any time in iOS Settings under Privacy
+          &amp; Security, then Tracking (or by enabling Limit Ad Tracking). You can also manage ad personalization and
+          off-Meta activity through Meta&rsquo;s ad-preference tools. For your right to opt out of this sharing under
+          California and similar U.S. state laws, see <strong>Do Not Sell or Share My Personal Information</strong>{" "}
+          below.
+        </p>
+        <p className="mb-4">
+          Meta processes this data in the United States and may use it in accordance with its own policies. See
+          Meta&rsquo;s Privacy Policy at{" "}
+          <a href="https://www.facebook.com/privacy/policy" className="text-blue-600 underline">
+            https://www.facebook.com/privacy/policy
+          </a>
+          .
+        </p>
+
+        <h2 className="text-2xl font-semibold mb-4 mt-8">Do Not Sell or Share My Personal Information</h2>
+        <p className="mb-4">
+          We do not sell your personal information for money. Under some U.S. state privacy laws, including the
+          California Consumer Privacy Act as amended by the California Privacy Rights Act (CPRA), our sharing of
+          advertising identifiers and app-activity data with Meta for advertising attribution and, with your
+          permission, ad personalization may be treated as a &ldquo;sale&rdquo; or &ldquo;sharing&rdquo; of personal
+          information for cross-context behavioral advertising. The categories involved are the identifiers and
+          app-activity data described under <strong>Advertising and Attribution</strong> above. We do not share your
+          health, workout, voice, camera, photo, conversation, or profile information for advertising.
+        </p>
+        <p className="mb-4">You have the right to opt out of this sale or sharing. To opt out:</p>
+        <ul className="mb-4 list-disc pl-6">
+          <li>
+            Decline the App Tracking Transparency prompt, or turn tracking off in iOS Settings under Privacy &amp;
+            Security, then Tracking (or enable Limit Ad Tracking). This stops the Advertising Identifier from being
+            shared and limits advertising tracking.
+          </li>
+          <li>Manage ad personalization and your off-Meta activity through Meta&rsquo;s ad-preference tools.</li>
+        </ul>
+        <p className="mb-4">
+          Even after you opt out, we may continue to use Apple&rsquo;s SKAdNetwork and Meta&rsquo;s Aggregated Event
+          Measurement, which measure advertising in aggregate and do not identify you individually. We do not knowingly
+          sell or share the personal information of anyone under 16 years of age. To exercise this right or ask
+          questions, contact us at{" "}
+          <a href="mailto:contact@delirio.fit" className="text-blue-600 underline">
+            contact@delirio.fit
+          </a>
+          .
         </p>
 
         <h2 className="text-2xl font-semibold mb-4 mt-8">On-Device and Cloud Processing</h2>
@@ -256,6 +357,10 @@ export default function PrivacyPolicy() {
           <li>Request correction of inaccurate information</li>
           <li>Delete your account and data</li>
           <li>Withdraw consent for AI features that share your data (in Settings → Data &amp; AI)</li>
+          <li>
+            Opt out of tracking and advertising sharing (iOS Settings → Privacy &amp; Security → Tracking, plus
+            Meta&rsquo;s ad-preference tools), as described under Advertising, Attribution, and Tracking
+          </li>
           <li>Control camera, microphone, location, health, and photo permissions in your device settings</li>
           <li>Ask questions about our data practices</li>
         </ul>
