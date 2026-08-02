@@ -156,8 +156,8 @@
     },
     "skill:delirio-assets": {
       "version": 0,
-      "checksum": "sha256:skill:93478859c105febd5f824a261643803c7e76aef274286efe2a1d0cc4bb2aaec5",
-      "fetched": "2026-08-01",
+      "checksum": "sha256:skill:dfbb245093021ff67f5093bc1bf59e1eecd79868baf33c4ba6cf73fae8949158",
+      "fetched": "2026-08-02",
       "copies": [
         {
           "path": ".agents/skills/delirio-assets"

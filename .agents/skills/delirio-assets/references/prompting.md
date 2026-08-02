@@ -127,7 +127,7 @@ Without the indexing the model will usually blend the two references instead of
 transferring a feature from one to the other, which is a plausible-looking result
 that is not what you asked for.
 
-## One instruction per generation
+## One instruction per generation — then refine
 
 The catalog's own assets were built in steps, not in one shot:
 
@@ -135,22 +135,50 @@ The catalog's own assets were built in steps, not in one shot:
 2. `Have this character stand straight with their arms to their sides. The palms should be facing inward towards their body.`
 
 Two prompts, because "what body does this character have" and "what is that body
-doing" are separate decisions and you want to see the first one land before you
+doing" are separate decisions, and you want to see the first one land before you
 commit to the second.
 
-**This tool cannot currently do that**, and you should know why before you plan
-around it: `--ref` only accepts catalog asset IDs, and a generation's output is
-not a catalog asset until it is approved. So there is no way to feed step 1's
-result into step 2.
+**Do the same thing.** `--ref` takes an earlier candidate as well as a catalog
+id, so the second step edits the first result rather than starting over:
 
-What that means in practice:
+```bash
+delirio-assets generate --plan --ref <generation-id>#2 --prompt "…" …
+```
 
-- Prefer a reference that is already most of the way there over a prompt that
-  does two things. One well-chosen `--ref` beats a compound instruction.
-- If a generation needs two changes and no single reference gets you close, say
-  so rather than writing a two-clause prompt and hoping. A person may want to do
-  it in the Images tab, where the output of one generation *can* be the reference
-  for the next.
+`<generation-id>#<n>` is the same pair `approve` takes — the id printed when the
+generation ran, and the candidate number from the previews. See
+[`creating.md`](creating.md) for the loop; what matters *here* is what it does to
+the prompt:
+
+**A refinement prompt is shorter than a first prompt, not longer.** It is one
+correction to one image you are looking at. Everything else in that image stays
+by default, exactly as with a canonical reference — the five rules apply
+unchanged, and rule 3 applies hardest, because the temptation to re-describe the
+parts you liked is strongest when you can see them.
+
+> ✓ Lower this character's arms to chest height.
+
+> ✓ Open the eyes fully.
+
+> ✓ Remove the shadow under the feet.
+
+If you find yourself writing two corrections, do two steps. One correction per
+step is what makes it obvious which one caused a bad result.
+
+**Do not re-prompt from scratch when a candidate is close.** Re-running the
+original prompt gives you a different image, not a better one; refining gives you
+that image with one thing changed. The first is a lottery and the second is work.
+
+Two things that are specifically about chains:
+
+- **Keep `--size` the same across a chain.** Refining a 1024px candidate at
+  2880px does not add detail, it invents it. Pick the final size at step 1. The
+  plan warns if you change it.
+- **Leave `--nobg` until the last step.** A cutout is not a better thing to edit
+  — the model composites onto its own background anyway, and a fringe in an
+  intermediate cutout becomes subject matter in the next render. Refining a
+  `--nobg` step automatically uses the opaque original, so you do not have to
+  undo anything, but running the cutout at every step just costs time.
 
 ## The worked example
 

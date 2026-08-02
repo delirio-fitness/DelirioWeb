@@ -44,8 +44,11 @@ shared catalog with unreviewed images.
 
 ## Step 1 — pick canonical references
 
-Every generation is built from assets already in the catalog. This is enforced:
-a file path is refused, and so is anything not `--status current`.
+Every chain is rooted in assets already in the catalog. This is enforced: a file
+path is refused, and so is anything not `--status current`. (Later steps of a
+chain may reference an earlier candidate instead — step 5b — but the first one
+cannot, which is what keeps every generated asset traceable to something
+canonical.)
 
 ```bash
 delirio-assets search iris --kind coach --status current
@@ -143,12 +146,69 @@ Previews are composited on a **checkerboard**, deliberately:
 Say what you actually see before you say anything else. Then show the image to
 the person approving it.
 
-> **If a cutout is fringed, do not approve it and do not regenerate.** The opaque
-> original is already saved in the catalog's `data/images/` with its generation
-> record. Say that the cutout needs redoing in the Images tab with different edge
-> settings — `refine_foreground` off preserves solid bright regions like eye
-> whites that the refinement pass erodes. That costs nothing. A regeneration
-> costs another $1.32 and gives you a different image.
+## Step 5b — expect to refine, and refine rather than re-roll
+
+**The first render is usually not the keeper.** Assume two or three steps, not
+one. A candidate that is close but needs cleaning up is the normal outcome, and
+there is a command for exactly that:
+
+```bash
+delirio-assets generate --plan \
+  --ref <generation-id>#2 \
+  --prompt "lower this character's arms to chest height" \
+  --kind coach --subject iris --variant celebrate \
+  --size 2880x2880
+```
+
+`<generation-id>#<n>` names one candidate of an earlier generation — the id that
+generation printed, and the `pick` number from its previews. It goes wherever a
+catalog id goes, so you can mix one with a canonical reference if you need to.
+
+Three things about this that are easy to get wrong:
+
+- **Refine; do not re-roll.** Re-running the original prompt with a tweak gives
+  you a *different* image. Referencing the candidate gives you *that* image with
+  one thing changed. When something is close, the second is what you want, and
+  the difference compounds over a few steps.
+- **One correction per step.** Two corrections in one prompt and you cannot tell
+  which one caused the result you did not want.
+- **Pick the candidate that is closest to right**, not the one whose flaw is
+  easiest to describe.
+
+The plan reports a `chain` block once you are past step 1:
+
+```
+chain:
+  step: 3
+  rooted_at: [coach-iris_head-default_v1]
+  spent_so_far: $2.64
+  chain_total:  $3.96
+```
+
+**`chain_total` is the number to say out loud.** The `max_generation_usd`
+ceiling is *per call* — five 2880px steps come to about $6.60 without any single
+call reaching $5 — so a chain is the one shape that walks past it. Nothing
+refuses on your behalf here; the person approving each step is the guard.
+
+At depth 3 the plan adds a warning naming the canonical asset the chain started
+from. Each step re-renders the last, so a long chain drifts: **compare the
+result against that asset before approving it**, and if it has drifted, start
+again from the canonical reference rather than trying to correct your way back.
+
+Both `--size` and `--nobg` have chain rules — see
+[`prompting.md`](prompting.md).
+
+> **A fringed cutout is not a refine case.** Do not approve it, do not
+> regenerate, and do not run another step to "clean up the edges" — the render
+> is fine, the cutout is what failed, and a further generation would pay $1.32
+> to re-render an image that was already right. The opaque original is saved in
+> the catalog's `data/images/` with its generation record. Say that the cutout
+> needs redoing in the Images tab with different edge settings —
+> `refine_foreground` off preserves solid bright regions like eye whites that
+> the refinement pass erodes. That costs nothing.
+>
+> The distinction worth holding: **refine when the IMAGE is wrong, redo the
+> cutout when only its EDGES are.**
 
 ## Step 6 — write the description, then approve
 

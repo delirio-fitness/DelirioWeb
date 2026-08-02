@@ -215,8 +215,12 @@ delirio-assets generate --plan --ref <canonical-id> --prompt "…" \
 it.** That file is the procedure; this paragraph is only the pointer. Three
 things it will tell you that are easy to get wrong from the flags alone:
 
-- Every generation is built from **canonical catalog references** — a file path
-  is refused. That is what keeps a generated Iris looking like Iris.
+- Every chain is rooted in **canonical catalog references** — a file path is
+  refused. That is what keeps a generated Iris looking like Iris.
+- **Expect to iterate.** The first render is rarely the keeper, and
+  `--ref <generation-id>#<n>` refines an earlier candidate instead of starting
+  over. Budget two or three steps; each one is a separate spend and a separate
+  approval, and the plan reports the running total.
 - Because there is always a reference, this is an **edit, not a text-to-image
   generation**, and the prompt is written completely differently: it says only
   what *changes*. No character name, nothing already visible in the reference,
