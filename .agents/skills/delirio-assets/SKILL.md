@@ -217,6 +217,10 @@ things it will tell you that are easy to get wrong from the flags alone:
 
 - Every chain is rooted in **canonical catalog references** — a file path is
   refused. That is what keeps a generated Iris looking like Iris.
+- **Always give the person the full path of every generated image**, alongside
+  the inline preview and without being asked. A 768px preview is enough to spot
+  a wrong pose and not enough to judge an edge or a face, so they will want to
+  open the real file. Both paths are already absolute in the output.
 - **Expect to iterate.** The first render is rarely the keeper, and
   `--ref <generation-id>#<n>` refines an earlier candidate instead of starting
   over. Budget two or three steps; each one is a separate spend and a separate
@@ -254,6 +258,12 @@ asset that is **already in the catalog**; it cannot put anything into one.
 JSON by default; `--human` pretty-prints. Success is
 `{ ok: true, stale, data }`; failure is `{ ok: false, stale, error, remedy }`.
 **Read `remedy` before improvising** — it names the actual next command.
+
+**When a command writes a file, tell the person where it went, in full.** Every
+path in this CLI's output is absolute or repo-relative-by-contract, and a path
+you summarise into "the previews are in tmp/" is one they have to ask about.
+This applies to `generate`'s previews and masters, `approve`'s landed asset, and
+anything `fetch` copies.
 
 **Unknown flags are rejected, not ignored.** A flag this CLI does not define
 fails with a suggestion and the list of what the command accepts, so you never

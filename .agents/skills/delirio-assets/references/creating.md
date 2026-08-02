@@ -146,6 +146,34 @@ Previews are composited on a **checkerboard**, deliberately:
 Say what you actually see before you say anything else. Then show the image to
 the person approving it.
 
+### Always give the full path. Every candidate, every time.
+
+**This is not optional and it is not conditional on being asked.** A 768px
+preview rendered inline is enough to notice a pose is wrong and nowhere near
+enough to judge an edge, a face, or fine detail — so the person approving will
+want to open the real file, and having to ask for the path every time is pure
+friction.
+
+List every candidate with its paths, one line each:
+
+```
+1  /Users/…/DelirioMarketing/tmp/delirio-gen/a1b2c3d4_1.png   (preview)
+   /Users/…/DelirioAssetManagement/data/images/2026-08-01_…_1.png   (full resolution)
+2  …
+```
+
+The paths are already in the output — `preview` and `path` on each candidate,
+both absolute. You do not have to construct or shorten them. Give them whole:
+a relative path means nothing to someone who does not know which of four repos
+you were run from.
+
+Under `--nobg` there is a third, `original_path` — the opaque original. Include
+it. It is what a fringed cutout gets redone from, and it is the file someone
+will want the moment the edges are wrong.
+
+The same applies at every later step: when an asset is approved, say where it
+landed (`path` in `approve`'s output). Anything this tool writes, name in full.
+
 ## Step 5b — expect to refine, and refine rather than re-roll
 
 **The first render is usually not the keeper.** Assume two or three steps, not
@@ -202,8 +230,10 @@ Both `--size` and `--nobg` have chain rules — see
 > regenerate, and do not run another step to "clean up the edges" — the render
 > is fine, the cutout is what failed, and a further generation would pay $1.32
 > to re-render an image that was already right. The opaque original is saved in
-> the catalog's `data/images/` with its generation record. Say that the cutout
-> needs redoing in the Images tab with different edge settings —
+> the catalog's `data/images/` with its generation record — **give its full
+> `original_path`**, since redoing the cutout means opening that exact file.
+> Say that the cutout needs redoing in the Images tab with different edge
+> settings —
 > `refine_foreground` off preserves solid bright regions like eye whites that
 > the refinement pass erodes. That costs nothing.
 >
