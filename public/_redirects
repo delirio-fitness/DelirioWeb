@@ -10,10 +10,15 @@
 # MUST stay last or it swallows everything below it.
 
 # Branded acquisition link. Anything handed out off-site (bio links, ads, QR
-# codes) should use https://delirio.fit/app. 302 rather than 301 so the
-# destination stays swappable; browsers cache a 301 indefinitely. Netlify
-# forwards query strings, so /app?src=tiktok reaches Apple intact.
-/app        https://apps.apple.com/us/app/delirio-ai-personal-trainer/id6756231078   302!
+# codes) should use https://delirio.fit/app.
+#
+# A 200 rewrite to an interstitial rather than a 302 straight to Apple: on iOS
+# the OS intercepts an apps.apple.com navigation to open the App Store app and
+# cancels it in the browser, so a bare 302 leaves behind a tab that never
+# rendered anything — a white page when the user switches back. app.html paints
+# first, then hands off, then sends the tab to the landing page. It also
+# forwards ?src=... to Apple, so campaign tagging still works.
+/app        /app.html    200
 
 # Legacy legal paths.
 /terms      /terms-of-service     301!

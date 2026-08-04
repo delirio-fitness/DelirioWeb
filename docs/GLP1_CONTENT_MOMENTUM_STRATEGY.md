@@ -586,6 +586,10 @@ Avoid:
 
 Keep the official App Store action available. Avoid making the announcement strip and header badge feel like two competing calls to action.
 
+> **Updated 2026-08-04.** Resolved by removing the strip entirely rather than balancing the two.
+> The header no longer hides its logo and CTA at the top of the page, so a single persistent App
+> Store action now covers every scroll position. See §3.1 of the copy deck.
+
 ### 9.2 Hero
 
 **Content job:** Audience recognition, desired outcome, and category clarity.

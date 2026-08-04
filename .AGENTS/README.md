@@ -34,7 +34,8 @@ The visual direction is **dark-first, spacious, simple, premium, energetic, and 
 - The landing page contains the audience-led hero, a vertical product journey, coach selection, live voice/text interactions, categorized FAQ, pricing, the conditional research questionnaire, and App Store promotion.
 - Voice has `idle`, `connecting`, `connected`, and `error` states in `src/hooks/useVoiceSession.ts`.
 - The audience is expected to be mobile-heavy because Delirio is an iOS app. Validate at 390x844 first, then 820x1180 and 1440x900.
-- `VITE_APP_STORE_URL` owns the production App Store destination. Its fallback still points to Apple's generic App Store page and remains a release blocker until the verified Delirio listing is configured.
+- Acquisition routes through `/app` (`https://delirio.fit/app`), a static interstitial at `public/app.html` that hands off to the verified listing `id6756231078` and returns the tab to the landing page afterwards. `VITE_APP_STORE_URL` selects where CTAs point and defaults to `/app`; the Apple URL itself is in `app.html`, not the TypeScript source.
+- Redirects live in `public/_redirects`. `netlify.toml` is ignored in production and must not be used for them — see `docs/deployment.md`.
 
 ## Agents
 

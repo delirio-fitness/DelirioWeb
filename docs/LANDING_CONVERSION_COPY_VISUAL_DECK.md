@@ -7,7 +7,7 @@
 
 ## 1. Recommended page order
 
-1. Header and availability strip
+1. Header (the separate availability strip was removed on 2026-08-04 — see §3.1)
 2. Hero: recognition, desired outcome, and product action
 3. Problem and reframe: present friction, consequence, and removal of self-blame
 4. Plan-to-live product journey: differentiated mechanism
@@ -40,6 +40,13 @@ If customer discovery is temporarily more important than App Store adoption, the
 ## 3. Text recommendations by page surface
 
 ### 3.1 Top announcement strip
+
+> **Superseded 2026-08-04 — no longer implemented.** The strip was removed along with the
+> header's at-top state, which used to hide the logo and CTA so the strip could stand in for
+> them. The header is now persistent and carries the App Store action at every scroll position,
+> which resolves §9.1's "two competing calls to action" concern by leaving only one. The copy
+> recommendations below are kept for the record; if a strip ever returns, re-read them alongside
+> that constraint.
 
 **Current**
 

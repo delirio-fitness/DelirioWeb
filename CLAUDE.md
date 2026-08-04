@@ -27,11 +27,15 @@ Design 3 navigation and footer around the page body.
 - `/` — Landing
 - `/terms-of-service` — Terms (legal shell)
 - `/privacy-policy` — Privacy policy (legal shell)
-- `/terms` and `/privacy` 301-redirect to the new paths via `netlify.toml`.
-- `/app` 302-redirects to the App Store listing via `netlify.toml`. It is not a React route —
-  Netlify intercepts it before the SPA fallback, so it does nothing under `npm run dev`.
-  This is the branded download link; use `https://delirio.fit/app` anywhere the App Store
-  URL would otherwise be pasted.
+- `/terms` and `/privacy` 301-redirect to the new paths.
+- `/app` is the branded download link — use `https://delirio.fit/app` anywhere the App Store URL
+  would otherwise be pasted. It is a static interstitial (`public/app.html`), not a React route:
+  it paints, hands off to the App Store, then sends the tab to `/` when the user returns. The
+  App Store URL itself lives in that file.
+
+Redirects are defined in `public/_redirects` (first match wins, SPA catch-all `/*` stays last),
+**not** `netlify.toml` — see **Non-obvious things** and `docs/deployment.md`. None of them run
+under `npm run dev`; only a Netlify-served build applies them.
 
 ## Commands
 
@@ -103,7 +107,7 @@ Never write playwright artifacts to the repo root or anywhere else under version
 ```
 VITE_CHAT_ENGINE_URL       # Pipecat chat backend (default: chat-engine-staging.up.railway.app)
 VITE_PIPECAT_BACKEND_URL   # Pipecat voice backend (default: voice-engine-staging.up.railway.app)
-VITE_APP_STORE_URL         # Where download CTAs point (default: /app, the branded redirect)
+VITE_APP_STORE_URL         # Where download CTAs point (default: /app, the branded interstitial)
 ```
 
 Backend defaults live in `src/utils/pipecatConfig.ts`; product pricing and acquisition configuration
@@ -116,7 +120,14 @@ live in `src/config/product.ts`.
   regenerate, install `tailwindcss` and rebuild upstream of this repo, or hand-edit `index.css`.
 - Tokens (colors, spacing, typography) live in the `@layer theme` block at the top of
   `src/index.css`. Custom utilities are in `@layer utilities`.
-- The default App Store URL is only a placeholder. Configure the real listing before release.
+- **`netlify.toml` is ignored in production.** Rules declared there silently return `200` and fall
+  through to the SPA catch-all, rendering a white page on any path that should redirect. `/terms`
+  and `/privacy` were broken this way for months. Put redirects in `public/_redirects`. `netlify
+  dev` honours `netlify.toml` locally, so it will *not* reproduce this — verify redirects against
+  the deployed site. Full write-up and suspected cause in `docs/deployment.md`.
+- The App Store listing URL is not in the TypeScript source. `APP_STORE_URL` is `/app`; the real
+  Apple URL lives in `public/app.html` (twice — the `<a id="store">` href and the `STORE`
+  constant).
 - `useTextChat` uses Vite proxy `/api/chat` in dev (configured in `vite.config.ts`) and
   `${VITE_CHAT_ENGINE_URL}/chat` in production.
 - The current landing and legal shell use the `d3-*` namespace in `src/styles/design3.css`.

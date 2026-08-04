@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#090909" />
+    <meta name="robots" content="noindex" />
+    <title>Opening the App Store — Delirio</title>
+    <link rel="icon" type="image/svg+xml" href="/faviocn.svg" />
+    <style>
+      /*
+        Everything here is inline on purpose. This page's whole job is to paint
+        before it hands off, so it must not wait on a stylesheet, a webfont, or
+        the 900KB app bundle.
+      */
+      * { box-sizing: border-box; }
+      html, body { height: 100%; }
+      body {
+        align-items: center;
+        background: #090909;
+        color: #f4f0e7;
+        display: flex;
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif;
+        justify-content: center;
+        margin: 0;
+        padding: 24px;
+        text-align: center;
+      }
+      .wrap { display: flex; flex-direction: column; align-items: center; gap: 28px; max-width: 420px; }
+      svg { height: 46px; width: auto; }
+      p {
+        color: #b8b09e;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        line-height: 1.5;
+        margin: 0;
+        text-transform: uppercase;
+      }
+      .actions { display: flex; flex-direction: column; gap: 14px; width: 100%; }
+      a {
+        align-items: center;
+        border: 1px solid #f4f0e7;
+        border-radius: 6px;
+        display: flex;
+        font-size: 11px;
+        font-weight: 700;
+        justify-content: center;
+        letter-spacing: 0.08em;
+        min-height: 48px;
+        padding: 12px 18px;
+        text-decoration: none;
+        text-transform: uppercase;
+      }
+      .primary { background: #f4f0e7; color: #121211; }
+      .secondary { background: transparent; color: #f4f0e7; }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrap">
+      <svg viewBox="0 0 33 46" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M33 13.1429C33 5.88425 27.0902 0 19.8 0H0V18.86H9.9V7.88571C9.9 7.15983 10.491 6.57143 11.22 6.57143H13.2C15.0225 6.57143 16.5 8.04251 16.5 9.85714V11.8286C16.5 12.5545 17.091 13.1429 17.82 13.1429H18.15C19.9725 13.1429 21.45 14.6139 21.45 16.4286V29.5714C21.45 31.3861 19.9725 32.8571 18.15 32.8571H17.82C17.091 32.8571 16.5 33.4455 16.5 34.1714V36.1429C16.5 37.9575 15.0225 39.4286 13.2 39.4286H11.22C10.491 39.4286 9.9 38.8402 9.9 38.1143V27.0743H0V46H19.8C27.0902 46 33 40.1157 33 32.8571V13.1429Z" fill="#f4f0e7"/>
+      </svg>
+
+      <p>Opening the App Store&hellip;</p>
+
+      <div class="actions">
+        <a class="primary" id="store" href="https://apps.apple.com/us/app/delirio-ai-personal-trainer/id6756231078">Open the App Store</a>
+        <a class="secondary" href="/">Back to Delirio</a>
+      </div>
+    </div>
+
+    <noscript>
+      <meta http-equiv="refresh" content="0; url=https://apps.apple.com/us/app/delirio-ai-personal-trainer/id6756231078" />
+    </noscript>
+
+    <script>
+      (function () {
+        var STORE = 'https://apps.apple.com/us/app/delirio-ai-personal-trainer/id6756231078';
+
+        // Forward campaign params so /app?src=tiktok still reaches Apple intact.
+        var target = STORE + window.location.search;
+        document.getElementById('store').href = target;
+
+        // replace(), not href: /app never enters history, so Back from the App
+        // Store web page skips this document instead of re-triggering it.
+        //
+        // Two frames first, so the browser has painted something. On iOS the
+        // OS intercepts this navigation to open the App Store app and cancels
+        // it here, which is exactly the case where an empty document would be
+        // left on screen as a white page.
+        requestAnimationFrame(function () {
+          requestAnimationFrame(function () {
+            window.location.replace(target);
+          });
+        });
+
+        // If we are still here after the user has been away, the handoff was
+        // intercepted and this tab survived. Send it to the landing page so
+        // returning to the browser shows Delirio rather than a holding screen.
+        // Elsewhere the navigation commits, this document is discarded, and
+        // this listener never runs.
+        var wentAway = false;
+        document.addEventListener('visibilitychange', function () {
+          if (document.hidden) {
+            wentAway = true;
+          } else if (wentAway) {
+            window.location.replace('/');
+          }
+        });
+      })();
+    </script>
+  </body>
+</html>
