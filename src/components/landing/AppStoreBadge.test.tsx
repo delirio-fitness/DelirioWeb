@@ -9,7 +9,7 @@ describe('AppStoreBadge', () => {
     render(<AppStoreBadge />);
 
     const link = screen.getByRole('link', { name: /download delirio on the app store/i });
-    expect(link).toHaveAttribute('href', 'https://apps.apple.com/us/app/delirio-ai-personal-trainer/id6756231078');
+    expect(link).toHaveAttribute('href', '/app');
     expect(link).toHaveAttribute('target', '_blank');
   });
 

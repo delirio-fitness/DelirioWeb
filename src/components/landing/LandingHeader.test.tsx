@@ -13,7 +13,7 @@ describe('LandingHeader', () => {
     expect(navigation).toHaveTextContent('Coaches');
     expect(navigation).toHaveTextContent('Pricing');
     const download = screen.getByRole('link', { name: /try 1 week free/i });
-    expect(download).toHaveAttribute('href', 'https://apps.apple.com/us/app/delirio-ai-personal-trainer/id6756231078');
+    expect(download).toHaveAttribute('href', '/app');
     expect(download).toHaveAttribute('target', '_blank');
   });
 });

@@ -6,7 +6,7 @@ describe('TopAnnouncementStrip', () => {
     render(<TopAnnouncementStrip visible />);
 
     expect(screen.getByLabelText('Download Delirio')).toHaveClass('is-visible');
-    expect(screen.getByRole('link', { name: /download delirio on the app store/i })).toHaveAttribute('href', 'https://apps.apple.com/us/app/delirio-ai-personal-trainer/id6756231078');
+    expect(screen.getByRole('link', { name: /download delirio on the app store/i })).toHaveAttribute('href', '/app');
   });
 
   it('removes its action from keyboard navigation while hidden', () => {

@@ -1,6 +1,16 @@
  [functions]
   directory = "netlify/functions"
 
+# Branded acquisition link. Every "download" CTA on the site points at /app, and
+# anything we hand out off-site (bio links, ads, QR codes) should use
+# https://delirio.fit/app too. 302 so the destination stays swappable — a 301
+# would be cached by browsers forever. Query strings are forwarded by Netlify.
+[[redirects]]
+  from = "/app"
+  to = "https://apps.apple.com/us/app/delirio-ai-personal-trainer/id6756231078"
+  status = 302
+  force = true
+
 [[redirects]]
   from = "/terms"
   to = "/terms-of-service"

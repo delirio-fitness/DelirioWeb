@@ -12,6 +12,6 @@ Internal review document. Claims remain public per current product direction, bu
 | Workout data, video, and conversations are private | FAQ | Privacy states data is not sold but is shared with service providers | Privacy + Legal | Keep contextual provider disclosure synchronized with policy |
 | In-person and online coaching price ranges | Comparison | Existing marketing comparison; source and review date not located | Marketing | Add current market sources and review cadence |
 | $30 monthly and $180 yearly subscriptions | Pricing, FAQ, Terms | Product-owner supplied pricing; App Store listing not yet configured | Product + Finance | Confirm App Store products and localized prices before launch |
-| App Store purchase is available | All conversion actions | Placeholder URL currently points to Apple’s homepage | Release owner | Replace `VITE_APP_STORE_URL` with the real listing before launch |
+| App Store purchase is available | All conversion actions | CTAs point at `/app`, which `netlify.toml` 302-redirects to the live Delirio listing | Release owner | Re-verify `/app` resolves to the listing after each deploy |
 
 Last reviewed: July 12, 2026.

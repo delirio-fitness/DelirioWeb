@@ -28,6 +28,10 @@ Design 3 navigation and footer around the page body.
 - `/terms-of-service` — Terms (legal shell)
 - `/privacy-policy` — Privacy policy (legal shell)
 - `/terms` and `/privacy` 301-redirect to the new paths via `netlify.toml`.
+- `/app` 302-redirects to the App Store listing via `netlify.toml`. It is not a React route —
+  Netlify intercepts it before the SPA fallback, so it does nothing under `npm run dev`.
+  This is the branded download link; use `https://delirio.fit/app` anywhere the App Store
+  URL would otherwise be pasted.
 
 ## Commands
 
@@ -99,7 +103,7 @@ Never write playwright artifacts to the repo root or anywhere else under version
 ```
 VITE_CHAT_ENGINE_URL       # Pipecat chat backend (default: chat-engine-staging.up.railway.app)
 VITE_PIPECAT_BACKEND_URL   # Pipecat voice backend (default: voice-engine-staging.up.railway.app)
-VITE_APP_STORE_URL         # Production listing (temporary fallback: https://apps.apple.com/)
+VITE_APP_STORE_URL         # Where download CTAs point (default: /app, the branded redirect)
 ```
 
 Backend defaults live in `src/utils/pipecatConfig.ts`; product pricing and acquisition configuration

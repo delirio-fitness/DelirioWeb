@@ -270,7 +270,7 @@ describe('FeedbackSection', () => {
     expect(screen.getByRole('heading', { name: /you.re one click away/i })).toBeInTheDocument();
     expect(result).toHaveTextContent(/tackle these challenges today with delirio/i);
     const download = screen.getByRole('link', { name: /download delirio now on the app store/i });
-    expect(download).toHaveAttribute('href', 'https://apps.apple.com/us/app/delirio-ai-personal-trainer/id6756231078');
+    expect(download).toHaveAttribute('href', '/app');
     expect(download).toHaveAttribute('target', '_blank');
     expect(screen.queryByRole('textbox', { name: /email address/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /answer again/i })).not.toBeInTheDocument();
