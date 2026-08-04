@@ -1,1 +1,23 @@
-/* /index.html 200
+# Redirect rules live here, not in netlify.toml.
+#
+# netlify.toml is not applied on this site in production — verified 2026-08-04:
+# /terms, /privacy, and /app all returned 200 (the SPA catch-all below) instead
+# of the redirects declared there, even though `netlify dev --dir build` honours
+# them locally. This file is demonstrably honoured in production, so it is the
+# single source of truth until the netlify.toml issue is resolved.
+#
+# Order matters: Netlify applies the first matching rule, so the SPA catch-all
+# MUST stay last or it swallows everything below it.
+
+# Branded acquisition link. Anything handed out off-site (bio links, ads, QR
+# codes) should use https://delirio.fit/app. 302 rather than 301 so the
+# destination stays swappable; browsers cache a 301 indefinitely. Netlify
+# forwards query strings, so /app?src=tiktok reaches Apple intact.
+/app        https://apps.apple.com/us/app/delirio-ai-personal-trainer/id6756231078   302!
+
+# Legacy legal paths.
+/terms      /terms-of-service     301!
+/privacy    /privacy-policy       301!
+
+# SPA fallback — keep last.
+/*          /index.html           200

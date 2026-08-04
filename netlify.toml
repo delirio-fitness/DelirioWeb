@@ -1,29 +1,13 @@
- [functions]
+# NOTE: redirect rules do NOT belong here. This file is not being applied on the
+# production site — rules declared here returned 200 instead of redirecting, and
+# /terms and /privacy were silently broken for months as a result. All redirects
+# live in public/_redirects, which Vite copies to build/_redirects and which
+# production demonstrably honours.
+#
+# If the netlify.toml issue is ever diagnosed (a stale base directory in the site's
+# build settings is the usual cause), redirects can move back here — but move them,
+# don't duplicate them. netlify.toml takes precedence over _redirects when both are
+# applied, so a duplicated rule that drifts would be silently ignored.
+
+[functions]
   directory = "netlify/functions"
-
-# Branded acquisition link. Every "download" CTA on the site points at /app, and
-# anything we hand out off-site (bio links, ads, QR codes) should use
-# https://delirio.fit/app too. 302 so the destination stays swappable — a 301
-# would be cached by browsers forever. Query strings are forwarded by Netlify.
-[[redirects]]
-  from = "/app"
-  to = "https://apps.apple.com/us/app/delirio-ai-personal-trainer/id6756231078"
-  status = 302
-  force = true
-
-[[redirects]]
-  from = "/terms"
-  to = "/terms-of-service"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/privacy"
-  to = "/privacy-policy"
-  status = 301
-  force = true
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
