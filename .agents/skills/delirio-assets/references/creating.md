@@ -278,6 +278,49 @@ next step.
 > The distinction worth holding: **refine when the IMAGE is wrong, redo the
 > cutout when only its EDGES are, and never pay for a render to fix either.**
 
+## Step 5d — de-mottle the keeper
+
+```bash
+delirio-assets denoise <generation-id>#<n>          # --strength light|standard|strong
+```
+
+Also free, also local, also no re-render. Run it **after** the cutout, not
+before: it cleans whatever the candidate's terminal file is, so after a cutout it
+cleans the cutout and leaves the alpha BEN2 produced bit-identical. Doing it the
+other way round strands the result and `approve` will ignore it.
+
+**What it is for.** gpt-image renders carry blob-scale, chroma-heavy noise in
+low-gradient areas — a broad forehead, the crown of a cap, a throat. It is not
+compression, and downscaling does not remove it.
+
+**What it is NOT for.** It does not fix blotchy, patchy-looking shading on a
+face. That complaint is face RESOLUTION: a `2160x3840` full-body and a
+`2880x2880` head crop have the identical 8.3 MP budget, but the full-body spends
+15% of its height on the face against the head crop's 74% — 560-800px of face
+versus 2140px. At that size the shading gradations *are* the blotches, and no
+filter recovers detail that was never rendered. If the face matters, generate or
+source it from a head or chest-up crop. Nor does denoising a reference stop the
+next generation being mottled: tested directly, cleaning a reference cut its own
+mottle 28% but the derived render's only 10%, because each generation adds its
+own regardless.
+
+The output reports `mottle_before` and `mottle_after`. Anchors for reading them:
+vector-derived art measures 0.00, the cleanest coach head 0.50, the coach median
+0.97, the worst asset in the catalog 2.36.
+
+**Skip it when `mottle_before` is already under 0.6** — the command says so in its
+`next` field. Filtering something that does not need it costs detail for nothing.
+
+Look at the preview against `source_path` before approving, on the broad
+soft-lit areas, because that is both where the defect lives and where
+over-filtering shows first. If skin has gone plastic, re-run at `--strength
+light`; if mottle is still visible, `--strength strong`. Both are free, and
+neither costs a render.
+
+> Same distinction as the cutout: **this is not a refine case.** Mottle is never
+> a reason to pay for another render, and never something to put in a prompt —
+> `prompting.md` covers why asking the model about surface quality backfires.
+
 ## Step 6 — write the description, then approve
 
 **Read [`describing.md`](describing.md) before writing.** It is the standard both

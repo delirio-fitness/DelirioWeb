@@ -37,6 +37,54 @@ That is the target length. **If your prompt is a paragraph, something has gone
 wrong.** Go back and find which of the five rules below you broke; it will
 usually be more than one.
 
+## Always append the artefact block
+
+gpt-image-2 has an acknowledged model-level defect: a repeating "tiling texture"
+that lands hardest on skin and other organic surfaces. OpenAI confirmed it in May
+2026 and no fix has shipped. It is the source of the blotchy shading on the coach
+bodies, and it is not something the reference or the framing can avoid.
+
+**Append this to every gpt-image-2 prompt, generation or cleanup:**
+
+```
+STRICTLY NO cellular texture, NO webbing, NO neural network patterns, NO
+repeating Voronoi patterns, NO grain, NO speckled or mottled skin. Skin must be
+perfectly smooth with clean even gradients.
+```
+
+This is the one sanctioned exception to rules 1 and 3 below. It does not describe
+the subject, so it cannot cause the drift those rules exist to prevent — it
+describes a rendering failure to avoid.
+
+**On a cleanup pass it is measurably strong.** Feeding an already-finished asset
+back in with this block plus "keep the character, pose, proportions, clothing,
+framing and expression exactly as they are" improved complexion evenness on 4 of
+4 coach assets (−2% to −14%) with identity intact (silhouette IoU 0.949–0.965).
+That is now the standard remedy for an existing asset with visible blotching, and
+it beats every local filter tried: a filter can only subtract within a frequency
+band, while this removes fine noise AND corrects chroma.
+
+**On generation the measurement was ambiguous and the eye won.** Over three runs
+each, the block scored slightly WORSE than no block on both automated measures —
+but the ranges overlapped, and on inspection the renders with it were judged
+cleaner of the artefact specifically. Automated texture metrics disagreed with
+human judgement repeatedly during this investigation and were wrong often enough
+that human judgement governs. Keep the block; do not re-litigate it from metrics
+alone.
+
+Two things that do NOT work, so nobody spends money rediscovering them:
+
+- **Masked inpainting of a region.** The mask is honoured (unmasked pixels move
+  by ~1.6 levels against ~25 inside), but gpt-image-2 treats the transparent
+  region as empty canvas to fill rather than content to refine, and paints
+  something arbitrary — a test on an eye region returned a black bar across the
+  face. Cleanup works precisely BECAUSE the model can see the pixels it is
+  fixing.
+- **`gpt-image-1.5` as an escape.** It rejects custom sizes outright
+  (`400 Invalid size` — only 1024x1024, 1024x1536, 1536x1024), so it cannot
+  produce a catalog master at all, and its output measured worse than
+  gpt-image-2's on every axis.
+
 ## The five rules
 
 ### 1. Say what changes. Nothing else.
