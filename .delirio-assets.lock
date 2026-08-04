@@ -1,27 +1,5 @@
 {
   "assets": {
-    "coach-iris_head-effect-idle-notes_v1": {
-      "version": 1,
-      "checksum": "sha256:315c34e2ac710e1c0350de90e3832cc60387394b3d73df344956dce71f98487e",
-      "fetched": "2026-07-31",
-      "copies": [
-        {
-          "path": "src/images/emojis/Iris/Iris_idle_notes.png",
-          "derived_by": "sips -z 960 960"
-        }
-      ]
-    },
-    "coach-iris_head-effect-idle-phone_v1": {
-      "version": 1,
-      "checksum": "sha256:e3ee307a607e60d5b9e78b6bee3443c841270138d052b08249b87a78b629d95c",
-      "fetched": "2026-07-31",
-      "copies": [
-        {
-          "path": "src/images/emojis/Iris/Iris_idle_phone.png",
-          "derived_by": "sips -z 960 960"
-        }
-      ]
-    },
     "coach-iris_head-effect-idle-return_v1": {
       "version": 1,
       "checksum": "sha256:c98d1cc8473987161c20c6d6ab189cc24506b32bdef31137aa35164a0ad168dd",
@@ -29,72 +7,6 @@
       "copies": [
         {
           "path": "src/images/emojis/Iris/Iris_idle_return.png",
-          "derived_by": "sips -z 960 960"
-        }
-      ]
-    },
-    "coach-iris_head-effect-idle-watch_v1": {
-      "version": 1,
-      "checksum": "sha256:256230c1de940bf1e9ddda389d4dbed6397fb869e33fb92707a1327970a46c10",
-      "fetched": "2026-07-31",
-      "copies": [
-        {
-          "path": "src/images/emojis/Iris/Iris_idle_watch.png",
-          "derived_by": "sips -z 960 960"
-        }
-      ]
-    },
-    "coach-iris_head-effect-listening-tilt_v1": {
-      "version": 1,
-      "checksum": "sha256:b5c6bb44ae75e95fd7b2ae155d77ce4f0dd24457cc21b8751ab04fefd15294bb",
-      "fetched": "2026-07-31",
-      "copies": [
-        {
-          "path": "src/images/emojis/Iris/Iris_listening_tilt.png",
-          "derived_by": "sips -z 960 960"
-        }
-      ]
-    },
-    "coach-iris_head-effect-thinking-consider_v1": {
-      "version": 1,
-      "checksum": "sha256:95326439929b4bac6ea607b83413c4596799be7c89716caf3e8571bd6de0998a",
-      "fetched": "2026-07-31",
-      "copies": [
-        {
-          "path": "src/images/emojis/Iris/Iris_thinking_consider.png",
-          "derived_by": "sips -z 960 960"
-        }
-      ]
-    },
-    "coach-iris_head-effect-thinking-emoji_v1": {
-      "version": 1,
-      "checksum": "sha256:c2f255c068516d15ab42b491fa47b332a552c22c893820bc73021652c0132fb7",
-      "fetched": "2026-07-31",
-      "copies": [
-        {
-          "path": "src/images/emojis/Iris/Iris_thinking_emoji.png",
-          "derived_by": "sips -z 960 960"
-        }
-      ]
-    },
-    "coach-reed_head-effect-idle-notes_v1": {
-      "version": 1,
-      "checksum": "sha256:46e680ec80c779f8fea34a04d69bd121ddc3f19046041bdb23aec4a2323c6eb4",
-      "fetched": "2026-07-31",
-      "copies": [
-        {
-          "path": "src/images/emojis/Reed/Reed_idle_notes.png",
-          "derived_by": "sips -z 960 960"
-        }
-      ]
-    },
-    "coach-reed_head-effect-idle-phone_v1": {
-      "version": 1,
-      "checksum": "sha256:432c409a31af3d4576573ad9a9d1931186d1dcb1edfb754411366a71242d353a",
-      "fetched": "2026-07-31",
-      "copies": [
-        {
-          "path": "src/images/emojis/Reed/Reed_idle_phone.png",
           "derived_by": "sips -z 960 960"
         }
       ]
@@ -110,54 +22,31 @@
         }
       ]
     },
-    "coach-reed_head-effect-idle-watch_v1": {
-      "version": 1,
-      "checksum": "sha256:382c521100f8c4e271325086be7d0eca6bb56818a326432f090cfb8a6dd9f275",
-      "fetched": "2026-07-31",
+    "icon-brand_app-icon-light_v2": {
+      "version": 2,
+      "checksum": "sha256:a56fbf56c090167a5ee31973804fbc5dca5447a65f069105a569698e3125335f",
+      "fetched": "2026-08-04",
       "copies": [
         {
-          "path": "src/images/emojis/Reed/Reed_idle_watch.png",
-          "derived_by": "sips -z 960 960"
+          "path": "public/logo.png",
+          "derived_by": "sips -z 180 180"
         }
       ]
     },
-    "coach-reed_head-effect-listening-tilt_v1": {
-      "version": 1,
-      "checksum": "sha256:64efc434917e7d80f6586bf6a576b54206927babf62322161cb404a9511d4bee",
-      "fetched": "2026-07-31",
+    "logo-brand_primary_black_v2": {
+      "version": 2,
+      "checksum": "sha256:1f542d7d3b195ceb040205b30115370dd5ec909f9c28eeb2e065891261467ce6",
+      "fetched": "2026-08-04",
       "copies": [
         {
-          "path": "src/images/emojis/Reed/Reed_listening_tilt.png",
-          "derived_by": "sips -z 960 960"
-        }
-      ]
-    },
-    "coach-reed_head-effect-thinking-consider_v1": {
-      "version": 1,
-      "checksum": "sha256:3de7adae6d47e9a8cdca46984e44ef0b04cdc1d4426d6ff1c7543053b1869f33",
-      "fetched": "2026-07-31",
-      "copies": [
-        {
-          "path": "src/images/emojis/Reed/Reed_thinking_consider.png",
-          "derived_by": "sips -z 960 960"
-        }
-      ]
-    },
-    "coach-reed_head-effect-thinking-emoji_v1": {
-      "version": 1,
-      "checksum": "sha256:42586d80fa24a1140732105c1454fb37e05960e31500e7c42560e248346d6f0b",
-      "fetched": "2026-07-31",
-      "copies": [
-        {
-          "path": "src/images/emojis/Reed/Reed_thinking_emoji.png",
-          "derived_by": "sips -z 960 960"
+          "path": "public/faviocn.svg"
         }
       ]
     },
     "skill:delirio-assets": {
       "version": 0,
-      "checksum": "sha256:skill:c16cdb52daacd984ccb436813d827f1d7e956ab7bf434f3b4ad3c23c0602df1f",
-      "fetched": "2026-08-02",
+      "checksum": "sha256:skill:4a06cbf0468518e3c7e2d9e65417dd10694cc886cdb1f72d2a361c22e99ef47c",
+      "fetched": "2026-08-03",
       "copies": [
         {
           "path": ".agents/skills/delirio-assets"

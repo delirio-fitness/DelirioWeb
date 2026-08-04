@@ -131,6 +131,17 @@ live in `src/config/product.ts`.
 - `useTextChat` uses Vite proxy `/api/chat` in dev (configured in `vite.config.ts`) and
   `${VITE_CHAT_ENGINE_URL}/chat` in production.
 - The current landing and legal shell use the `d3-*` namespace in `src/styles/design3.css`.
+- **Brand and coach art comes from the shared asset catalog, not from this repo.** Every such
+  file is recorded in `.delirio-assets.lock`, and `delirio-assets check` reports when the
+  catalog has moved past what is committed here — see the `delirio-assets` skill. Do not
+  hand-edit those files or paste a replacement in; re-fetch (or re-derive and `pin`) instead.
+  Currently pinned: `public/faviocn.svg` (`logo-brand_primary_black_v2`, the file name is an
+  old typo the favicon links still point at), `public/logo.png` (the apple-touch-icon, the
+  1024px app icon at `sips -z 180 180`), and the two coach heads under `src/images/emojis/`
+  at 960px. The monogram in `public/app.html` is a *hand-copy* of the same mark, inlined so
+  the interstitial paints without a second request — nothing tracks it, so it has to be
+  updated by hand whenever `faviocn.svg` is.
+  App screenshots, hero and planJourney imagery, and the Apple badges are not catalog assets.
 - Shared UI should be added only when it has a live consumer; do not retain speculative component libraries.
 
 ## Lint state
