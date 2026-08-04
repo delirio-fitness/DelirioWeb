@@ -119,25 +119,12 @@ body,
   height: 56px;
   padding-block: 6px;
 }
-.d3-header .d3-logo,
-.d3-header .d3-menu {
-  opacity: 1;
-  transform: translateY(0);
-  transition:
-    opacity 180ms ease,
-    transform 220ms ease;
-}
 .d3-header .d3-nav {
   opacity: 1;
   transform: translate(-50%, 0);
   transition:
     opacity 180ms ease,
     transform 220ms ease;
-}
-.d3-header.is-at-top .d3-logo {
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(-12px);
 }
 .d3-logo {
   align-items: center;
@@ -223,11 +210,6 @@ body,
   outline: 3px solid var(--paper);
   outline-offset: 5px;
 }
-.d3-header.is-at-top .d3-header-cta {
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(-12px);
-}
 .d3-menu {
   background: none;
   border: 0;
@@ -237,78 +219,6 @@ body,
   height: 44px;
   padding: 10px;
   width: 44px;
-}
-.d3-top-announcement {
-
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  backdrop-filter: blur(18px) saturate(140%);
-  background: rgba(255, 255, 255, 0.86);
-  color: #000;
-  height: 40px;
-  left: 0;
-  position: fixed;
-  top: 68px;
-  transition:
-    opacity 240ms ease,
-    transform 240ms ease,
-    visibility 240ms;
-  width: 100%;
-  z-index: 19;
-}
-.d3-top-announcement > div {
-  align-items: center;
-  display: flex;
-  gap: 22px;
-  height: 100%;
-  justify-content: center;
-  margin: auto;
-  padding: 0 28px;
-  width: min(100%, 1440px);
-}
-.d3-top-announcement strong,
-.d3-top-announcement span,
-.d3-top-announcement a {
-  font-size: 12px;
-  letter-spacing: 0.1em;
-  line-height: 1;
-}
-.d3-top-announcement strong {
-  font-weight: 800;
-}
-.d3-top-announcement span {
-  color: rgba(0, 0, 0, 0.62);
-  font-weight: 600;
-}
-.d3-top-announcement a {
-  align-items: center;
-  color: #000;
-  display: inline-flex;
-  font-weight: 800;
-  gap: 5px;
-  text-decoration: none;
-}
-.d3-top-announcement a:hover {
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-.d3-top-announcement a:focus-visible {
-  outline-color: #000;
-}
-.d3-top-announcement svg {
-  height: 14px;
-  stroke-width: 2.5;
-  width: 14px;
-}
-.d3-top-announcement.is-visible {
-  opacity: 1;
-  transform: translateY(0);
-  visibility: visible;
-}
-.d3-top-announcement.is-hidden {
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(-12px);
-  visibility: hidden;
 }
 
 .d3-hero {
@@ -5316,24 +5226,6 @@ body,
   .d3-header:not(.is-at-top) {
     height: 56px;
     padding-block: 6px;
-  }
-  .d3-top-announcement {
-    height: 46px;
-    top: 64px;
-  }
-  .d3-top-announcement > div {
-    gap: 12px;
-    justify-content: space-between;
-    padding: 0 20px;
-  }
-  .d3-top-announcement strong {
-    display: none;
-  }
-  .d3-top-announcement span {
-    font-size: 9px;
-  }
-  .d3-top-announcement a {
-    font-size: 9px;
   }
   .d3-header .d3-nav {
     transform: none;

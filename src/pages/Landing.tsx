@@ -13,7 +13,6 @@ import { coachProfiles, type CoachId } from '../content/landingContent';
 import { useTextChat } from '../hooks/useTextChat';
 import { useVoiceSession } from '../hooks/useVoiceSession';
 import { generateDiscoveryId } from '../utils/pipecatConfig';
-import { TopAnnouncementStrip } from '../components/landing/TopAnnouncementStrip';
 
 const frictionMoments = [
   {
@@ -262,17 +261,16 @@ export default function Landing() {
     <div className="d3-page">
       <a className="d3-skip" href="#main-content">Skip to main content</a>
       <header className={`d3-header ${headerAtTop ? 'is-at-top' : ''}`}>
-        <Link className="d3-logo" to="/" aria-label="Delirio home" tabIndex={headerAtTop ? -1 : undefined}><Logo color="white" width="22" height="31" /></Link>
+        <Link className="d3-logo" to="/" aria-label="Delirio home"><Logo color="white" width="22" height="31" /></Link>
         <nav className={`d3-nav ${menuOpen ? 'is-open' : ''}`} aria-label="Primary navigation">
           <a href="#product" onClick={() => setMenuOpen(false)}>Product</a>
           <a href="#how-it-works" onClick={() => setMenuOpen(false)}>How it works</a>
           <a href="#coaches" onClick={() => setMenuOpen(false)}>Coaches</a>
           <a href="#pricing" onClick={() => setMenuOpen(false)}>Pricing</a>
         </nav>
-        <a className="d3-header-cta" href={APP_STORE_URL} rel="noopener noreferrer" target="_blank" tabIndex={headerAtTop ? -1 : undefined} aria-hidden={headerAtTop}>TRY 1 WEEK FREE</a>
+        <a className="d3-header-cta" href={APP_STORE_URL} rel="noopener noreferrer" target="_blank">TRY 1 WEEK FREE</a>
         <button className="d3-menu" type="button" aria-label={menuOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X /> : <Menu />}</button>
       </header>
-      <TopAnnouncementStrip visible={headerAtTop} />
 
       <main id="main-content">
         <HeroExperiment onTakeQuiz={() => openQuestionnaire(true)} />
