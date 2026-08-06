@@ -1,13 +1,30 @@
 import { ArrowUpRight } from 'lucide-react';
-import heroImage from '../../assets/images/hero/generated/glp1-group-runners/v2/image.jpg';
+import heroImage from '../../assets/images/hero/supplied/park-dumbbell-curl/v1/image.jpg';
 import heroText from '../../content/heroText.json';
 import { HeroTypewriterWord } from './HeroTypewriterWord';
 
 const content = heroText.heroTextV3;
 
+/**
+ * How the hero's single button is drawn. Both open the waitlist gate and both
+ * now read `JOIN THE WAITLIST`; this picks the treatment, which is all that is
+ * left of the difference between cells A and B.
+ *
+ * `label-first` keeps the historical `d3-hero-questionnaire-action` class — the
+ * styling long outlived the quiz it was named for, and renaming it would churn
+ * about twenty rules in `design3.css` for nothing.
+ */
+export type HeroV3Cta = 'label-first' | 'arrow-first';
+
 /** V3 — focused adaptive-coaching promise without secondary tracking UI. */
-export function HeroV3({ onTakeQuiz = () => undefined }: { onTakeQuiz?: () => void }) {
-  return <section className="d3-hero d3-hero--v3" aria-labelledby="hero-v3-title">
+export function HeroV3({
+  onJoinWaitlist = () => undefined,
+  cta = 'label-first',
+}: {
+  onJoinWaitlist?: () => void;
+  cta?: HeroV3Cta;
+}) {
+  return <section className={`d3-hero d3-hero--v3 d3-hero--cta-${cta}`} aria-labelledby="hero-v3-title">
     <img className="d3-hero-image" src={heroImage} alt="" aria-hidden="true" />
     <div className="d3-hero-contrast" aria-hidden="true" />
     <div className="d3-hero-content">
@@ -34,14 +51,15 @@ export function HeroV3({ onTakeQuiz = () => undefined }: { onTakeQuiz?: () => vo
       <div className="d3-hero-action-group">
         <p className="d3-hero-invitation">{content.invitation}</p>
         <div className="d3-hero-actions">
-          <a className="d3-hero-action" href={content.cta.href}>
-            <span className="d3-hero-action-arrow" aria-hidden="true"><ArrowUpRight strokeWidth={3} /></span>
-            <b className="d3-hero-action-label">{content.cta.label}</b>
-          </a>
-          <button className="d3-hero-questionnaire-action" type="button" onClick={onTakeQuiz}>
-            <b className="d3-hero-questionnaire-label">{content.cta.label}</b>
-            <span aria-hidden="true"><ArrowUpRight strokeWidth={3} /></span>
-          </button>
+          {cta === 'arrow-first'
+            ? <button className="d3-hero-action" type="button" onClick={onJoinWaitlist}>
+                <span className="d3-hero-action-arrow" aria-hidden="true"><ArrowUpRight strokeWidth={3} /></span>
+                <b className="d3-hero-action-label">{content.waitlistCta.label}</b>
+              </button>
+            : <button className="d3-hero-questionnaire-action" type="button" onClick={onJoinWaitlist}>
+                <b className="d3-hero-questionnaire-label">{content.cta.label}</b>
+                <span aria-hidden="true"><ArrowUpRight strokeWidth={3} /></span>
+              </button>}
         </div>
         <p className="d3-hero-capabilities">{content.capabilities}</p>
       </div>

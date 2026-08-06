@@ -1,16 +1,30 @@
 import { useId, useState, type FormEvent } from 'react';
-import { submitWishlistToFirestore, type QuestionnaireWishlistContext } from '../../services/wishlistSubmission';
+import { recordQualifiedAction } from '../../services/conversionEvents';
+import { submitWishlistToFirestore } from '../../services/wishlistSubmission';
 import { getBrowserFeedbackId } from '../../utils/browserFeedbackId';
 import { Logo } from '../logo';
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type WishlistSignupProps = {
-  placement?: 'footer' | 'questionnaire';
-  questionnaire?: QuestionnaireWishlistContext;
+  placement?: 'landing' | 'questionnaire';
+  /**
+   * Resolves the answer document this email belongs to. Awaited on submit, so a
+   * visitor who types faster than the answer write completes still lands on one
+   * record instead of two. Resolving to `null` is not a failure — the email is
+   * then stored on its own.
+   */
+  onResolveSubmissionId?: () => Promise<string | null>;
 };
 
-export function WishlistSignup({ placement = 'footer', questionnaire }: WishlistSignupProps) {
+/**
+ * The email capture itself.
+ *
+ * `questionnaire` placement renders the form alone: it sits inside the waitlist
+ * gate, which supplies its own heading and framing, and a second one here read
+ * as the dialog asking twice.
+ */
+export function WishlistSignup({ placement = 'landing', onResolveSubmissionId }: WishlistSignupProps) {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -31,9 +45,20 @@ export function WishlistSignup({ placement = 'footer', questionnaire }: Wishlist
     setError(null);
     setStatus('submitting');
     try {
-      await submitWishlistToFirestore(getBrowserFeedbackId(), normalizedEmail, placement, questionnaire);
+      const submissionId = onResolveSubmissionId ? await onResolveSubmissionId() : null;
+      await submitWishlistToFirestore(
+        getBrowserFeedbackId(),
+        normalizedEmail,
+        placement,
+        submissionId ? { submissionId } : undefined,
+      );
       setEmail('');
       setStatus('success');
+      // Only the standalone band reports. The copy inside the waitlist gate is
+      // unlocked by six answers about weight progress and physical capacity, so
+      // a conversion fired there would tell Meta who answered them — see
+      // `services/conversionEvents` for why that rules the event out entirely.
+      if (!isQuestionnaire) recordQualifiedAction('email_submitted');
     } catch {
       setStatus('idle');
       setError('Unable to join right now. Please try again.');
@@ -44,29 +69,24 @@ export function WishlistSignup({ placement = 'footer', questionnaire }: Wishlist
     <section
       id={isQuestionnaire ? undefined : 'wishlist'}
       className={`d3-wishlist${isQuestionnaire ? ' d3-wishlist--questionnaire' : ''}`}
-      aria-labelledby={titleId}
+      aria-label={isQuestionnaire ? 'Join the waitlist' : undefined}
+      aria-labelledby={isQuestionnaire ? undefined : titleId}
     >
-      <div className="d3-wishlist-copy">
-        {isQuestionnaire ? <p>ONE LAST STEP</p> : (
+      {!isQuestionnaire && (
+        <div className="d3-wishlist-copy">
           <div className="d3-wishlist-brand">
             <Logo color="white" width="34" height="48" />
             <span>DELIRIO</span>
           </div>
-        )}
-        {isQuestionnaire ? (
-          <h3 id={titleId}>JOIN THE WAITLIST.</h3>
-        ) : (
           <h2 id={titleId}>BE FIRST TO KNOW<br />WHAT COMES NEXT.</h2>
-        )}
-        <span>{isQuestionnaire
-          ? 'Leave your email to hear when Delirio is ready.'
-          : 'Join the Delirio wishlist for launch access and occasional product updates.'}</span>
-      </div>
+          <span>Join the Delirio waitlist for early access and occasional product updates.</span>
+        </div>
+      )}
 
       {status === 'success' ? (
         <div className="d3-wishlist-success" role="status">
-          <strong>{isQuestionnaire ? "YOU'RE ON THE WAITLIST." : "YOU'RE ON THE WISHLIST."}</strong>
-          <span>We will email you when Delirio is ready.</span>
+          <strong>YOU’RE ON THE WAITLIST.</strong>
+          <span>We will email you when your spot is ready.</span>
         </div>
       ) : (
         <div className="d3-wishlist-entry">

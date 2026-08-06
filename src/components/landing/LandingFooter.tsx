@@ -1,25 +1,39 @@
 import { Link } from 'react-router-dom';
-import { AppStoreBadge } from './AppStoreBadge';
 import { Logo } from '../logo';
 
-export function LandingFooter({ sectionPrefix = '/' }: { sectionPrefix?: '' | '/' }) {
+/**
+ * `onJoinWaitlist` is supplied on the landing page, where the gate can simply be
+ * opened. The legal pages have no gate mounted, so they fall back to `/#wishlist`
+ * — a hash `Landing` treats as "open the gate" rather than a scroll target.
+ */
+export function LandingFooter({
+  sectionPrefix = '/',
+  onJoinWaitlist,
+}: {
+  sectionPrefix?: '' | '/';
+  onJoinWaitlist?: () => void;
+}) {
   return (
     <footer className="d3-footer">
       <div className="d3-footer-feature">
         <div className="d3-footer-copy">
           <h2>YOUR COACH.<br />READY WHEN YOU ARE.</h2>
-          <p>Download Delirio on iPhone to plan, train, and follow up wherever your week takes you.</p>
+          <p>Delirio is opening in stages so every new coach gets the attention they signed up for. Join the waitlist and we will email you when your spot is ready.</p>
         </div>
+        {/* The form itself lives behind the gate; a second one out here would
+            split the signup between two records and skip the questions. */}
         <div className="d3-app-card">
           <div className="d3-app-copy">
             <small>iPhone</small>
-            <b>DOWNLOAD NOW ON THE APP STORE</b>
+            <b>EARLY ACCESS, ONE GROUP AT A TIME</b>
           </div>
           <div className="d3-app-download">
             <div className="d3-app-icon" aria-hidden="true">
               <Logo color="white" width="72" height="100" />
             </div>
-            <AppStoreBadge className="d3-footer-app-badge" />
+            {onJoinWaitlist
+              ? <button className="d3-footer-waitlist-cta" type="button" onClick={onJoinWaitlist}>JOIN THE WAITLIST</button>
+              : <a className="d3-footer-waitlist-cta" href={`${sectionPrefix}#wishlist`}>JOIN THE WAITLIST</a>}
           </div>
         </div>
       </div>

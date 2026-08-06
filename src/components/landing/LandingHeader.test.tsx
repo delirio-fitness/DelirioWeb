@@ -12,8 +12,18 @@ describe('LandingHeader', () => {
     expect(navigation).toHaveTextContent('How it works');
     expect(navigation).toHaveTextContent('Coaches');
     expect(navigation).toHaveTextContent('Pricing');
-    const download = screen.getByRole('link', { name: /try 1 week free/i });
-    expect(download).toHaveAttribute('href', '/app');
-    expect(download).toHaveAttribute('target', '_blank');
+    expect(screen.getByRole('link', { name: /join the waitlist/i }))
+      .toHaveAttribute('href', '#wishlist');
+    expect(screen.queryByRole('link', { name: /app store/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /1 week free/i })).not.toBeInTheDocument();
+  });
+
+  it('reaches back to the landing waitlist from a legal page', () => {
+    // LandingLegalShell renders this with '/', because the waitlist band only
+    // exists on the landing page — a bare '#wishlist' would go nowhere there.
+    render(<MemoryRouter><LandingHeader sectionPrefix="/" /></MemoryRouter>);
+
+    expect(screen.getByRole('link', { name: /join the waitlist/i }))
+      .toHaveAttribute('href', '/#wishlist');
   });
 });

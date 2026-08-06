@@ -41,12 +41,15 @@ export default function PrivacyPolicy() {
 
         <h3 className="text-xl font-semibold mb-2 mt-6">Website Feedback and Wishlist</h3>
         <p className="mb-4">
-          If you submit our website feedback form, we collect your responses and a randomly generated identifier stored
+          If you submit our website waitlist form, we collect your responses and a randomly generated identifier stored
           in your browser. This identifier helps us distinguish submissions from the same browser without asking for
-          your name, email address, or phone number. Questionnaire responses may include optional information about
-          whether a GLP-1 medication is or was part of your routine, where you are in that experience, and what most
-          often disrupts your training. We use this information to tailor the remaining questions, evaluate product
-          requests, and improve Delirio.
+          your name, email address, or phone number. Waitlist responses cover your age range, how you describe yourself,
+          how any weight-loss effort is going, what motivates you to stay active, your training history, and what most
+          often gets in the way. Every one of those questions offers an answer you can pick if you would rather not say.
+          We use this information to decide who to open Delirio to first, evaluate product requests, and improve the
+          app. <strong>We do not ask about medications, diagnoses, treatment, or any measurement of your body</strong>,
+          and we never share these answers with advertisers — see <strong>Advertising, Attribution, and Tracking</strong>{' '}
+          below.
         </p>
         <p className="mb-4">
           If you join the Delirio wishlist, we collect the email address you submit and your explicit request to receive
@@ -242,6 +245,35 @@ export default function PrivacyPolicy() {
           with your permission, to show you more relevant ads. To do this, the app includes Meta&rsquo;s software
           development kit (SDK), which reports advertising and attribution events to Meta. The categories of data
           involved are listed under <strong>Advertising and Attribution</strong> above.
+        </p>
+        <p className="mb-4">
+          <strong>This website.</strong> Separately from the app, we measure how our ads perform on delirio.fit.{' '}
+          <strong>There is no Meta pixel or other third-party advertising script on this site.</strong> No advertising
+          company&rsquo;s code runs in your browser here, and none of them can see the pages you visit, what those pages
+          say, or what you type into them.
+        </p>
+        <p className="mb-4">
+          Instead, two actions are reported from our own servers: choosing to open the waitlist, and submitting your
+          email in the waitlist section of the home page. What we send is the name of that action, the campaign
+          parameters in the link you arrived from, which version of the page you saw, your IP address, and your browser&rsquo;s
+          user-agent string. That is the complete list.
+        </p>
+        <p className="mb-4">
+          <strong>We never report anything you tell the waitlist questions.</strong> Your answers about age, gender,
+          weight-loss progress, motivation, training history, and what gets in your way are stored only by us, and are
+          never sent to Meta or any other advertising company — not the answers themselves, and not the fact that you
+          answered them.
+          No conversion is reported at any point after those questions begin, so nothing we send can indicate whether
+          you started them, finished them, or what you said. We also never send your email address, in any form,
+          including hashed or encrypted forms.
+        </p>
+        <p className="mb-4">
+          Your browser tells our own server that the action happened, and our server is what contacts Meta. Because that
+          first request goes to delirio.fit and not to an advertising domain, some blockers will not recognize it,
+          though tracking protection and content blockers can still refuse it. You can manage ad personalization through
+          Meta&rsquo;s ad-preference tools, and if you would rather we report nothing at all, email us at{' '}
+          <a href="mailto:contact@delirio.fit" className="text-blue-600 underline">contact@delirio.fit</a> and we will
+          honor that.
         </p>
         <p className="mb-4">
           <strong>App Tracking Transparency.</strong> Before any tracking occurs, iOS asks for your permission through
