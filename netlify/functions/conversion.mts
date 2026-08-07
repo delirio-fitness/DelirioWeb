@@ -39,10 +39,52 @@ const GRAPH_API_VERSION = 'v21.0';
  * of them may be added here: an event that fires only for people who answered
  * those questions discloses health status through its timing, whatever it is
  * named and whatever its payload omits.
+ *
+ * ## Why each trigger carries a distinct standard event
+ *
+ * `standard` is the name an ad set can optimize on — Meta has cross-advertiser
+ * priors for these and none for the `Delirio*` names, which exist to make Events
+ * Manager readable and are weak optimization targets.
+ *
+ * The two are deliberately different names rather than both reporting `Lead`,
+ * because they measure different things and the gap between them is the number
+ * worth knowing:
+ *
+ * - `Lead` — the visitor opened the gate. Plentiful, and what an ad set should
+ *   optimize on early, because roughly 50 conversions a week are needed to leave
+ *   the learning phase and no deeper action here clears that bar at low spend.
+ * - `CompleteRegistration` — an address actually arrived. This is the real
+ *   outcome, and reporting it is what lets Ads Manager say which creative brings
+ *   people who finish rather than people who click. Switch the ad set onto it
+ *   once the weekly count supports it; until then it accrues the history that
+ *   makes such a switch possible, since Meta cannot optimize toward an event
+ *   with no track record.
+ *
+ * **Sending both does not make the learning phase end sooner.** An ad set counts
+ * only the one event it optimizes on, so a second name adds reporting, never
+ * velocity — and pointing the set at the rarer of the two makes learning harder
+ * to clear, not easier.
+ *
+ * `requiresFirstOfVisit` keeps `Lead` counting qualified *visitors*: it rides
+ * only on the visit's first qualifying action, so one person doing two effortful
+ * things stays one `Lead`. `CompleteRegistration` does not need the guard — the
+ * browser already fires `email_submitted` at most once per visit, and gating it
+ * would drop the signup whenever the CTA click came first, which is nearly
+ * always.
  */
 const TRIGGERS = {
-  waitlist_started: { custom: 'DelirioWaitlistStarted', value: 3 },
-  email_submitted: { custom: 'DelirioEmailSubmitted', value: 4 },
+  waitlist_started: {
+    custom: 'DelirioWaitlistStarted',
+    standard: 'Lead',
+    requiresFirstOfVisit: true,
+    value: 3,
+  },
+  email_submitted: {
+    custom: 'DelirioEmailSubmitted',
+    standard: 'CompleteRegistration',
+    requiresFirstOfVisit: false,
+    value: 4,
+  },
 } as const;
 
 type Trigger = keyof typeof TRIGGERS;
@@ -146,7 +188,7 @@ export default async function handler(request: Request): Promise<Response> {
   const eventId = cleanString(body.eventId);
   if (!eventId) return new Response(null, { status: 400 });
 
-  const { custom, value } = TRIGGERS[trigger];
+  const { custom, standard, requiresFirstOfVisit, value } = TRIGGERS[trigger];
   const variant = cleanString(body.variant);
 
   const userData: Record<string, string> = {};
@@ -189,11 +231,12 @@ export default async function handler(request: Request): Promise<Response> {
 
   // The `Delirio*` name always goes: it is what makes Events Manager readable,
   // and it is weak to optimize on because Meta has no cross-advertiser priors
-  // for a name we invented. `Lead` is the one ad sets optimize on, and it goes
-  // only on the visit's first qualifying action — so it counts qualified
-  // *visitors*, and one person doing two effortful things stays one conversion.
+  // for a name we invented. The standard name beside it is the optimizable one,
+  // and whether it rides along depends on the trigger — see the table above.
   const data: (typeof base & { event_name: string })[] = [{ ...base, event_name: custom }];
-  if (body.firstOfVisit === true) data.unshift({ ...base, event_name: 'Lead' });
+  if (!requiresFirstOfVisit || body.firstOfVisit === true) {
+    data.unshift({ ...base, event_name: standard });
+  }
   const payload = { data };
 
   // Routes this event to the Test Events panel in Events Manager, which is the

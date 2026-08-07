@@ -13,20 +13,31 @@
  * Selected with `?wo=`, remembered for the tab, and stored on the Firestore
  * record so the two arms can be told apart when the results are read.
  *
- * ## Two things to know before running this
+ * ## `email` is what ships, and the comparison is over
  *
- * **Measure it in Firestore, not in Events Manager.** The metric is emails
- * captured per gate opening, and `waitlist_started` is a clean denominator
- * because it fires on the CTA click in both arms, before either sequence
- * renders. Counting records that carry an `email`, grouped by `order`, answers
- * the question without adding a single ad event.
+ * Email-first is the default, so it is what every ad lands on. The order test
+ * never produced a figure — no campaign had run when the call was made — so this
+ * was decided on the shape of the flow rather than on data. `?wo=questions`
+ * stays reachable, and records still carry `order`, so the old arm can be walked
+ * through and its historical records still read correctly.
  *
- * **Do not report `email_submitted` while the test runs.** In the `email` arm
- * the address arrives before any question, which makes it genuinely reportable
- * there — and it is not reportable in the control, where the email box sits
- * behind six answers (see `services/conversionEvents`). Turning it on for one
- * arm means Meta optimizes the two arms differently, and the comparison stops
- * being about the order. Turn it on for whichever arm ships, after.
+ * **`email_submitted` now reports, and only from the email-first opening
+ * screen.** In this arm the address arrives before a single question renders,
+ * which is the whole reason it is reportable — see `services/conversionEvents`
+ * for why that is a position rather than a preference. The questions-first
+ * closing screen stays silent permanently, because its email box sits behind six
+ * answers.
+ *
+ * That asymmetry is now live, which matters for exactly one thing: **do not buy
+ * traffic against `?wo=questions`.** Meta would see that arm produce gate
+ * openings and no registrations, and optimize it away on a difference in
+ * instrumentation rather than in the funnel. Walking the arm by hand is fine —
+ * a handful of manual visits will not move delivery.
+ *
+ * **Read the funnel in Firestore, not in Events Manager.** Records carrying an
+ * `email` over `waitlist_started` is still the honest completion rate; Meta sees
+ * a sampled, ad-attributed slice and always will, since blockers can refuse the
+ * beacon.
  *
  * This is the only waitlist experiment left. A `?wl=` parameter once chose
  * between the stepped gate and a single card holding all six questions; that
@@ -36,8 +47,8 @@ export const WAITLIST_ORDERS = ['questions', 'email'] as const;
 
 export type WaitlistOrder = (typeof WAITLIST_ORDERS)[number];
 
-/** Questions-first is the shape the gate already had, so it is the baseline. */
-export const DEFAULT_WAITLIST_ORDER: WaitlistOrder = 'questions';
+/** Email-first is what ships — see the header. `?wo=questions` is opt-in now. */
+export const DEFAULT_WAITLIST_ORDER: WaitlistOrder = 'email';
 
 export const WAITLIST_ORDER_QUERY_PARAM = 'wo';
 

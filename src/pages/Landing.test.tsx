@@ -2,11 +2,16 @@ import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
-import { WAITLIST_QUESTIONS } from '../content/waitlistQuestions';
 import Landing from './Landing';
 
 /** Derived, so rewriting the questions does not break unrelated assertions. */
-const introCopy = new RegExp(`${WAITLIST_QUESTIONS.length} questions, then your spot`, 'i');
+/**
+ * The gate's opening screen in the shipping arm. Email-first is the default
+ * (`config/waitlistOrder`), so every path into the gate lands on the address and
+ * no question is shown until it is given — which is also what makes the
+ * `email_submitted` conversion legal. A change of default fails these.
+ */
+const gateOpening = /your spot is reserved/i;
 
 describe('Landing journey', () => {
   afterEach(() => jest.useRealTimers());
@@ -63,8 +68,9 @@ describe('Landing journey', () => {
     render(<MemoryRouter><Landing /></MemoryRouter>);
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
-    // Straight to question one: following that link was already the decision.
-    expect(screen.getByRole('heading', { name: WAITLIST_QUESTIONS[0].prompt })).toBeInTheDocument();
+    // Straight to the email box: following that link was already the decision,
+    // and the address is what the person who followed it came to give.
+    expect(screen.getByRole('heading', { name: gateOpening })).toBeInTheDocument();
     // Cleared, so a reload does not reopen it.
     await waitFor(() => expect(window.location.hash).toBe(''));
   });
@@ -170,14 +176,14 @@ describe('Landing journey', () => {
     expect(document.querySelector('.d3-wheel-transition')).not.toBeInTheDocument();
   });
 
-  it('opens the first waitlist question from the default hero', async () => {
+  it('opens the email box from the default hero, ahead of any question', async () => {
     const user = userEvent.setup();
     render(<MemoryRouter><Landing /></MemoryRouter>);
 
     await user.click(within(document.querySelector('.d3-hero') as HTMLElement)
       .getByRole('button', { name: 'JOIN THE WAITLIST' }));
-    expect(screen.getByRole('heading', { name: WAITLIST_QUESTIONS[0].prompt })).toBeInTheDocument();
-    // A CTA press skips the intro: the visitor already chose to be here.
+    expect(screen.getByRole('heading', { name: gateOpening })).toBeInTheDocument();
+    // Nothing is asked before the address, so there is no intro to skip past.
     expect(screen.queryByRole('button', { name: /start — takes a minute/i })).not.toBeInTheDocument();
   });
 
@@ -191,10 +197,10 @@ describe('Landing journey', () => {
     render(<MemoryRouter><Landing /></MemoryRouter>);
 
     act(() => jest.advanceTimersByTime(29000));
-    expect(screen.queryByText(introCopy)).not.toBeInTheDocument();
+    expect(screen.queryByText(gateOpening)).not.toBeInTheDocument();
 
     act(() => jest.advanceTimersByTime(1000));
-    expect(await screen.findByText(introCopy)).toBeInTheDocument();
+    expect(await screen.findByText(gateOpening)).toBeInTheDocument();
     jest.useRealTimers();
   });
 
@@ -273,7 +279,7 @@ describe('Landing journey', () => {
 
       const header = () => within(document.querySelector('.d3-header') as HTMLElement);
       await user.click(await waitFor(() => header().getByRole('button', { name: 'JOIN THE WAITLIST' })));
-      expect(screen.getByRole('heading', { name: WAITLIST_QUESTIONS[0].prompt })).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: gateOpening })).toBeInTheDocument();
 
       Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 });
     });

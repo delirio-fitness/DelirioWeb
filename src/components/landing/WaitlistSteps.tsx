@@ -106,8 +106,13 @@ export function WaitlistSteps({
           Delirio is opening in stages. Leave your email and we will tell you when your spot is
           ready — that is the whole requirement.
         </span>
+        {/* This screen is the first thing the gate shows in this arm, so the
+            address arrives with no question seen and the conversion is clean.
+            The closing screen's box in the other arm is not — see
+            `WishlistSignup` and `services/conversionEvents`. */}
         <WishlistSignup
           placement="questionnaire"
+          upstreamOfQuestions
           onSubmitEmail={async (email) => {
             if (onSubmitEmail) await onSubmitEmail(email);
             setPhase('questions');

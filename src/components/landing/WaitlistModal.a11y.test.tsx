@@ -19,14 +19,14 @@ describe('WaitlistModal accessibility', () => {
   jest.setTimeout(15_000);
 
   it('has no detectable violations on the intro', async () => {
-    render(<WaitlistModal open />);
+    render(<WaitlistModal open order="questions" />);
 
     expect(await axe(document.body)).toHaveNoViolations();
   });
 
   it('has no detectable violations part-way through the questions', async () => {
     const user = userEvent.setup();
-    render(<WaitlistModal open startAtFirstQuestion />);
+    render(<WaitlistModal open order="questions" startAtFirstQuestion />);
 
     await user.click(screen.getByRole('radio', { name: WAITLIST_QUESTIONS[0].options[0].label }));
     await screen.findByRole('radio', { name: WAITLIST_QUESTIONS[1].options[0].label });

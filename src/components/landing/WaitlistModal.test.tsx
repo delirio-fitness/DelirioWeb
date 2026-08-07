@@ -49,7 +49,7 @@ describe('WaitlistModal', () => {
 
   it('holds the email back until every question is answered', async () => {
     const user = userEvent.setup();
-    render(<WaitlistModal open startAtFirstQuestion />);
+    render(<WaitlistModal open order="questions" startAtFirstQuestion />);
 
     expect(screen.queryByRole('textbox', { name: /email address/i })).not.toBeInTheDocument();
 
@@ -60,7 +60,7 @@ describe('WaitlistModal', () => {
 
   it('records the answers before asking for the email at all', async () => {
     const user = userEvent.setup();
-    render(<WaitlistModal open startAtFirstQuestion />);
+    render(<WaitlistModal open order="questions" startAtFirstQuestion />);
 
     await answerEverything(user);
 
@@ -83,7 +83,7 @@ describe('WaitlistModal', () => {
 
   it('attaches the email to the answers it followed', async () => {
     const user = userEvent.setup();
-    render(<WaitlistModal open startAtFirstQuestion />);
+    render(<WaitlistModal open order="questions" startAtFirstQuestion />);
 
     await answerEverything(user);
     await user.type(
@@ -103,7 +103,7 @@ describe('WaitlistModal', () => {
   describe('one question per screen', () => {
     it('shows one question at a time and offers a way back', async () => {
       const user = userEvent.setup();
-      render(<WaitlistModal open startAtFirstQuestion />);
+      render(<WaitlistModal open order="questions" startAtFirstQuestion />);
 
       expect(screen.getAllByRole('radio')).toHaveLength(WAITLIST_QUESTIONS[0].options.length);
       expect(screen.queryByRole('button', { name: /back/i })).not.toBeInTheDocument();
@@ -116,7 +116,7 @@ describe('WaitlistModal', () => {
     });
 
     it('introduces itself when the gate was not opened by a call to action', () => {
-      render(<WaitlistModal open />);
+      render(<WaitlistModal open order="questions" />);
 
       expect(screen.getByRole('heading', { name: new RegExp(`${WAITLIST_QUESTIONS.length} questions, then your spot`, 'i') })).toBeInTheDocument();
       expect(screen.queryByRole('radio')).not.toBeInTheDocument();
@@ -126,7 +126,7 @@ describe('WaitlistModal', () => {
   describe('the open question', () => {
     it('never stands between the visitor and the email box', async () => {
       const user = userEvent.setup();
-      render(<WaitlistModal open startAtFirstQuestion />);
+      render(<WaitlistModal open order="questions" startAtFirstQuestion />);
 
       await answerEverything(user);
 
@@ -146,7 +146,7 @@ describe('WaitlistModal', () => {
 
     it('attaches an answer to the record once the field is left', async () => {
       const user = userEvent.setup();
-      render(<WaitlistModal open startAtFirstQuestion />);
+      render(<WaitlistModal open order="questions" startAtFirstQuestion />);
 
       await answerEverything(user);
       await user.type(
@@ -172,7 +172,7 @@ describe('WaitlistModal', () => {
 
     it('does not spend a write when the field is left untouched', async () => {
       const user = userEvent.setup();
-      render(<WaitlistModal open startAtFirstQuestion />);
+      render(<WaitlistModal open order="questions" startAtFirstQuestion />);
 
       await answerEverything(user);
       const field = await screen.findByRole('textbox', { name: /90 days from now/i });
@@ -183,11 +183,24 @@ describe('WaitlistModal', () => {
     });
   });
 
+  // Asserted with the non-default arm, so it is the query string being read and
+  // not `DEFAULT_WAITLIST_ORDER` agreeing by coincidence.
   it('reads the experiment arm from the query string', () => {
-    window.history.replaceState({}, '', '/?wo=email');
+    window.history.replaceState({}, '', '/?wo=questions');
     render(<WaitlistModal open />);
 
-    // Email-first opens on the address, with no question on screen yet.
+    // Questions-first opens on its intro, with no email box anywhere yet.
+    expect(screen.queryByRole('textbox', { name: /email address/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', {
+      name: new RegExp(`${WAITLIST_QUESTIONS.length} questions, then your spot`, 'i'),
+    })).toBeInTheDocument();
+  });
+
+  // The shipping default, pinned here because it is what decides whether the
+  // `email_submitted` conversion fires at all — see `config/waitlistOrder`.
+  it('puts the email first when the query string says nothing', () => {
+    render(<WaitlistModal open />);
+
     expect(screen.getByRole('textbox', { name: /email address/i })).toBeInTheDocument();
     expect(screen.queryByRole('radio')).not.toBeInTheDocument();
   });
@@ -195,7 +208,7 @@ describe('WaitlistModal', () => {
   it('still takes the email when the answer write failed', async () => {
     const user = userEvent.setup();
     submitAnswersMock.mockRejectedValue(new Error('permission denied'));
-    render(<WaitlistModal open startAtFirstQuestion />);
+    render(<WaitlistModal open order="questions" startAtFirstQuestion />);
 
     await answerEverything(user);
     const waitlist = within(await screen.findByRole('dialog'));

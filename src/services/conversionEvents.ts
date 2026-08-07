@@ -19,9 +19,16 @@
  *    answered them tells Meta something about their health through its timing
  *    alone — the payload does not need to contain the answer, and renaming the
  *    event does not help, because the correlation is the disclosure. Both
- *    triggers below sit upstream of the first question. Nothing downstream of it
- *    may be added, and that includes the email box inside the gate, which only
- *    opens once all six answers are given.
+ *    triggers below sit upstream of the first question, and nothing downstream
+ *    of it may be added.
+ *
+ *    The email box is the case that makes this concrete, because the same
+ *    component sits on both sides of the line depending on the arm
+ *    (`config/waitlistOrder`). Email-first shows it as the gate's opening
+ *    screen, with no question seen, so its submit reports. Questions-first
+ *    unlocks it only once all six answers are given, so its submit is silent —
+ *    permanently, and not as a setting anybody may flip. `WishlistSignup` takes
+ *    that as a prop for exactly this reason: the position licenses the event.
  *
  *    **This rule does not loosen when the questions do.** It held when the third
  *    question asked about GLP-1 titration stage; it still holds now that the set
@@ -53,11 +60,18 @@ export function initAdTracking(): void {
 /**
  * `waitlist_started` — the visitor chose to open the waitlist gate. Fired from
  * the CTA path in `Landing.tsx`, never from the auto-open, because being shown
- * something after 30 seconds is not an action.
+ * something after 30 seconds is not an action. Reported to Meta as `Lead`.
  *
- * `email_submitted` — an address given in the standalone waitlist band, which
- * asks no questions. The copy of the form inside the gate does not report: it
- * sits behind all six answers.
+ * `email_submitted` — an address given before any question was shown: the
+ * email-first arm's opening screen, or the standalone band, which asks nothing.
+ * Reported as `CompleteRegistration`, so Ads Manager can tell which creative
+ * brings people who finish apart from which brings people who click. The
+ * questions-first closing screen does not report — it sits behind all six
+ * answers.
+ *
+ * Note that a visit normally sends both, in that order, and that the second one
+ * does *not* help an ad set leave the learning phase: a set counts only the
+ * event it optimizes on. See the trigger table in `netlify/functions/conversion`.
  */
 export type QualifyingTrigger = 'waitlist_started' | 'email_submitted';
 

@@ -41,11 +41,11 @@ describe('WishlistSignup', () => {
   });
 
   /**
-   * The copy inside the gate is unlocked by all six waitlist answers, so a
-   * conversion fired here would tell Meta who gave them through timing alone.
-   * This form reports nothing — see `conversionEvents`.
+   * The questions-first closing screen is unlocked by all six waitlist answers,
+   * so a conversion fired there would tell Meta who gave them through timing
+   * alone. This form reports nothing — see `conversionEvents`.
    */
-  it('reports nothing from the copy inside the waitlist gate', async () => {
+  it('reports nothing from the copy that sits behind the waitlist questions', async () => {
     const user = userEvent.setup();
     submitWishlistMock.mockResolvedValue('wishlist-document-id');
     render(
@@ -56,6 +56,27 @@ describe('WishlistSignup', () => {
 
     expect(await screen.findByRole('status')).toHaveTextContent(/you.re on the waitlist/i);
     expect(recordMock).not.toHaveBeenCalled();
+  });
+
+  /**
+   * The email-first arm shows this same component as the gate's opening screen,
+   * with no question seen, so the address is upstream of everything sensitive
+   * and the conversion is clean. Same placement as the case above and the
+   * opposite outcome — which is the point of the prop.
+   */
+  it('reports from inside the gate when the form runs before any question', async () => {
+    const user = userEvent.setup();
+    render(
+      <WishlistSignup
+        placement="questionnaire"
+        upstreamOfQuestions
+        onSubmitEmail={() => Promise.resolve()}
+      />,
+    );
+
+    await joinWith(user);
+
+    await waitFor(() => expect(recordMock).toHaveBeenCalledWith('email_submitted'));
   });
 
   it('normalizes a valid email and confirms the opt-in', async () => {
