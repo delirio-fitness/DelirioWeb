@@ -74,9 +74,12 @@ waitlist CTA. Cell B is exempt — it is a single-CTA test, so nothing may cover
 
 ## The waitlist gate
 
-The email box is not on the page. It lives at the end of a six-question modal, and there is no
-way to reach it without answering all six — the questions exist to filter curiosity from intent
-before an address is worth collecting, and to segment what comes back.
+The email box is not on the page — it lives inside a modal, behind a CTA, alongside six questions
+that segment what comes back. **Which side of those questions it sits on is the one thing `?wo=`
+varies, and email-first is what ships**; see **Which comes first** below before assuming either
+shape. The gate originally existed to filter curiosity from intent before an address was worth
+collecting, and the shipping arm has given that up on purpose: the address is taken first and the
+questions are asked afterwards, with a standing offer to skip them.
 
 A seventh question — *What would make this feel like a win 90 days from now?* — is free text and
 sits **beside** the email box rather than in front of it. It does not gate anything and it is
@@ -94,16 +97,28 @@ scrap still carry `design: 'steps' | 'single'`, so that field's presence is what
 
 `?wo=` (`src/config/waitlistOrder.ts`, remembered per tab like `?v=`) picks the sequence:
 
-- `?wo=questions` (default, the control) — intro, six questions, then the email box. The questions
-  gate the address, so answering is the price of joining.
-- `?wo=email` — the email box first, then the same six questions with a `Skip for now →` on every
-  screen. The record is created *from the email*, and each answer is patched on as it arrives, so
-  someone who answers two and skips still leaves those two behind.
+- `?wo=email` (**the default, and what ships**) — the email box first, then the same six questions
+  with a `Skip for now →` on every screen. The record is created *from the email*, and each answer
+  is patched on as it arrives, so someone who answers two and skips still leaves those two behind.
+- `?wo=questions` — intro, six questions, then the email box. The questions gate the address, so
+  answering is the price of joining. This was the original control; it is now opt-in.
 
-Two rules for running it, both in that file's header comment: **measure it in Firestore**, counting
-records that carry an `email` grouped by `order` (`waitlist_started` is a clean denominator — it
-fires on the CTA click in both arms), and **do not report `email_submitted` while it runs**, or
-Meta optimizes the arms differently and the test stops being about the order.
+The order comparison is **over**, decided on the shape of the flow rather than on data — no campaign
+had ever run, so neither arm had a figure to compare. Records still carry `order`, so the historical
+ones still read correctly, and the retired arm is still reachable for walking through.
+
+Two consequences of email-first shipping:
+
+- **`email_submitted` now reports**, and only from the email-first opening screen, where the address
+  arrives before a single question renders. See **Ad conversion tracking**.
+- **Do not buy traffic against `?wo=questions`.** That arm cannot report `email_submitted` — its
+  email box sits behind six answers — so Meta would see it produce gate openings and no
+  registrations, and optimize it away on a difference in instrumentation rather than in the funnel.
+  Walking it by hand is fine; a handful of manual visits will not move delivery.
+
+Read the funnel in Firestore either way, counting records that carry an `email` over
+`waitlist_started` openings. Meta only ever sees an ad-attributed slice, since blockers can refuse
+the beacon.
 
 Every `?wo=email` record has an email, so none of them hit the "we cannot find your entry to
 delete it" case the privacy policy has to describe for the control.
@@ -130,9 +145,10 @@ policy apparatus was the more expensive alternative. Older Firestore records sti
 retired `glp1Stage` and `body_capacity` values — `responses` entries are self-describing, so a
 reader can tell the vintages apart without a schema version.
 
-Writes in the **questions-first control**, in this order, and the order is the point:
+Writes in **questions-first** (`?wo=questions`, now the opt-in arm) go in this order, and the order
+is the point:
 
-1. Answers land in `webQuestionaire` (`schemaVersion: 3`, flat `responses` array of
+1. Answers land in `wishlist2` (`schemaVersion: 3`, flat `responses` array of
    `{id, kind, question, answer, value?}`, plus the `order` that produced them) the moment the last
    *choice* question is answered — *before* the email is asked for. Someone who fills in the
    questions and then declines to leave an address still counts as a read on demand, which is the
@@ -145,13 +161,59 @@ Writes in the **questions-first control**, in this order, and the order is the p
 
 The email step awaits the answer write (`onResolveSubmissionId`) rather than reading a piece of
 state, so a fast typist cannot submit before the document exists and fork a second record. If
-the answer write fails outright the email still goes in — as a standalone `warmNetwork` lead —
-and the failure is logged as `[delirio-waitlist]`. **Do not make that catch silent**: a
-demand-measurement feature that stops recording without saying so is the worst case here.
+the answer write fails outright the email still goes in — as a standalone record carrying
+`source: 'delirio-website-wishlist'` instead of `delirio-website-waitlist`, so the cohort that hit
+that path stays countable — and the failure is logged as `[delirio-waitlist]`. **Do not make that
+catch silent**: a demand-measurement feature that stops recording without saying so is the worst
+case here, and it is exactly how the collection below went unnoticed for a week.
 
-`?wo=email` inverts step 1 and 3: `submitWaitlistEmailToFirestore` creates the record from the
-address, then `updateWaitlistAnswersInFirestore` patches each answer onto it as it is given. That
-writer is the email-first arm's workhorse; the control reaches it only for the free text.
+**`?wo=email`, the shipping default, inverts step 1 and 3**: `submitWaitlistEmailToFirestore`
+creates the record from the address, then `updateWaitlistAnswersInFirestore` patches each answer
+onto it as it is given. That writer is the email-first arm's workhorse; the other arm reaches it
+only for the free text. Since the record is created before any question, that arm's failure mode is
+the mirror image — a record with an email and no answers, rather than answers and no email.
+
+### The collection is `wishlist2`, and `firestore.rules` does not ship with the site
+
+Everything the gate collects goes to **`wishlist2`**. Two collections came before it and both are
+now historical — nothing writes to either:
+
+| Collection | What it holds |
+|---|---|
+| `wishlist2` | the live waitlist: answers, emails, and email-only opt-ins |
+| `warmNetwork` | the **warm** list — people the team already knows. Never mix cold ad signups in |
+| `webQuestionaire` | the v2 GLP-1 questionnaire. Do not expect v3 answers here — see below |
+
+A `wishlist2` document may carry answers with no email, an email with no answers, or both — which
+one depends on `order` and how far the visitor got. `source` separates the two ways in:
+`delirio-website-waitlist` came through the gate, `delirio-website-wishlist` arrived as an address
+alone (the ungated band, or the gate's fallback after a failed answer write).
+
+**Netlify deploys the site; it does not deploy `firestore.rules`.** They are two separate
+publishes against two separate services, and the site does not fail loudly when they disagree —
+it renders perfectly and every write returns `permission-denied`. This is the same shape as the
+`netlify.toml` trap in **Non-obvious things**: the thing that looks deployed isn't.
+
+That is not hypothetical, and it went further than a stale rule. The live ruleset had **no match
+block for `webQuestionaire` or `warmNetwork` at all** — the repo's versions of those blocks were
+written but never deployed — so both collections were default-deny and every write the gate made
+was rejected, answers *and* the email fallback, while the page looked perfectly fine. Changing a
+field name, adding a field, or renaming a collection here is a **two-part deploy**:
+
+```
+npx firebase-tools deploy --only firestore:rules --project delirio-480110
+```
+
+The rules are compiled server-side, so a syntax error fails the deploy loudly rather than
+publishing something broken.
+
+**`firestore.rules` governs the whole project, not just this site** — `users`, `workouts`,
+entitlements, the messaging-number locks. It had drifted badly from production once already: it
+was missing `lockedMessagingFields()`, so deploying it would have silently unlocked
+`messagingEligibleAt` and let any account forge number-pool eligibility. It has since been
+reconciled against the live ruleset, and the website block was added on top without touching a
+line of the rest. Keep it that way: **diff against the live rules in the console before every
+deploy**, and if they have diverged again, reconcile rather than overwrite.
 
 ### The header CTA is hidden until the hero's is gone
 
@@ -189,8 +251,7 @@ waitlist, and **nothing on the site links to the App Store**:
 | Footer feature slot | `JOIN THE WAITLIST` → gate on `/`, `/#wishlist` on legal pages |
 
 The word "quiz" is gone from every user-facing string, and `onTakeQuiz` was renamed
-`onJoinWaitlist` to match. `d3-hero-questionnaire-action` and the `webQuestionaire` collection
-keep their names — both would be pure churn to rename, and the collection name is load-bearing.
+`onJoinWaitlist` to match. `d3-hero-questionnaire-action` keeps its name — pure churn to rename.
 
 `WishlistSignup` is now only ever the email form at the end of the gate
 (`placement="questionnaire"`, which renders the form alone — the gate supplies the heading). Its
@@ -349,10 +410,13 @@ The browser posts a trigger slug to `/.netlify/functions/conversion`; the functi
 everything else and builds the payload. Meta learns a conversion happened on a given ad click and
 nothing else about the site or the visitor.
 
-| Trigger | `value` | Fired from |
-|---|---|---|
-| `email_submitted` | 4 | `WishlistSignup.tsx`, **landing placement only** |
-| `waitlist_started` | 3 | `Landing.tsx`, from a CTA or an arriving `/#wishlist` |
+| Trigger | Standard event | `value` | Fired from |
+|---|---|---|---|
+| `waitlist_started` | `Lead` | 3 | `Landing.tsx`, from a CTA or an arriving `/#wishlist` |
+| `email_submitted` | `CompleteRegistration` | 4 | `WishlistSignup.tsx`, **only where it renders ahead of every question** — the email-first arm's opening screen, or the (consumerless) landing band |
+
+Each also sends a `Delirio*` custom event alongside. A normal visit sends both triggers, in that
+order.
 
 ### The rule that shapes the table
 
@@ -369,8 +433,12 @@ medication. Softening the questions did not retire it, and softening them furthe
 Consequences that look like bugs but are not:
 
 - `WaitlistModal.tsx` reports **nothing**. It used to fire `quiz_completed` when the answers saved.
-- `WishlistSignup` reports only at `placement="landing"`. The copy inside the gate is unlocked by
-  six answers, so its submit is downstream of the questions.
+- **The same `WishlistSignup` both reports and does not, depending on where it renders.** It takes
+  an `upstreamOfQuestions` prop rather than deciding from the placement or reading `?wo=`, because
+  what licenses the event is its *position*, not which arm is running. Email-first's opening screen
+  passes it; the questions-first closing screen does not, and must never — its box is unlocked by
+  six answers. A new flow that moves the email box gets the answer wrong by default and has to say
+  otherwise deliberately, which is the safe direction for this particular mistake.
 - The 30-second auto-open does not report. `Landing.tsx` splits `openQuestionnaire` (CTA, reports)
   from `showQuestionnaire` (timer, silent) for exactly this — being shown a modal is not an action.
 - `voice_demo_started` and `text_demo_engaged` went with the coaching demo; `store_click` went when
@@ -381,7 +449,19 @@ Consequences that look like bugs but are not:
 - **`Lead` counts qualified visitors, not actions.** The browser flags the visit's first qualifying
   action as `firstOfVisit`, and only that one gets `Lead`. Every trigger also sends its own
   `Delirio*` custom event — good for reporting, weak to optimize on, since Meta has cross-advertiser
-  priors for `Lead` and none for a name we invented.
+  priors for `Lead` and none for a name we invented. `CompleteRegistration` carries no such guard:
+  `email_submitted` is already once-per-visit, and gating it on `firstOfVisit` would drop the signup
+  whenever the CTA click came first, which is nearly always.
+- **Sending two standard events does not make the learning phase end sooner.** An ad set counts only
+  the one event it optimizes on — roughly 50 a week to leave learning — so the second name buys
+  reporting, never velocity. `Lead` (gate openings) is the plentiful one and the right early target;
+  `CompleteRegistration` (real addresses) is the honest one, and pointing an ad set at it before the
+  weekly count supports it makes learning *harder* to clear, not easier. It accrues history in the
+  meantime, which is what makes the switch possible at all — Meta cannot optimize toward an event
+  with no track record.
+- **`CompleteRegistration` is the only place a finished signup is attributable to a creative.**
+  Firestore knows a record exists but not which ad produced it, so without this event you can see
+  which creative drives clicks and never which drives people who finish.
 - **Each trigger fires at most once per visit**, tracked in `sessionStorage`.
 - `value` is an intent score, not revenue. Do not compute ROAS from it. The table lives **on the
   server** so the public endpoint cannot be told what a conversion is worth.
@@ -422,6 +502,13 @@ function runs under Vite.
   Apple URL lives in `public/app.html` (twice — the `<a id="store">` href and the `STORE`
   constant). `APP_STORE_URL` currently has no importers — it is kept for the interstitial and
   for whenever downloads come back, not because anything renders it.
+- **Firestore rules are a separate deploy from the site**, and a mismatch is silent — see
+  **The collection is `wishlist2`**. Netlify never publishes `firestore.rules`.
+- **App Check is wired but inert.** `firebaseClient.ts` calls `initializeAppCheck` only when
+  `FIREBASE_APPCHECK_SITE_KEY` is set, and it is not set in the Netlify build — no reCAPTCHA key
+  appears in the deployed bundle. So the client sends no App Check token, and turning
+  *enforcement* on for Firestore in the console would deny every write from the site instantly.
+  If App Check is ever wanted, set the site key and redeploy **before** enabling enforcement.
 - The current landing and legal shell use the `d3-*` namespace in `src/styles/design3.css`.
 - **Brand and coach art comes from the shared asset catalog, not from this repo.** Every such
   file is recorded in `.delirio-assets.lock`, and `delirio-assets check` reports when the

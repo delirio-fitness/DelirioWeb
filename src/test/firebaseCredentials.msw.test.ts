@@ -14,9 +14,9 @@ describeWithFirebaseSecrets('Firebase credentials through MSW', () => {
   it('loads the ignored config and threads it into the Firestore REST request', async () => {
     if (!firebaseConfig) throw new Error('Firebase test configuration was not loaded.');
 
-    const endpoint = `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents/webQuestionaire`;
+    const endpoint = `https://firestore.googleapis.com/v1/projects/${firebaseConfig.projectId}/databases/(default)/documents/wishlist2`;
     let intercepted = false;
-    server.use(http.post(/https:\/\/firestore\.googleapis\.com\/v1\/projects\/.+\/databases\/\(default\)\/documents\/webQuestionaire/, async ({ request }) => {
+    server.use(http.post(/https:\/\/firestore\.googleapis\.com\/v1\/projects\/.+\/databases\/\(default\)\/documents\/wishlist2/, async ({ request }) => {
       intercepted = true;
       const url = new URL(request.url);
       expect(url.pathname).toContain(`/projects/${firebaseConfig.projectId}/`);

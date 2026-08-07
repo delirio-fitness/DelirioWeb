@@ -1,6 +1,6 @@
 import {
   appendWaitlistEmailToFirestore,
-  submitWarmNetworkWishlistToFirestore,
+  submitStandaloneWaitlistEmailToFirestore,
 } from './feedbackSubmission';
 
 export type WishlistPlacement = 'landing' | 'questionnaire';
@@ -13,7 +13,8 @@ export type QuestionnaireWishlistContext = {
 /**
  * Routes an explicit waitlist opt-in to the right record. An email that arrived
  * through the gate is patched onto the answers the visitor just gave; one that
- * arrived without answering anything becomes a standalone warmNetwork lead.
+ * arrived without answering anything becomes a standalone record instead. Both
+ * land in the same collection, so one visitor is still one row to read.
  */
 export function submitWishlistToFirestore(
   browserId: string,
@@ -25,5 +26,5 @@ export function submitWishlistToFirestore(
     return appendWaitlistEmailToFirestore(questionnaire.submissionId, email);
   }
 
-  return submitWarmNetworkWishlistToFirestore(browserId, email);
+  return submitStandaloneWaitlistEmailToFirestore(browserId, email);
 }

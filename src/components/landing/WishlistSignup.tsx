@@ -23,6 +23,22 @@ type WishlistSignupProps = {
    * success, so the confirmation state below never renders in that arm.
    */
   onSubmitEmail?: (email: string) => Promise<void>;
+  /**
+   * Whether this copy of the form renders before the visitor has seen a single
+   * waitlist question — the one condition that makes `email_submitted`
+   * reportable. See `services/conversionEvents` for why it is a position and not
+   * a preference.
+   *
+   * It is a prop rather than something read from `config/waitlistOrder` here
+   * because what licenses the conversion is *where this form sits*, not which
+   * arm is running. A future flow that moves the email box gets the answer wrong
+   * by default and has to say so deliberately, which is the safe direction for
+   * this particular mistake.
+   *
+   * Defaults from the placement: the standalone band asks nothing at all, so it
+   * is upstream by construction.
+   */
+  upstreamOfQuestions?: boolean;
 };
 
 /**
@@ -36,6 +52,7 @@ export function WishlistSignup({
   placement = 'landing',
   onResolveSubmissionId,
   onSubmitEmail,
+  upstreamOfQuestions = placement === 'landing',
 }: WishlistSignupProps) {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
@@ -70,19 +87,14 @@ export function WishlistSignup({
       }
       setEmail('');
       setStatus('success');
-      // Only the standalone band reports, and both copies inside the gate stay
-      // silent — for two different reasons worth keeping straight.
+      // Reports only where the address arrives before any question has been
+      // shown — the standalone band, and the email-first arm's opening screen.
       //
-      // Questions-first: the email box is unlocked by all six answers, so a
-      // conversion here would tell Meta who gave them through timing alone. See
-      // `services/conversionEvents`; that one is a permanent rule.
-      //
-      // Email-first: the address genuinely does arrive before any question, so
-      // this *would* be reportable — but reporting it in one arm and not the
-      // other lets Meta optimize the two arms differently, and the order test
-      // stops measuring the order. See `config/waitlistOrder`; that one lifts
-      // when the test concludes.
-      if (!isQuestionnaire) recordQualifiedAction('email_submitted');
+      // The questions-first closing screen stays silent permanently: its email
+      // box is unlocked by all six answers, so a conversion there would tell
+      // Meta who gave them through timing alone, whatever the event is named.
+      // See `services/conversionEvents`.
+      if (upstreamOfQuestions) recordQualifiedAction('email_submitted');
     } catch {
       setStatus('idle');
       setError('Unable to join right now. Please try again.');
