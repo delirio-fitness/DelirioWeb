@@ -5,7 +5,7 @@ import {
   appendWaitlistEmailToFirestore,
   submitWaitlistAnswersToFirestore,
   submitWaitlistEmailToFirestore,
-  submitWarmNetworkWishlistToFirestore,
+  submitStandaloneWaitlistEmailToFirestore,
   updateWaitlistAnswersInFirestore,
 } from './feedbackSubmission';
 
@@ -37,7 +37,7 @@ describe('website Firebase submission paths', () => {
     documentMock.mockReturnValue('document-ref' as never);
     serverTimestampMock.mockReturnValue('server-time' as never);
     updateDocMock.mockResolvedValue(undefined);
-    addDocMock.mockResolvedValue({ id: 'warm-network-document-id' } as never);
+    addDocMock.mockResolvedValue({ id: 'standalone-document-id' } as never);
   });
 
   afterEach(() => {
@@ -49,7 +49,7 @@ describe('website Firebase submission paths', () => {
 
     expect(documentMock).toHaveBeenCalledWith(
       database,
-      'webQuestionaire',
+      'wishlist2',
       'questionnaire-document-id',
     );
     expect(updateDocMock).toHaveBeenCalledWith('document-ref', { email: 'person@example.com' });
@@ -66,7 +66,7 @@ describe('website Firebase submission paths', () => {
       submitWaitlistAnswersToFirestore('browser_id_1234567890', responses, 'questions'),
     ).resolves.toBe('waitlist-document-id');
 
-    expect(collectionMock).toHaveBeenCalledWith(database, 'webQuestionaire');
+    expect(collectionMock).toHaveBeenCalledWith(database, 'wishlist2');
     expect(addDocMock).toHaveBeenCalledWith('collection-ref', {
       browserId: 'browser_id_1234567890',
       ownerUid: 'anonymous-user-id',
@@ -90,7 +90,7 @@ describe('website Firebase submission paths', () => {
       submitWaitlistEmailToFirestore('browser_id_1234567890', 'person@example.com', 'email'),
     ).resolves.toBe('waitlist-document-id');
 
-    expect(collectionMock).toHaveBeenCalledWith(database, 'webQuestionaire');
+    expect(collectionMock).toHaveBeenCalledWith(database, 'wishlist2');
     expect(addDocMock).toHaveBeenCalledWith('collection-ref', {
       browserId: 'browser_id_1234567890',
       ownerUid: 'anonymous-user-id',
@@ -110,25 +110,32 @@ describe('website Firebase submission paths', () => {
 
     await updateWaitlistAnswersInFirestore('waitlist-document-id', responses);
 
-    expect(documentMock).toHaveBeenCalledWith(database, 'webQuestionaire', 'waitlist-document-id');
+    expect(documentMock).toHaveBeenCalledWith(database, 'wishlist2', 'waitlist-document-id');
     expect(updateDocMock).toHaveBeenCalledWith('document-ref', { responses });
     expect(addDocMock).not.toHaveBeenCalled();
   });
 
-  it('writes an opt-in that skipped the questions as a create-only warmNetwork record', async () => {
+  /**
+   * The warm list is people the team already knows, and nothing from the site
+   * may land in it — so an opt-in with no answers joins the rest of the gate in
+   * `wishlist2`, marked by its source rather than by living somewhere else.
+   */
+  it('writes an opt-in that skipped the questions alongside the rest of the gate', async () => {
     await expect(
-      submitWarmNetworkWishlistToFirestore('browser_id_1234567890', 'person@example.com'),
-    ).resolves.toBe('warm-network-document-id');
+      submitStandaloneWaitlistEmailToFirestore('browser_id_1234567890', 'person@example.com'),
+    ).resolves.toBe('standalone-document-id');
 
-    expect(collectionMock).toHaveBeenCalledWith(database, 'warmNetwork');
+    expect(collectionMock).toHaveBeenCalledWith(database, 'wishlist2');
+    expect(collectionMock).not.toHaveBeenCalledWith(database, 'warmNetwork');
     expect(addDocMock).toHaveBeenCalledWith('collection-ref', {
-      email: 'person@example.com',
-      TimeSTamp: expect.any(Number),
-      createdAt: 'server-time',
-      source: 'delirio-website-wishlist',
+      browserId: 'browser_id_1234567890',
       ownerUid: 'anonymous-user-id',
-      browserID: 'browser_id_1234567890',
+      email: 'person@example.com',
+      source: 'delirio-website-wishlist',
+      schemaVersion: 3,
+      createdAt: 'server-time',
     });
+    expect(addDocMock.mock.calls[0][1]).not.toHaveProperty('responses');
   });
 
   it('establishes anonymous auth before a questionnaire-email update when needed', async () => {

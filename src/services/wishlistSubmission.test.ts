@@ -1,21 +1,21 @@
 import {
   appendWaitlistEmailToFirestore,
-  submitWarmNetworkWishlistToFirestore,
+  submitStandaloneWaitlistEmailToFirestore,
 } from './feedbackSubmission';
 import { submitWishlistToFirestore } from './wishlistSubmission';
 
 jest.mock('./feedbackSubmission', () => ({
   appendWaitlistEmailToFirestore: jest.fn(),
-  submitWarmNetworkWishlistToFirestore: jest.fn(),
+  submitStandaloneWaitlistEmailToFirestore: jest.fn(),
 }));
 
 const appendQuestionnaireEmailMock = jest.mocked(appendWaitlistEmailToFirestore);
-const submitWarmNetworkWishlistMock = jest.mocked(submitWarmNetworkWishlistToFirestore);
+const submitStandaloneWaitlistEmailMock = jest.mocked(submitStandaloneWaitlistEmailToFirestore);
 
 describe('submitWishlistToFirestore', () => {
   afterEach(() => {
     appendQuestionnaireEmailMock.mockReset();
-    submitWarmNetworkWishlistMock.mockReset();
+    submitStandaloneWaitlistEmailMock.mockReset();
   });
 
   it('appends only the email to the existing quiz document', async () => {
@@ -35,12 +35,12 @@ describe('submitWishlistToFirestore', () => {
     );
   });
 
-  it('creates a standalone opt-in in warmNetwork when no answers were given', async () => {
-    submitWarmNetworkWishlistMock.mockResolvedValue('warm-network-document-id');
+  it('creates a standalone opt-in when no answers were given', async () => {
+    submitStandaloneWaitlistEmailMock.mockResolvedValue('standalone-document-id');
 
     await submitWishlistToFirestore('browser_id_1234567890', 'person@example.com', 'landing');
 
-    expect(submitWarmNetworkWishlistMock).toHaveBeenCalledWith(
+    expect(submitStandaloneWaitlistEmailMock).toHaveBeenCalledWith(
       'browser_id_1234567890',
       'person@example.com',
     );

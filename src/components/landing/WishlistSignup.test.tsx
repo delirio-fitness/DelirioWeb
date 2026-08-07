@@ -149,7 +149,7 @@ describe('WishlistSignup', () => {
 
   it('still captures the email when the answer write failed', async () => {
     const user = userEvent.setup();
-    submitWishlistMock.mockResolvedValue('warm-network-document-id');
+    submitWishlistMock.mockResolvedValue('standalone-document-id');
     render(
       <WishlistSignup placement="questionnaire" onResolveSubmissionId={() => Promise.resolve(null)} />,
     );

@@ -8,16 +8,54 @@
  * patched onto that same document afterwards, so one visitor is one record.
  */
 import { signInAnonymously } from 'firebase/auth';
+import type { FieldValue } from 'firebase/firestore';
 import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import type { WaitlistResponse } from '../content/waitlistQuestions';
 import { getFirebaseServices } from './firebaseClient';
-import type { WarmNetworkLead } from './warmNetworkTypes';
+
+/**
+ * Everything the gate collects lands here, and nothing else writes here.
+ *
+ * Deliberately neither of the two collections that came before it:
+ *
+ * - `warmNetwork` is the *warm* list — people the team already knows. Cold
+ *   signups from an ad are a different population, and mixing the two destroys
+ *   the only thing that made that list worth having.
+ * - `webQuestionaire` holds the v2 GLP-1 questionnaire. The v3 waitlist pointed
+ *   here too, but its rules still validated the v2 envelope and rejected every
+ *   write — so expect no v3 answers in it. It is historical either way.
+ *
+ * A document here may carry answers with no email, an email with no answers, or
+ * both — which one depends on `order` and how far the visitor got. See the
+ * writers below, and do not assume either field exists.
+ */
+const WAITLIST_COLLECTION = 'wishlist2';
+
+/**
+ * The shape `firestore.rules` validates for this collection. Kept as a type so
+ * a field added here fails to compile until it is allowed there too — the rules
+ * use `keys().hasOnly(...)`, so an unlisted field does not get ignored, it
+ * rejects the entire write.
+ */
+type WaitlistRecord = {
+  browserId: string;
+  ownerUid: string;
+  source: 'delirio-website-waitlist' | 'delirio-website-wishlist';
+  schemaVersion: typeof WAITLIST_SCHEMA_VERSION;
+  createdAt: FieldValue;
+  order?: string;
+  responses?: readonly WaitlistResponse[];
+  email?: string;
+};
 
 /**
  * Bumped from 2 when the GLP-1 questionnaire was replaced by the waitlist
  * filter. Version 2 documents carry `answers.{wish,coachingUsefulness,nextBuild}`
  * as JSON strings; version 3 carries a flat `responses` array instead, so a
  * reader has to branch on this rather than assume a shape.
+ *
+ * Not bumped for the move to `wishlist2`: the collection name already tells a
+ * reader which vintage they are holding, and the field layout did not change.
  *
  * Not bumped for two later changes, because both are legible without it and
  * neither restructures anything:
@@ -50,7 +88,7 @@ export async function submitWaitlistAnswersToFirestore(
 ) {
   const { database, uid } = await requireUid();
 
-  const document = await addDoc(collection(database, 'webQuestionaire'), {
+  const record = {
     browserId,
     ownerUid: uid,
     responses,
@@ -58,7 +96,9 @@ export async function submitWaitlistAnswersToFirestore(
     source: 'delirio-website-waitlist',
     schemaVersion: WAITLIST_SCHEMA_VERSION,
     createdAt: serverTimestamp(),
-  });
+  } satisfies WaitlistRecord;
+
+  const document = await addDoc(collection(database, WAITLIST_COLLECTION), record);
 
   return document.id;
 }
@@ -80,7 +120,7 @@ export async function submitWaitlistEmailToFirestore(
 ) {
   const { database, uid } = await requireUid();
 
-  const document = await addDoc(collection(database, 'webQuestionaire'), {
+  const record = {
     browserId,
     ownerUid: uid,
     email,
@@ -88,7 +128,9 @@ export async function submitWaitlistEmailToFirestore(
     source: 'delirio-website-waitlist',
     schemaVersion: WAITLIST_SCHEMA_VERSION,
     createdAt: serverTimestamp(),
-  });
+  } satisfies WaitlistRecord;
+
+  const document = await addDoc(collection(database, WAITLIST_COLLECTION), record);
 
   return document.id;
 }
@@ -107,7 +149,7 @@ export async function updateWaitlistAnswersInFirestore(
   responses: readonly WaitlistResponse[],
 ) {
   const { database } = await requireUid();
-  await updateDoc(doc(database, 'webQuestionaire', submissionId), { responses });
+  await updateDoc(doc(database, WAITLIST_COLLECTION, submissionId), { responses });
   return submissionId;
 }
 
@@ -117,27 +159,37 @@ export async function updateWaitlistAnswersInFirestore(
  */
 export async function appendWaitlistEmailToFirestore(submissionId: string, email: string) {
   const { database } = await requireUid();
-  await updateDoc(doc(database, 'webQuestionaire', submissionId), { email });
+  await updateDoc(doc(database, WAITLIST_COLLECTION, submissionId), { email });
   return submissionId;
 }
 
 /**
- * Creates an independent waitlist record with the minimal warmNetwork schema,
- * for an opt-in that arrived without answering anything.
+ * Creates a waitlist record from an email that arrived without answers.
+ *
+ * Two ways to get here, and `source: 'delirio-website-wishlist'` marks both so
+ * they can be counted separately from the records the gate produced normally:
+ * the ungated landing band, which has no questions in front of it, and the
+ * gate's own fallback when the answer write failed and there is no document to
+ * attach the address to. A failed write must not block the ask — so the address
+ * still lands, just without the answers that were meant to come with it.
+ *
+ * These used to go to `warmNetwork` with a different field layout entirely
+ * (`TimeSTamp`, `browserID`). They are the same population as the rest of the
+ * gate, so they now live alongside it in the same shape.
  */
-export async function submitWarmNetworkWishlistToFirestore(browserId: string, email: string) {
+export async function submitStandaloneWaitlistEmailToFirestore(browserId: string, email: string) {
   const { database, uid } = await requireUid();
 
-  const lead = {
-    email,
-    TimeSTamp: Date.now(),
-    createdAt: serverTimestamp(),
-    source: 'delirio-website-wishlist',
+  const record = {
+    browserId,
     ownerUid: uid,
-    browserID: browserId,
-  } satisfies WarmNetworkLead;
+    email,
+    source: 'delirio-website-wishlist',
+    schemaVersion: WAITLIST_SCHEMA_VERSION,
+    createdAt: serverTimestamp(),
+  } satisfies WaitlistRecord;
 
-  const document = await addDoc(collection(database, 'warmNetwork'), lead);
+  const document = await addDoc(collection(database, WAITLIST_COLLECTION), record);
 
   return document.id;
 }

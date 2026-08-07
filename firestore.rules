@@ -1,7 +1,9 @@
 rules_version = '2';
-
 service cloud.firestore {
+
+
   match /databases/{database}/documents {
+
     function isSignedIn() {
       return request.auth != null;
     }
@@ -10,53 +12,11 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
 
-    // The website retains a compact, rule-validated envelope and serializes
-    // evolving questionnaire fields inside its three answer strings.
-    function hasValidWebsiteFeedbackEnvelope(data) {
-      return data.keys().hasOnly([
-          'browserId', 'ownerUid', 'answers', 'email', 'source', 'schemaVersion', 'createdAt'
-        ])
-        && data.browserId is string
-        && data.browserId.matches('^[a-zA-Z0-9_-]{16,80}$')
-        && data.ownerUid == request.auth.uid
-        && data.source == 'delirio-website-feedback'
-        && data.schemaVersion == 2
-        && data.answers is map
-        && data.answers.keys().hasOnly([
-          'wish', 'coachingUsefulness', 'nextBuild'
-        ])
-        && data.answers.wish is string
-        && data.answers.wish.size() > 0
-        && data.answers.wish.size() <= 2000
-        && data.answers.coachingUsefulness is string
-        && data.answers.coachingUsefulness.size() > 0
-        && data.answers.coachingUsefulness.size() <= 2000
-        && data.answers.nextBuild is string
-        && data.answers.nextBuild.size() > 0
-        && data.answers.nextBuild.size() <= 2000;
-    }
-
-    function hasValidWebsiteEmail(data) {
-      return data.keys().hasAll(['email'])
-        && data.email is string
-        && data.email.size() > 3
-        && data.email.size() <= 254;
-    }
-
-    function hasValidWarmNetworkLead(data) {
-      return data.keys().hasOnly([
-          'email', 'TimeSTamp', 'createdAt', 'source', 'ownerUid', 'browserID'
-        ])
-        && hasValidWebsiteEmail(data)
-        && data.TimeSTamp is int
-        && data.createdAt == request.time
-        && data.source == 'delirio-website-wishlist'
-        && data.ownerUid == request.auth.uid
-        && data.browserID is string
-        && data.browserID.matches('^[a-zA-Z0-9_-]{16,80}$');
-    }
-
-    // These entitlement fields are owned by the verified App Store server flow.
+    // Field lock: entitlement is written ONLY by the server-verified App
+    // Store Server Notifications Cloud Function (Admin SDK, which bypasses rules).
+    // Clients may not create or change these fields. The App Store IDENTITY fields
+    // (appAccountToken, originalTransactionId) are deliberately NOT locked — the
+    // client must keep writing those so ASSN can map an Apple event back to the user.
     function lockedEntitlementFields() {
       return [
         'subscriptionStatus', 'subscriptionPlan', 'subscriptionOffer',
@@ -67,170 +27,215 @@ service cloud.firestore {
       ];
     }
 
-    // Website questionnaire: anonymous-authenticated, validated submissions.
-    match /webQuestionaire/{submissionId} {
-      allow create: if request.auth != null
-        && request.resource.data.createdAt == request.time
-        && hasValidWebsiteFeedbackEnvelope(request.resource.data);
+    // Field lock: messaging-number provisioning is written ONLY by the backend
+    // (InboundRouter assignment/seat-release, ChatEngine/VoiceEngine's
+    // messagingEligibleAt stamp — all Admin SDK, which bypasses rules). The
+    // first-seat eligibility gate on GET /messaging/number trusts
+    // `messagingEligibleAt` PRECISELY BECAUSE clients cannot write it — an
+    // owner-writable stamp would let a throwaway account forge eligibility and
+    // exhaust the number pool one API call per seat. `messaging` is locked for
+    // the same reason: a forged numberId/version would launder unearned
+    // assignments through the confirm path and corrupt bound-seat accounting.
+    // iOS never writes either field (delete-then-create flows like Fresh Start
+    // recreate the doc WITHOUT them, which a key-presence create check permits).
+    function lockedMessagingFields() {
+      return ['messaging', 'messagingEligibleAt'];
+    }
 
-      // A quiz email is appended only to the originating anonymous owner's
-      // document. All identity, source, and timestamp fields remain immutable.
+    // Website waitlist: START
+    // The marketing site (delirio.fit) has no backend and no accounts. Visitors
+    // are signed in anonymously purely so a document can have an owner, which is
+    // what makes "only the person who created this row may add to it" expressible
+    // below. These users never become app accounts.
+    function isClientId(value) {
+      return value is string && value.matches('^[a-zA-Z0-9_-]{16,80}$');
+    }
+
+    function hasValidWaitlistEmail(data) {
+      return data.email is string
+        && data.email.size() > 3
+        && data.email.size() <= 254;
+    }
+
+    // One document per visitor, built up over several writes rather than saved
+    // once, so this has to accept every intermediate state the flow can legitimately
+    // be in:
+    //
+    //   questions-first  answers land first, `email` is patched on at the end
+    //   email-first      the address lands first, `responses` are patched on
+    //   no answers       an address with neither `responses` nor `order`
+    //
+    // `responses` is a free-form list on purpose. Its entries are self-describing
+    // ({id, kind, question, answer, value?}) and the question set is edited in the
+    // website repo without a rules deploy — pinning the vocabulary here is how the
+    // two fall out of sync and start rejecting every write. The count is bounded
+    // instead; per-entry size is bounded by the 1MB document limit and a 600-char
+    // maxLength on the only free-text field.
+    function hasValidWaitlistRecord(data) {
+      return data.keys().hasOnly([
+          'browserId', 'ownerUid', 'responses', 'order', 'email',
+          'source', 'schemaVersion', 'createdAt'
+        ])
+        && data.keys().hasAll(['browserId', 'ownerUid', 'source', 'schemaVersion', 'createdAt'])
+        && isClientId(data.browserId)
+        && data.ownerUid == request.auth.uid
+        && data.source in ['delirio-website-waitlist', 'delirio-website-wishlist']
+        && data.schemaVersion == 3
+        && (!data.keys().hasAny(['order']) || data.order in ['questions', 'email'])
+        && (!data.keys().hasAny(['email']) || hasValidWaitlistEmail(data))
+        && (!data.keys().hasAny(['responses'])
+            || (data.responses is list && data.responses.size() <= 12));
+    }
+
+    match /wishlist2/{submissionId} {
+      allow create: if isSignedIn()
+                    && request.resource.data.createdAt == request.time
+                    && hasValidWaitlistRecord(request.resource.data);
+
+      // Only the two fields the flow fills in later may move, and only for the
+      // anonymous owner who created the record. Identity, source, schema and the
+      // creation time are immutable — `hasOnly` is what pins them.
       allow update: if isOwner(resource.data.ownerUid)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['email'])
-        && hasValidWebsiteFeedbackEnvelope(request.resource.data)
-        && hasValidWebsiteEmail(request.resource.data);
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['email', 'responses'])
+                    && hasValidWaitlistRecord(request.resource.data);
 
       allow read, delete: if false;
     }
 
-    // Footer-only waitlist opt-ins do not have a questionnaire to update.
-    // They are retained as separate, validated, create-only warm-network leads.
-    match /warmNetwork/{submissionId} {
-      allow create: if request.auth != null
-        && hasValidWarmNetworkLead(request.resource.data);
+    // `webQuestionaire` and `warmNetwork` hold earlier website data and have no
+    // match block on purpose: nothing writes them any more, and with no rule they
+    // are unreachable from any client. Admin SDK and the console still read them.
+    // Website waitlist: END
 
-      allow read, update, delete: if false;
-    }
-
-    // Onboarding surveys (created before auth, email linked after auth).
+    // Onboarding surveys (created before auth, email linked after auth)
     match /onboarding_surveys/{surveyId} {
       allow create: if true;
       allow update: if isSignedIn();
       allow read, delete: if false;
     }
 
-    // Global collections (read-only for clients).
+    // Global collections (read-only for clients)
     match /exercises/{exerciseId} {
       allow read: if isSignedIn();
       allow write: if false;
     }
-
     match /exerciseConfigurations/{configId} {
       allow read: if isSignedIn();
       allow write: if false;
     }
-
     match /exerciseRegistry/{docId} {
       allow read: if isSignedIn();
       allow write: if false;
     }
 
-    // User feedback (create-only, must match auth uid).
+    // User feedback (create-only, must match auth uid)
     match /userFeedback/{feedbackId} {
       allow create: if isSignedIn()
-        && request.resource.data.userId == request.auth.uid;
+                    && request.resource.data.userId == request.auth.uid;
       allow read, update, delete: if false;
     }
 
-    // Admin users collection for internal tools.
-    match /admins/{adminId} {
-      allow read: if isSignedIn() && request.auth.uid == adminId;
-    }
+//Retool external app permission: START
+// Admin users collection for internal tools
+match /admins/{adminId} {
+  allow read: if isSignedIn() && request.auth.uid == adminId;
+}
+//Retool external app permission: END
+
 
     match /users/{userId} {
-      // Owners read their document; registered admins may read user documents.
-      allow read: if isOwner(userId)
-        || (isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
-
+    //Retool external app permission: START
+    // Internal analytics - allow if user is in admins collection
+       allow read: if isOwner(userId)
+              || (isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+    //Retool external app permission: END
+      // Field lock: the owner may write everything on their doc EXCEPT the
+      // server-owned entitlement fields. Split create/update so `resource` (null on
+      // create) is only diffed on update.
       allow create: if isOwner(userId)
-        && !request.resource.data.keys().hasAny(lockedEntitlementFields());
+                    && !request.resource.data.keys().hasAny(lockedEntitlementFields())
+                    && !request.resource.data.keys().hasAny(lockedMessagingFields());
       allow update: if isOwner(userId)
-        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(lockedEntitlementFields());
+                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(lockedEntitlementFields())
+                    && !request.resource.data.diff(resource.data).affectedKeys().hasAny(lockedMessagingFields());
       allow delete: if isOwner(userId);
 
       match /workouts/{date} {
         allow read, write: if isOwner(userId);
-
         match /sessions/{sessionId} {
           allow read, write: if isOwner(userId);
         }
       }
 
+      // Denormalized aggregates (e.g. lifetime workout stats). Client-owned.
       match /stats/{docId} {
         allow read, write: if isOwner(userId);
       }
 
+      // Supports UUID docs and name-keyed docs
       match /exerciseProgress/{progressId} {
         allow read, write: if isOwner(userId);
       }
-
       match /exerciseGraph/{exerciseId} {
         allow read, write: if isOwner(userId);
       }
-
       match /check_ins/{checkInId} {
         allow read, write: if isOwner(userId);
       }
-
       match /reminders/{reminderId} {
         allow read, write: if isOwner(userId);
       }
-
       match /splits/{splitId} {
         allow read, write: if isOwner(userId);
       }
-
       match /split_overrides/{date} {
         allow read, write: if isOwner(userId);
       }
-
       match /schedule_template/{docId} {
         allow read, write: if isOwner(userId);
       }
-
       match /schedule/{weekId} {
         allow read, write: if isOwner(userId);
       }
-
       match /scheduleOverrides/{date} {
         allow read, write: if isOwner(userId);
       }
-
       match /goals/{goalId} {
         allow read, write: if isOwner(userId);
       }
-
       match /goals_history/{goalId} {
         allow read, write: if isOwner(userId);
       }
-
       match /calendar_annotations/{annotationId} {
         allow read, write: if isOwner(userId);
       }
-
       match /freeBusy/{docId} {
         allow read, write: if isOwner(userId);
       }
-
       match /routines/{date} {
         allow read, write: if isOwner(userId);
       }
-
       match /activities/{activityId} {
         allow read, write: if isOwner(userId);
       }
-
       match /achievements/{recordType} {
         allow read, write: if isOwner(userId);
       }
-
       match /sales_state/{docId} {
         allow read, write: if isOwner(userId);
       }
-
       match /archivedProfiles/{docId} {
         allow read, write: if isOwner(userId);
       }
-
       match /commitments/{commitmentId} {
         allow read, write: if isOwner(userId);
       }
 
       match /pending_tasks/{taskId} {
-        allow read, update: if isOwner(userId);
+        allow read: if isOwner(userId);
+        allow update: if isOwner(userId);
         allow create, delete: if false;
       }
-
       match /ea_status/{runId} {
         allow read: if isOwner(userId);
         allow write: if false;

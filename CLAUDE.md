@@ -132,7 +132,7 @@ reader can tell the vintages apart without a schema version.
 
 Writes in the **questions-first control**, in this order, and the order is the point:
 
-1. Answers land in `webQuestionaire` (`schemaVersion: 3`, flat `responses` array of
+1. Answers land in `wishlist2` (`schemaVersion: 3`, flat `responses` array of
    `{id, kind, question, answer, value?}`, plus the `order` that produced them) the moment the last
    *choice* question is answered — *before* the email is asked for. Someone who fills in the
    questions and then declines to leave an address still counts as a read on demand, which is the
@@ -145,13 +145,57 @@ Writes in the **questions-first control**, in this order, and the order is the p
 
 The email step awaits the answer write (`onResolveSubmissionId`) rather than reading a piece of
 state, so a fast typist cannot submit before the document exists and fork a second record. If
-the answer write fails outright the email still goes in — as a standalone `warmNetwork` lead —
-and the failure is logged as `[delirio-waitlist]`. **Do not make that catch silent**: a
-demand-measurement feature that stops recording without saying so is the worst case here.
+the answer write fails outright the email still goes in — as a standalone record carrying
+`source: 'delirio-website-wishlist'` instead of `delirio-website-waitlist`, so the cohort that hit
+that path stays countable — and the failure is logged as `[delirio-waitlist]`. **Do not make that
+catch silent**: a demand-measurement feature that stops recording without saying so is the worst
+case here, and it is exactly how the collection below went unnoticed for a week.
 
 `?wo=email` inverts step 1 and 3: `submitWaitlistEmailToFirestore` creates the record from the
 address, then `updateWaitlistAnswersInFirestore` patches each answer onto it as it is given. That
 writer is the email-first arm's workhorse; the control reaches it only for the free text.
+
+### The collection is `wishlist2`, and `firestore.rules` does not ship with the site
+
+Everything the gate collects goes to **`wishlist2`**. Two collections came before it and both are
+now historical — nothing writes to either:
+
+| Collection | What it holds |
+|---|---|
+| `wishlist2` | the live waitlist: answers, emails, and email-only opt-ins |
+| `warmNetwork` | the **warm** list — people the team already knows. Never mix cold ad signups in |
+| `webQuestionaire` | the v2 GLP-1 questionnaire. Do not expect v3 answers here — see below |
+
+A `wishlist2` document may carry answers with no email, an email with no answers, or both — which
+one depends on `order` and how far the visitor got. `source` separates the two ways in:
+`delirio-website-waitlist` came through the gate, `delirio-website-wishlist` arrived as an address
+alone (the ungated band, or the gate's fallback after a failed answer write).
+
+**Netlify deploys the site; it does not deploy `firestore.rules`.** They are two separate
+publishes against two separate services, and the site does not fail loudly when they disagree —
+it renders perfectly and every write returns `permission-denied`. This is the same shape as the
+`netlify.toml` trap in **Non-obvious things**: the thing that looks deployed isn't.
+
+That is not hypothetical, and it went further than a stale rule. The live ruleset had **no match
+block for `webQuestionaire` or `warmNetwork` at all** — the repo's versions of those blocks were
+written but never deployed — so both collections were default-deny and every write the gate made
+was rejected, answers *and* the email fallback, while the page looked perfectly fine. Changing a
+field name, adding a field, or renaming a collection here is a **two-part deploy**:
+
+```
+npx firebase-tools deploy --only firestore:rules --project delirio-480110
+```
+
+The rules are compiled server-side, so a syntax error fails the deploy loudly rather than
+publishing something broken.
+
+**`firestore.rules` governs the whole project, not just this site** — `users`, `workouts`,
+entitlements, the messaging-number locks. It had drifted badly from production once already: it
+was missing `lockedMessagingFields()`, so deploying it would have silently unlocked
+`messagingEligibleAt` and let any account forge number-pool eligibility. It has since been
+reconciled against the live ruleset, and the website block was added on top without touching a
+line of the rest. Keep it that way: **diff against the live rules in the console before every
+deploy**, and if they have diverged again, reconcile rather than overwrite.
 
 ### The header CTA is hidden until the hero's is gone
 
@@ -189,8 +233,7 @@ waitlist, and **nothing on the site links to the App Store**:
 | Footer feature slot | `JOIN THE WAITLIST` → gate on `/`, `/#wishlist` on legal pages |
 
 The word "quiz" is gone from every user-facing string, and `onTakeQuiz` was renamed
-`onJoinWaitlist` to match. `d3-hero-questionnaire-action` and the `webQuestionaire` collection
-keep their names — both would be pure churn to rename, and the collection name is load-bearing.
+`onJoinWaitlist` to match. `d3-hero-questionnaire-action` keeps its name — pure churn to rename.
 
 `WishlistSignup` is now only ever the email form at the end of the gate
 (`placement="questionnaire"`, which renders the form alone — the gate supplies the heading). Its
@@ -422,6 +465,13 @@ function runs under Vite.
   Apple URL lives in `public/app.html` (twice — the `<a id="store">` href and the `STORE`
   constant). `APP_STORE_URL` currently has no importers — it is kept for the interstitial and
   for whenever downloads come back, not because anything renders it.
+- **Firestore rules are a separate deploy from the site**, and a mismatch is silent — see
+  **The collection is `wishlist2`**. Netlify never publishes `firestore.rules`.
+- **App Check is wired but inert.** `firebaseClient.ts` calls `initializeAppCheck` only when
+  `FIREBASE_APPCHECK_SITE_KEY` is set, and it is not set in the Netlify build — no reCAPTCHA key
+  appears in the deployed bundle. So the client sends no App Check token, and turning
+  *enforcement* on for Firestore in the console would deny every write from the site instantly.
+  If App Check is ever wanted, set the site key and redeploy **before** enabling enforcement.
 - The current landing and legal shell use the `d3-*` namespace in `src/styles/design3.css`.
 - **Brand and coach art comes from the shared asset catalog, not from this repo.** Every such
   file is recorded in `.delirio-assets.lock`, and `delirio-assets check` reports when the

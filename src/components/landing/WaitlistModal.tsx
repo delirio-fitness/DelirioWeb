@@ -216,10 +216,9 @@ export function WaitlistModal({
     // Nothing to attach it to, and **this text is then dropped** — it does not
     // ride along with the email. The questions gate this field, so reaching
     // here at all means the answer write failed; the email submit that follows
-    // finds no submission id and becomes a standalone `warmNetwork` lead, and
-    // `WarmNetworkLead` has no field for free text. The six answers are lost
-    // with it, which is the trade the `saveAnswers` catch already accepts: a
-    // failed write must not block the ask.
+    // finds no submission id and becomes a standalone record carrying the
+    // address alone. The six answers are lost with it, which is the trade the
+    // `saveAnswers` catch already accepts: a failed write must not block the ask.
     //
     // Not silent, at least. `saveFailed` renders "We could not save your
     // answers just now" directly above this field, so anyone typing into it has
