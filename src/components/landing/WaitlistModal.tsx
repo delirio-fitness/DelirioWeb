@@ -86,14 +86,19 @@ export function WaitlistModal({
 
   const closeQuestionnaire = useCallback(() => {
     if (!isOpen) return;
-    if (onClose) onClose();
-    else setInternalOpen(false);
 
+    // Pop the entry rather than stripping its marker. `pushState` used the
+    // current URL, so an entry left behind is a duplicate of the page already
+    // on screen: the visitor's next Back press would traverse to it and look
+    // like nothing happened. Clearing the ref first keeps `handlePopState` from
+    // closing a second time when this lands.
     if (ownsHistoryEntryRef.current && window.history.state?.delirioQuestionnaire) {
       ownsHistoryEntryRef.current = false;
-      const { delirioQuestionnaire: _questionnaireMarker, ...restoredState } = window.history.state;
-      window.history.replaceState(restoredState, '', window.location.href);
+      window.history.back();
     }
+
+    if (onClose) onClose();
+    else setInternalOpen(false);
   }, [isOpen, onClose]);
 
   useLayoutEffect(() => {
@@ -105,9 +110,21 @@ export function WaitlistModal({
   const saveAnswers = useCallback(
     (nextAnswers: WaitlistAnswers) => {
       const responses = toResponses(nextAnswers);
-      const existingId = submissionIdRef.current;
+      const inFlight = savePromiseRef.current;
 
       const save = (async () => {
+        // Writes replace the whole `responses` array, and email-first sends one
+        // per question — 450ms apart, which is well inside what a Firestore
+        // round trip can take. Two in flight at once can land in either order,
+        // and an older array winning silently drops the newer answers, which is
+        // exactly the case that arm exists to capture. So they queue.
+        //
+        // Reading the id after the wait rather than before also means an answer
+        // given while the record is still being created patches that record
+        // instead of forking a second one.
+        await inFlight?.catch(() => null);
+        const existingId = submissionIdRef.current;
+
         try {
           const submissionId = existingId
             ? await updateWaitlistAnswersInFirestore(existingId, responses)
@@ -150,13 +167,22 @@ export function WaitlistModal({
    */
   const submitEmailFirst = useCallback(
     async (email: string) => {
-      const submissionId = await submitWaitlistEmailToFirestore(
-        getBrowserFeedbackId(),
-        email,
-        order,
-      );
-      submissionIdRef.current = submissionId;
-      setSaveFailed(false);
+      const create = (async () => {
+        const submissionId = await submitWaitlistEmailToFirestore(
+          getBrowserFeedbackId(),
+          email,
+          order,
+        );
+        submissionIdRef.current = submissionId;
+        setSaveFailed(false);
+        return submissionId;
+      })();
+
+      // Puts the create at the head of the same queue the answer writes use, so
+      // an answer that arrives before it resolves waits for the id rather than
+      // starting a second record.
+      savePromiseRef.current = create;
+      await create;
     },
     [order],
   );

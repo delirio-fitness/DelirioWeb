@@ -72,7 +72,7 @@ describe('HeroExperiment', () => {
   });
 
   it('offers nothing called a quiz anywhere', () => {
-    for (const variant of ['a', 'b', 'c'] as const) {
+    for (const variant of ['a', 'b'] as const) {
       const { unmount } = render(<HeroExperiment variant={variant} />);
       expect(screen.queryByText(/quiz/i)).not.toBeInTheDocument();
       unmount();
@@ -80,31 +80,35 @@ describe('HeroExperiment', () => {
   });
 
   describe('acquisition experiment cells', () => {
-    it('draws the cell A button label first', () => {
-      const { container } = render(<HeroExperiment variant="a" />);
-      expect(screen.getByRole('button', { name: 'JOIN THE WAITLIST' })).toBeInTheDocument();
-      expect(container.querySelector('.d3-hero-questionnaire-action')).toBeInTheDocument();
-      expect(screen.queryByRole('link')).not.toBeInTheDocument();
-    });
-
-    it('draws the same cell B ask arrow first instead', async () => {
+    it('gives cell A the standard hero and one arrow-led button', async () => {
       const user = userEvent.setup();
       const onJoinWaitlist = jest.fn();
-      const { container } = render(<HeroExperiment variant="b" onJoinWaitlist={onJoinWaitlist} />);
+      const { container } = render(<HeroExperiment variant="a" onJoinWaitlist={onJoinWaitlist} />);
       expect(screen.getByRole('heading')).toHaveAttribute('id', 'hero-v3-title');
-
-      // Same words, same gate: the treatment is all that separates A from B now.
       expect(container.querySelector('.d3-hero-action')).toBeInTheDocument();
-      expect(container.querySelector('.d3-hero-questionnaire-action')).not.toBeInTheDocument();
+      expect(screen.queryByRole('link')).not.toBeInTheDocument();
 
       await user.click(screen.getByRole('button', { name: 'JOIN THE WAITLIST' }));
       expect(onJoinWaitlist).toHaveBeenCalledTimes(1);
     });
 
-    it('replaces the hero with the centred waitlist layout in cell C', async () => {
+    /**
+     * The retired third cell drew this same button label-first. Nothing renders
+     * that treatment now, and the markup it needed went with it — so this is the
+     * guard against it creeping back in through a stray `cta` prop.
+     */
+    it('has no label-first button treatment left to render', () => {
+      for (const variant of ['a', 'b'] as const) {
+        const { container, unmount } = render(<HeroExperiment variant={variant} />);
+        expect(container.querySelector('.d3-hero-questionnaire-action')).not.toBeInTheDocument();
+        unmount();
+      }
+    });
+
+    it('replaces the hero with the centred waitlist layout in cell B', async () => {
       const user = userEvent.setup();
       const onJoinWaitlist = jest.fn();
-      const { container } = render(<HeroExperiment variant="c" onJoinWaitlist={onJoinWaitlist} />);
+      const { container } = render(<HeroExperiment variant="b" onJoinWaitlist={onJoinWaitlist} />);
       expect(screen.getByRole('heading')).toHaveAttribute('id', 'hero-focus-title');
       expect(screen.getByRole('heading', { name: /get fit and stay fit without the planning/i })).toBeInTheDocument();
       expect(screen.getByText(/free to join/i)).toBeInTheDocument();
@@ -117,7 +121,7 @@ describe('HeroExperiment', () => {
     });
 
     it('leaves no route to the App Store in any cell', () => {
-      for (const variant of ['a', 'b', 'c'] as const) {
+      for (const variant of ['a', 'b'] as const) {
         const { container, unmount } = render(<HeroExperiment variant={variant} />);
         expect(container.querySelector('[href*="apps.apple.com"], [href="/app"]')).toBeNull();
         expect(container.querySelector('[data-cta]')).toBeNull();
@@ -126,7 +130,7 @@ describe('HeroExperiment', () => {
     });
 
     it('keeps every cell down to a single call to action', () => {
-      for (const variant of ['a', 'b', 'c'] as const) {
+      for (const variant of ['a', 'b'] as const) {
         const { unmount } = render(<HeroExperiment variant={variant} />);
         // Every hero CTA is a button: it opens the gate rather than navigating.
         expect(screen.getAllByRole('button')).toHaveLength(1);
@@ -137,7 +141,7 @@ describe('HeroExperiment', () => {
 
     it('lets a reviewer pin a saved composition over the assigned cell', () => {
       window.history.replaceState({}, '', '/?hero=v1');
-      render(<HeroExperiment variant="c" />);
+      render(<HeroExperiment variant="b" />);
       expect(screen.getByRole('heading')).toHaveAttribute('id', 'hero-title');
     });
   });

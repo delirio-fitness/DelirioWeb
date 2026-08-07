@@ -115,7 +115,9 @@ export default function Landing() {
   const [autoQuestionnaireReady, setAutoQuestionnaireReady] = useState(false);
   const [pastHeroCta, setPastHeroCta] = useState(false);
   const landingVariant = useLandingVariant();
-  const autoQuestionnaireDelayMs = landingVariant === 'c' ? null : AUTO_QUESTIONNAIRE_DELAY_MS;
+  // Cell B is a single-CTA test, so nothing is allowed to cover its button. It
+  // was cell C before the letters were reassigned — see `config/experiment`.
+  const autoQuestionnaireDelayMs = landingVariant === 'b' ? null : AUTO_QUESTIONNAIRE_DELAY_MS;
   const faqPanelRef = useRef<HTMLDivElement>(null);
   const previousFaqHeightRef = useRef<number | null>(null);
   const hasAutoOpenedQuestionnaireRef = useRef(arrivedForWaitlist());

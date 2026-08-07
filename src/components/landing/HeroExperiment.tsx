@@ -16,9 +16,15 @@ function readRequestedComposition(): HeroComposition | null {
 /**
  * Picks the hero for this visit.
  *
- * `variant` is the live ad experiment cell (see `config/experiment`): C replaces
- * the hero outright, while A and B now differ only in how the same button is
- * drawn — every cell offers one `JOIN THE WAITLIST` and opens the same gate.
+ * `variant` is the live ad experiment cell (see `config/experiment`): B replaces
+ * the hero outright with `HeroFocus`, A gets the standard one. Both offer a
+ * single `JOIN THE WAITLIST` and open the same gate, so the layout is the only
+ * thing varying.
+ *
+ * A third cell once split A into two button treatments. It is gone, along with
+ * the `label-first` rendering it existed to show — see `config/experiment` for
+ * why, and note that the letters shifted with it.
+ *
  * `?hero=v*` still selects a saved composition for design review and takes
  * precedence, so a reviewer can pin a hero regardless of which cell they are in.
  */
@@ -32,6 +38,6 @@ export function HeroExperiment({
   const composition = readRequestedComposition();
   if (composition === 'v1') return <HeroV1 />;
   if (composition === 'v2.3') return <HeroV23 />;
-  if (composition === null && variant === 'c') return <HeroFocus onJoinWaitlist={onJoinWaitlist} />;
-  return <HeroV3 onJoinWaitlist={onJoinWaitlist} cta={composition === null && variant === 'b' ? 'arrow-first' : 'label-first'} />;
+  if (composition === null && variant === 'b') return <HeroFocus onJoinWaitlist={onJoinWaitlist} />;
+  return <HeroV3 onJoinWaitlist={onJoinWaitlist} />;
 }

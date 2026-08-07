@@ -43,29 +43,36 @@ under `npm run dev`; only a Netlify-served build applies them.
 
 ## Landing experiment
 
-`/` renders one of three acquisition cells, selected by `?v=`:
+`/` renders one of two acquisition cells, selected by `?v=`:
 
-- `?v=a` (or no param) — `HeroV3` with its button drawn label-first.
-- `?v=b` — the same hero, the same words, drawn arrow-first (`HeroV3Cta`).
-- `?v=c` — `HeroFocus`, a centred hero with a single oversized button. Hero only; everything
-  below it is identical across all three cells.
+- `?v=a` (or no param) — `HeroV3`, the standard hero, with one arrow-led `JOIN THE WAITLIST`.
+- `?v=b` — `HeroFocus`, a centred hero built around a single oversized button. Hero only;
+  everything below it is identical in both cells.
 
-**The cells are now barely an experiment.** They were built to test the App Store download rate,
-then repointed at the waitlist; then the quiz became the waitlist and the word "quiz" was
-retired, which took the wording difference with it. Every cell now shows exactly one
-`JOIN THE WAITLIST` and opens the same gate. **A and B differ only in button treatment** —
-whether the arrow sits before or after the label — and C differs by hero layout. That is a real
-thing to measure but nothing like what the cell names imply, and A/B is far too subtle to be
-worth ad spend. Give them a real difference or retire them; do not read the current numbers as a
-test of anything.
+### The letters were reassigned, and old numbers do not carry over
+
+There were three cells. The original A and B were the *same* `HeroV3` with the button drawn
+label-first or arrow-first — a test of arrow placement, far too subtle to spend on. The clearer
+treatment survived and took the letter A; the old C became B. The `label-first` rendering,
+`HeroV3Cta`, and ~25 `d3-hero-questionnaire-*` CSS rules were deleted with the cell they served.
+
+Three consequences worth holding on to:
+
+- **`landing_a` in Events Manager means one thing before the change and another after**, and the
+  old `landing_c` figures are today's cell B. The cells were renamed, not re-randomised, so the
+  populations are intact — but the labels lie across the boundary.
+- **A live ad still pointing at `?v=c` now falls through to cell A**, not the centred hero it was
+  written for. Repoint those URLs. A test in `experiment.test.ts` pins that fallback so it stays a
+  known landing rather than a blank.
+- `?hero=v3` no longer reaches the label-first button, because nothing renders it.
 
 `src/config/experiment.ts` resolves the cell, remembers it in `sessionStorage` for the tab, and
 publishes it as `window.delirioLandingVariant` and `data-landing-variant` on `.d3-page` — that is
 where ad tracking reads the assignment from. `?hero=v1|v2|v2.3|v3` still pins a saved hero
 composition for design review and beats `?v=`.
 
-Note that the gate auto-opens 30s after load in cells A and B (`Landing.tsx`), which competes
-with the waitlist CTA those cells exist to test. Cell C is exempt.
+Note that the gate auto-opens 30s after load in cell A (`Landing.tsx`), which competes with the
+waitlist CTA. Cell B is exempt — it is a single-CTA test, so nothing may cover its button.
 
 ## The waitlist gate
 
@@ -308,11 +315,21 @@ Ad reporting is configured **server-side only**, and the names are deliberately 
 ```
 META_DATASET_ID            # Meta dataset (pixel) ID. Unset = the function reports nothing.
 META_CAPI_ACCESS_TOKEN     # System-user token from Events Manager. A SECRET.
+META_TEST_EVENT_CODE       # Optional. Routes events to Test Events. UNSET IN PRODUCTION.
 ```
 
-Both are read in `netlify/functions/conversion.mts` and never reach the bundle. **Never prefix
-either with `VITE_`** — Vite inlines every `VITE_*` variable into client JavaScript at build time,
-which would publish a token that can write to the live dataset to anyone who opens devtools.
+All three are read in `netlify/functions/conversion.mts` and never reach the bundle. **Never prefix
+any of them with `VITE_`** — Vite inlines every `VITE_*` variable into client JavaScript at build
+time, which would publish a token that can write to the live dataset to anyone who opens devtools.
+
+`META_TEST_EVENT_CODE` is the only way to watch an event arrive: Events Manager's Test Events panel
+shows nothing for events that do not carry a code, so without it a working integration and a broken
+one look identical from the browser. Take the `TEST…` code from that panel, set it, redeploy,
+exercise the flow, then **unset it and redeploy again** — Meta excludes test events from attribution
+and optimization, so a code left in place reports nothing while the function still answers
+`reported: true` on every call. The function logs `[delirio-ads] META_TEST_EVENT_CODE is set` on
+every request it handles and adds `test: true` to its response, because the failure is otherwise
+invisible until someone notices the dataset sitting at zero.
 
 Product pricing and acquisition configuration live in `src/config/product.ts`.
 

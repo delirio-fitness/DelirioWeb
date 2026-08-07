@@ -6,25 +6,17 @@ import { HeroTypewriterWord } from './HeroTypewriterWord';
 const content = heroText.heroTextV3;
 
 /**
- * How the hero's single button is drawn. Both open the waitlist gate and both
- * now read `JOIN THE WAITLIST`; this picks the treatment, which is all that is
- * left of the difference between cells A and B.
+ * V3 — focused adaptive-coaching promise without secondary tracking UI.
  *
- * `label-first` keeps the historical `d3-hero-questionnaire-action` class — the
- * styling long outlived the quiz it was named for, and renaming it would churn
- * about twenty rules in `design3.css` for nothing.
+ * The button was once switchable between two treatments, `arrow-first` and
+ * `label-first`, because cells A and B of the ad experiment differed by nothing
+ * else. That turned out to be a test of arrow placement rather than of anything
+ * worth spending on; `arrow-first` won, the `cta` prop went, and the
+ * `d3-hero-questionnaire-action` markup and styling went with it. Recoverable
+ * from git if the treatment is ever worth revisiting.
  */
-export type HeroV3Cta = 'label-first' | 'arrow-first';
-
-/** V3 — focused adaptive-coaching promise without secondary tracking UI. */
-export function HeroV3({
-  onJoinWaitlist = () => undefined,
-  cta = 'label-first',
-}: {
-  onJoinWaitlist?: () => void;
-  cta?: HeroV3Cta;
-}) {
-  return <section className={`d3-hero d3-hero--v3 d3-hero--cta-${cta}`} aria-labelledby="hero-v3-title">
+export function HeroV3({ onJoinWaitlist = () => undefined }: { onJoinWaitlist?: () => void }) {
+  return <section className="d3-hero d3-hero--v3 d3-hero--cta-arrow-first" aria-labelledby="hero-v3-title">
     <img className="d3-hero-image" src={heroImage} alt="" aria-hidden="true" />
     <div className="d3-hero-contrast" aria-hidden="true" />
     <div className="d3-hero-content">
@@ -51,15 +43,10 @@ export function HeroV3({
       <div className="d3-hero-action-group">
         <p className="d3-hero-invitation">{content.invitation}</p>
         <div className="d3-hero-actions">
-          {cta === 'arrow-first'
-            ? <button className="d3-hero-action" type="button" onClick={onJoinWaitlist}>
-                <span className="d3-hero-action-arrow" aria-hidden="true"><ArrowUpRight strokeWidth={3} /></span>
-                <b className="d3-hero-action-label">{content.waitlistCta.label}</b>
-              </button>
-            : <button className="d3-hero-questionnaire-action" type="button" onClick={onJoinWaitlist}>
-                <b className="d3-hero-questionnaire-label">{content.cta.label}</b>
-                <span aria-hidden="true"><ArrowUpRight strokeWidth={3} /></span>
-              </button>}
+          <button className="d3-hero-action" type="button" onClick={onJoinWaitlist}>
+            <span className="d3-hero-action-arrow" aria-hidden="true"><ArrowUpRight strokeWidth={3} /></span>
+            <b className="d3-hero-action-label">{content.waitlistCta.label}</b>
+          </button>
         </div>
         <p className="d3-hero-capabilities">{content.capabilities}</p>
       </div>

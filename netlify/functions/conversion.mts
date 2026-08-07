@@ -111,12 +111,22 @@ export default async function handler(request: Request): Promise<Response> {
   }
 
   // The endpoint is public and writes to a live dataset, so anything that does
-  // not look like our own page calling it is refused. This stops a page on
-  // another origin from spending our conversions; it does not stop a determined
-  // caller with curl, which is why the trigger table above is an allowlist.
+  // not look like our own page calling it is refused. A *missing* `Origin` is
+  // refused too, not waved through: browsers set it on every POST, so its
+  // absence means the caller is not a page, and accepting it made forging a
+  // conversion a one-line curl with no header at all.
+  //
+  // This does not stop someone who sets the header by hand, and it is not meant
+  // to — the trigger table above is the allowlist that bounds what a forged
+  // call can even claim. It removes the free case.
+  //
+  // Logged rather than refused quietly. If a browser ever stops sending the
+  // header, or the site's primary domain drifts from `URL`, every conversion
+  // starts 403ing and this line is the only thing that would say so.
   const siteUrl = process.env.URL ?? process.env.DEPLOY_URL;
   const origin = request.headers.get('origin');
-  if (siteUrl && origin && new URL(siteUrl).origin !== origin) {
+  if (siteUrl && origin !== new URL(siteUrl).origin) {
+    console.warn('[delirio-ads] refused a conversion from origin', origin ?? '(none sent)');
     return new Response(null, { status: 403 });
   }
 
@@ -186,13 +196,38 @@ export default async function handler(request: Request): Promise<Response> {
   if (body.firstOfVisit === true) data.unshift({ ...base, event_name: 'Lead' });
   const payload = { data };
 
+  // Routes this event to the Test Events panel in Events Manager, which is the
+  // only way to watch one arrive: the panel shows nothing for events that do
+  // not carry a code, so without this there is no way to confirm the wiring
+  // short of waiting for the dataset totals to move.
+  //
+  // **Unset in production, always.** Meta excludes test events from attribution
+  // and optimization, so a code left in place reports nothing while this
+  // function still answers `reported: true` on every call — invisible from the
+  // browser, from this return value, and from anything short of the dataset
+  // sitting at zero. The `test: true` below exists so the response says which
+  // mode it ran in rather than making that guessable only from the env.
+  //
+  // It is a routing hint and carries no visitor data, so it does not touch the
+  // payload rules in the header.
+  const testEventCode = process.env.META_TEST_EVENT_CODE?.trim();
+  if (testEventCode) {
+    console.warn(
+      '[delirio-ads] META_TEST_EVENT_CODE is set — events route to Test Events and do NOT count as conversions',
+    );
+  }
+
   try {
     const response = await fetch(
       `https://graph.facebook.com/${GRAPH_API_VERSION}/${datasetId}/events`,
       {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ ...payload, access_token: accessToken }),
+        body: JSON.stringify({
+          ...payload,
+          ...(testEventCode ? { test_event_code: testEventCode } : {}),
+          access_token: accessToken,
+        }),
       },
     );
 
@@ -208,5 +243,5 @@ export default async function handler(request: Request): Promise<Response> {
     return Response.json({ reported: false, reason: 'unreachable' }, { status: 502 });
   }
 
-  return Response.json({ reported: true });
+  return Response.json(testEventCode ? { reported: true, test: true } : { reported: true });
 }

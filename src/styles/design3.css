@@ -445,47 +445,6 @@ body,
   color: #0b0b0b;
   transform: translateX(3px);
 }
-.d3-hero-questionnaire-action {
-  align-items: center;
-  background: rgba(0, 0, 0, 0.38);
-  border: 1px solid rgba(244, 240, 231, 0.68);
-  border-radius: var(--radius-md);
-  color: #f4f0e7;
-  cursor: pointer;
-  display: inline-flex;
-  font:
-    800 calc(0.82rem + 0.18vw)/1 'Exo 2',
-    sans-serif;
-  gap: 22px;
-  justify-content: center;
-  letter-spacing: 0.08em;
-  min-height: 70px;
-  padding: 0 24px;
-  transition:
-    background-color 180ms ease,
-    color 180ms ease;
-}
-.d3-hero-questionnaire-action:hover,
-.d3-hero-questionnaire-action:focus-visible {
-  background: #f4f0e7;
-  color: #0b0b0b;
-}
-.d3-hero-questionnaire-action:focus-visible {
-  outline: 3px solid #f4f0e7;
-  outline-offset: 5px;
-}
-.d3-hero-questionnaire-action span {
-  font-size: 18px;
-  transition: transform 180ms ease;
-}
-.d3-hero-questionnaire-action span svg {
-  display: block;
-  height: 28px;
-  width: 28px;
-}
-.d3-hero-questionnaire-action:hover span {
-  transform: translate(2px, -2px);
-}
 .d3-hero-capabilities {
   font-size: 12px;
   font-weight: 700;
@@ -572,62 +531,6 @@ body,
   background: transparent;
   color: #fff;
   transform: none;
-}
-.d3-hero--v3 .d3-hero-questionnaire-action {
-  background: transparent;
-  border: 0;
-  border-bottom: 2px solid var(--paper);
-  border-radius: 0;
-  color: var(--paper);
-  gap: 20px;
-  isolation: auto;
-  justify-content: flex-start;
-  min-height: 0;
-  min-width: 0;
-  overflow: visible;
-  padding: 10px 0 12px;
-  position: relative;
-  transition:
-    color 180ms ease,
-    opacity 180ms ease,
-    transform 180ms ease;
-  width: fit-content;
-}
-.d3-hero--v3 .d3-hero-questionnaire-action::before,
-.d3-hero--v3 .d3-hero-questionnaire-action::after {
-  content: none;
-}
-.d3-hero--v3 .d3-hero-questionnaire-label {
-  font:
-    800 calc(1rem + 0.22vw)/1.1 'Exo 2',
-    sans-serif;
-  letter-spacing: 0.1em;
-  transition: letter-spacing 180ms ease;
-}
-.d3-hero--v3 .d3-hero-questionnaire-action > span {
-  transition: transform 180ms ease;
-}
-.d3-hero--v3 .d3-hero-questionnaire-action:hover,
-.d3-hero--v3 .d3-hero-questionnaire-action:active {
-  background: transparent;
-  border-color: var(--paper);
-  color: var(--paper);
-  opacity: 0.82;
-}
-.d3-hero--v3 .d3-hero-questionnaire-action:hover .d3-hero-questionnaire-label {
-  letter-spacing: 0.12em;
-}
-.d3-hero--v3 .d3-hero-questionnaire-action:hover > span {
-  transform: translate(4px, -4px);
-}
-.d3-hero--v3 .d3-hero-questionnaire-action:active {
-  transform: translateY(1px);
-}
-.d3-hero--v3 .d3-hero-questionnaire-action:focus-visible {
-  background: transparent;
-  color: var(--paper);
-  outline: 2px solid var(--paper);
-  outline-offset: 7px;
 }
 /* Cell C of the ad experiment: one centred column ending in a single loud CTA. */
 .d3-hero.d3-hero--focus {
@@ -1268,11 +1171,6 @@ body,
 
 @media (prefers-reduced-motion: reduce) {
   .d3-hero--v3 .d3-hero-action::before {
-    transition: none;
-  }
-  .d3-hero--v3 .d3-hero-questionnaire-action,
-  .d3-hero--v3 .d3-hero-questionnaire-label,
-  .d3-hero--v3 .d3-hero-questionnaire-action > span {
     transition: none;
   }
 }
@@ -4632,8 +4530,7 @@ body,
     gap: 10px;
     width: min(100%, 320px);
   }
-  .d3-hero-action,
-  .d3-hero-questionnaire-action {
+  .d3-hero-action {
     min-height: 58px;
     min-width: 0;
     width: 100%;
@@ -4643,10 +4540,6 @@ body,
   }
   .d3-hero::after {
     height: 160px;
-  }
-  .d3-hero--v3 .d3-hero-questionnaire-action {
-    min-height: 0;
-    width: fit-content;
   }
   .d3-hero.d3-hero--focus {
     padding: calc(64px + 2vh) 20px calc(1.5rem + 3vh);

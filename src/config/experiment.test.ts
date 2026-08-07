@@ -17,13 +17,13 @@ describe('landing variant assignment', () => {
     expect(DEFAULT_LANDING_VARIANT).toBe('a');
   });
 
-  it.each(['a', 'b', 'c'] as const)('assigns the cell named by ?v=%s', (variant) => {
+  it.each(['a', 'b'] as const)('assigns the cell named by ?v=%s', (variant) => {
     expect(resolveLandingVariant(`?v=${variant}`)).toBe(variant);
   });
 
   it('reads the cell from the live URL when no search is passed', () => {
-    window.history.replaceState({}, '', '/?v=c');
-    expect(resolveLandingVariant()).toBe('c');
+    window.history.replaceState({}, '', '/?v=b');
+    expect(resolveLandingVariant()).toBe('b');
   });
 
   it('keeps the assigned cell after navigating away from the tagged URL', () => {
@@ -33,8 +33,8 @@ describe('landing variant assignment', () => {
 
   it('lets a later tagged URL move the visitor to a new cell', () => {
     resolveLandingVariant('?v=b');
-    expect(resolveLandingVariant('?v=c')).toBe('c');
-    expect(resolveLandingVariant('')).toBe('c');
+    expect(resolveLandingVariant('?v=a')).toBe('a');
+    expect(resolveLandingVariant('')).toBe('a');
   });
 
   it.each(['?v=d', '?v=', '?variant=b', '?v=A'])('falls back to the control for %s', (search) => {
@@ -54,7 +54,7 @@ describe('landing variant assignment', () => {
       throw new Error('denied');
     });
 
-    expect(resolveLandingVariant('?v=c')).toBe('c');
+    expect(resolveLandingVariant('?v=b')).toBe('b');
     expect(resolveLandingVariant('')).toBe(DEFAULT_LANDING_VARIANT);
 
     getItem.mockRestore();
@@ -66,8 +66,17 @@ describe('landing variant assignment', () => {
     expect(window.delirioLandingVariant).toBe('b');
   });
 
-  it('recognises only the three defined cells', () => {
-    expect(['a', 'b', 'c'].every(isLandingVariant)).toBe(true);
-    expect([undefined, null, '', 'd', 'A', 1].some(isLandingVariant)).toBe(false);
+  /**
+   * `c` is in the rejected list on purpose. It was a real cell until the letters
+   * were reassigned, so a live ad URL may still carry it — and it has to fall
+   * through to the control rather than resolving to something.
+   */
+  it('recognises only the two defined cells', () => {
+    expect(['a', 'b'].every(isLandingVariant)).toBe(true);
+    expect([undefined, null, '', 'c', 'd', 'A', 1].some(isLandingVariant)).toBe(false);
+  });
+
+  it('sends a stale ?v=c ad URL to the control rather than nowhere', () => {
+    expect(resolveLandingVariant('?v=c')).toBe(DEFAULT_LANDING_VARIANT);
   });
 });

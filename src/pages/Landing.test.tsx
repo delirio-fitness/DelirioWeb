@@ -223,20 +223,20 @@ describe('Landing journey', () => {
       expect(cta).toHaveAttribute('tabindex', '-1');
     });
 
-    it('renders the centred waitlist hero in cell C without touching the page below', () => {
-      window.history.replaceState({}, '', '/?v=c');
+    it('renders the centred waitlist hero in cell B without touching the page below', () => {
+      window.history.replaceState({}, '', '/?v=b');
       render(<MemoryRouter><Landing /></MemoryRouter>);
 
-      expect(document.querySelector('.d3-page')).toHaveAttribute('data-landing-variant', 'c');
+      expect(document.querySelector('.d3-page')).toHaveAttribute('data-landing-variant', 'b');
       expect(screen.getByRole('heading', { name: /get fit and stay fit without the planning/i })).toBeInTheDocument();
       expect(document.getElementById('how-it-works')).toBeInTheDocument();
       expect(document.getElementById('pricing')).toBeInTheDocument();
       expect(document.getElementById('faq')).toBeInTheDocument();
     });
 
-    it('never covers cell C with the gate on a timer', () => {
+    it('never covers cell B with the gate on a timer', () => {
       jest.useFakeTimers();
-      window.history.replaceState({}, '', '/?v=c');
+      window.history.replaceState({}, '', '/?v=b');
       render(<MemoryRouter><Landing /></MemoryRouter>);
 
       act(() => jest.advanceTimersByTime(120000));
@@ -244,7 +244,7 @@ describe('Landing journey', () => {
       jest.useRealTimers();
     });
 
-    it.each(['a', 'b', 'c'] as const)(
+    it.each(['a', 'b'] as const)(
       'hands cell %s over to the header once the hero CTA scrolls away',
       async (variant) => {
         window.history.replaceState({}, '', `/?v=${variant}`);
@@ -279,9 +279,16 @@ describe('Landing journey', () => {
     });
 
     it('publishes the assigned cell for ad tracking', () => {
+      window.history.replaceState({}, '', '/?v=b');
+      render(<MemoryRouter><Landing /></MemoryRouter>);
+      expect(window.delirioLandingVariant).toBe('b');
+    });
+
+    /** A live ad may still carry the retired letter; it must land somewhere sane. */
+    it('sends a stale ?v=c ad URL to the control cell', () => {
       window.history.replaceState({}, '', '/?v=c');
       render(<MemoryRouter><Landing /></MemoryRouter>);
-      expect(window.delirioLandingVariant).toBe('c');
+      expect(document.querySelector('.d3-page')).toHaveAttribute('data-landing-variant', 'a');
     });
   });
 });
