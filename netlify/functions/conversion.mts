@@ -6,8 +6,8 @@
  * URL and title on every event, scrapes form fields when Automatic Advanced
  * Matching is enabled in Events Manager, and collects the text of what visitors
  * click. None of that is configurable from here, and the waitlist asks about
- * weight and physical capacity, so a script we cannot audit is not allowed in
- * the page.
+ * weight-loss progress and training history, so a script we cannot audit is not
+ * allowed in the page.
  *
  * This function is the replacement. It receives a trigger slug from the browser,
  * looks up everything else in the table below, and posts a Conversions API event

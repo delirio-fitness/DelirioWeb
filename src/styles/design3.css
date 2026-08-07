@@ -3143,6 +3143,37 @@ body,
 .d3-questionnaire-intro > button:hover {
   background: #64715d;
 }
+/* Email-first arm: the signup form stands in for the intro's CTA button, so it
+   inherits that button's spacing rather than the band styling it uses on the
+   landing page. See `config/waitlistOrder`. */
+.d3-questionnaire-email-first .d3-wishlist {
+  margin-top: 38px;
+  padding: 0;
+}
+/* The standing offer to stop answering. Deliberately a real, visible control
+   and not a buried link — the arm's whole premise is that the questions are
+   optional, and an opt-out nobody finds is not one. */
+.d3-questionnaire-skip {
+  align-self: flex-start;
+  background: none;
+  border: 0;
+  color: #55564f;
+  cursor: pointer;
+  font: 700 13px/1 'Exo 2';
+  letter-spacing: 0.02em;
+  margin-top: 30px;
+  min-height: 44px;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.d3-questionnaire-skip:hover:not(:disabled) {
+  color: var(--ink);
+}
+.d3-questionnaire-skip:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
 /* Stepped design: the screen the last answer leads to. */
 .d3-questionnaire-waitlist {
   display: flex;
@@ -3217,143 +3248,6 @@ body,
   font: 500 12px/18px 'Exo 2';
   margin: -18px 0 26px;
   max-width: 560px;
-}
-
-/* Single-page design. Narrower than the stepped card on purpose: it is a form
-   to work down, and a 1320px column of radio buttons reads as a spreadsheet. */
-.d3-questionnaire--single {
-  max-width: 820px;
-  width: min(82vw, 820px);
-}
-.d3-questionnaire-single {
-  padding: 46px 56px 56px;
-}
-.d3-questionnaire-single-intro > p {
-  color: #64715d;
-  font: 700 11px/1 'Exo 2';
-  letter-spacing: 0.13em;
-  margin: 0 0 18px;
-}
-.d3-questionnaire-single-intro h2 {
-  font: 700 clamp(28px, 3.6vw, 42px)/1.03 'Exo 2';
-  letter-spacing: -0.035em;
-  margin: 0;
-  outline: 0;
-}
-.d3-questionnaire-single-intro > span {
-  color: #55564f;
-  display: block;
-  font-size: 15px;
-  line-height: 1.55;
-  margin-top: 18px;
-  max-width: 560px;
-}
-.d3-questionnaire-single-list {
-  list-style: none;
-  margin: 38px 0 0;
-  padding: 0;
-}
-/* The divider sits on the list item, not the fieldset: a fieldset border runs
-   *through* its own legend, leaving a rule struck across the question text. */
-.d3-questionnaire-single-block {
-  border-top: 1px solid rgba(18, 19, 15, 0.18);
-  padding-top: 26px;
-}
-.d3-questionnaire-single-block + .d3-questionnaire-single-block {
-  margin-top: 30px;
-}
-.d3-questionnaire-single-field {
-  border: 0;
-  margin: 0;
-  min-width: 0;
-  padding: 0;
-}
-.d3-questionnaire-single-field > legend {
-  align-items: baseline;
-  display: flex;
-  gap: 14px;
-  margin-bottom: 16px;
-  padding: 0;
-}
-.d3-questionnaire-single-field > legend > i {
-  color: #8c8a80;
-  font: 700 11px/1 'Exo 2';
-  font-style: normal;
-  letter-spacing: 0.12em;
-}
-.d3-questionnaire-single-field > legend > b {
-  font: 700 17px/1.25 'Exo 2';
-  letter-spacing: -0.01em;
-}
-/* Answered blocks recede so the eye lands on what is still outstanding. */
-.d3-questionnaire-single-field.is-answered > legend > b {
-  color: #6b685e;
-}
-/* The shared `.d3-questionnaire-note` is positioned for the stepped screen,
-   where it hangs under a display-sized heading. Reset that here. */
-.d3-questionnaire-single-field .d3-questionnaire-note {
-  margin: -8px 0 14px;
-}
-.d3-questionnaire-single-field .d3-questionnaire-options label {
-  min-height: 52px;
-  padding: 12px 16px;
-}
-.d3-questionnaire-single-field .d3-questionnaire-options label > span {
-  font-size: 13px;
-  line-height: 18px;
-}
-.d3-questionnaire-single-gate {
-  margin-top: 38px;
-  scroll-margin-bottom: 24px;
-}
-.d3-questionnaire-single-gate h3 {
-  font: 700 clamp(22px, 2.6vw, 30px)/1.05 'Exo 2';
-  letter-spacing: -0.03em;
-  margin: 0 0 18px;
-}
-.d3-questionnaire-single-locked {
-  align-items: center;
-  border: 1px dashed rgba(18, 19, 15, 0.4);
-  border-radius: var(--radius-md);
-  display: flex;
-  flex-direction: column;
-  padding: 30px 26px;
-  text-align: center;
-}
-.d3-questionnaire-single-locked > svg {
-  height: 22px;
-  margin-bottom: 14px;
-  opacity: 0.55;
-  width: 22px;
-}
-.d3-questionnaire-single-locked > strong {
-  font: 700 16px/1.25 'Exo 2';
-  letter-spacing: -0.01em;
-}
-.d3-questionnaire-single-locked > span {
-  color: #6b685e;
-  font-size: 13px;
-  line-height: 1.5;
-  margin-top: 8px;
-}
-.d3-questionnaire-single-meter {
-  margin-top: 20px;
-  max-width: 260px;
-  width: 100%;
-}
-.d3-questionnaire-single-meter > i {
-  background: rgba(18, 19, 15, 0.18);
-  border-radius: var(--radius-pill);
-  display: block;
-  height: 5px;
-  overflow: hidden;
-  width: 100%;
-}
-.d3-questionnaire-single-meter b {
-  background: #75866d;
-  display: block;
-  height: 100%;
-  transition: width 260ms ease;
 }
 
 .d3-faq {
@@ -3599,6 +3493,18 @@ body,
   line-height: 1.5;
   margin: 0;
   max-width: 590px;
+}
+/* Quieter than the pitch above it, but still a real link — this is the only
+   route off the waitlist, so it must not read as fine print. */
+.d3-footer-copy p.d3-footer-optout {
+  font-size: 14px;
+  margin-top: 18px;
+  opacity: 0.75;
+}
+.d3-footer-copy p.d3-footer-optout a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .d3-app-card {
   align-content: center;
@@ -4158,9 +4064,6 @@ body,
     margin: 0 auto;
     padding: 42px 48px 52px;
   }
-  .d3-questionnaire-single {
-    padding: 40px 44px 48px;
-  }
   .d3-wishlist--questionnaire {
     margin-top: 36px;
   }
@@ -4313,8 +4216,7 @@ body,
   .d3-faq-contact {
     flex: 1 0 100%;
   }
-  .d3-questionnaire-waitlist,
-  .d3-questionnaire-single {
+  .d3-questionnaire-waitlist {
     padding-inline: 40px;
   }
   .d3-plan-live {
@@ -5050,21 +4952,6 @@ body,
   .d3-questionnaire-waitlist h2 {
     font-size: clamp(30px, 9vw, 42px);
     margin-bottom: 26px;
-  }
-  .d3-questionnaire--single {
-    width: calc(100vw - 32px);
-  }
-  .d3-questionnaire-single {
-    padding: 30px 20px 40px;
-  }
-  .d3-questionnaire-single-list {
-    margin-top: 30px;
-  }
-  .d3-questionnaire-single-field > legend > b {
-    font-size: 16px;
-  }
-  .d3-questionnaire-single-gate h3 {
-    font-size: 22px;
   }
   .d3-faq {
     display: grid;

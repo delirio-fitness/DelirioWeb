@@ -57,10 +57,10 @@ describe('recordQualifiedAction', () => {
   });
 
   /**
-   * The waitlist asks about weight progress and physical capacity. Any event
-   * that can only fire after those have been answered reports health by
-   * correlation, whatever it is named — so the trigger union is the guard, and
-   * these are the names that must never come back into it.
+   * Any event that can only fire once the waitlist questions have been answered
+   * reports health by correlation, whatever it is named and however tame the
+   * questions currently look — so the trigger union is the guard, and these are
+   * the names that must never come back into it.
    */
   it('accepts no trigger that fires downstream of the health questions', () => {
     // @ts-expect-error answering all six questions is not a reportable action.

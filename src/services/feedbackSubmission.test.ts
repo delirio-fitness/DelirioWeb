@@ -4,6 +4,7 @@ import { getFirebaseServices } from './firebaseClient';
 import {
   appendWaitlistEmailToFirestore,
   submitWaitlistAnswersToFirestore,
+  submitWaitlistEmailToFirestore,
   submitWarmNetworkWishlistToFirestore,
   updateWaitlistAnswersInFirestore,
 } from './feedbackSubmission';
@@ -62,7 +63,7 @@ describe('website Firebase submission paths', () => {
     ];
 
     await expect(
-      submitWaitlistAnswersToFirestore('browser_id_1234567890', responses, 'steps'),
+      submitWaitlistAnswersToFirestore('browser_id_1234567890', responses, 'questions'),
     ).resolves.toBe('waitlist-document-id');
 
     expect(collectionMock).toHaveBeenCalledWith(database, 'webQuestionaire');
@@ -70,11 +71,36 @@ describe('website Firebase submission paths', () => {
       browserId: 'browser_id_1234567890',
       ownerUid: 'anonymous-user-id',
       responses,
-      design: 'steps',
+      order: 'questions',
       source: 'delirio-website-waitlist',
       schemaVersion: 3,
       createdAt: 'server-time',
     });
+  });
+
+  /**
+   * The mirror of the test above, and the reason the A/B test is readable: the
+   * email-first arm creates the record from the address, so `responses` is
+   * absent rather than empty until the first answer lands.
+   */
+  it('records the email before any answers exist, in the email-first arm', async () => {
+    addDocMock.mockResolvedValue({ id: 'waitlist-document-id' } as never);
+
+    await expect(
+      submitWaitlistEmailToFirestore('browser_id_1234567890', 'person@example.com', 'email'),
+    ).resolves.toBe('waitlist-document-id');
+
+    expect(collectionMock).toHaveBeenCalledWith(database, 'webQuestionaire');
+    expect(addDocMock).toHaveBeenCalledWith('collection-ref', {
+      browserId: 'browser_id_1234567890',
+      ownerUid: 'anonymous-user-id',
+      email: 'person@example.com',
+      order: 'email',
+      source: 'delirio-website-waitlist',
+      schemaVersion: 3,
+      createdAt: 'server-time',
+    });
+    expect(addDocMock.mock.calls[0][1]).not.toHaveProperty('responses');
   });
 
   it('rewrites answers in place rather than creating a second record', async () => {

@@ -9,8 +9,9 @@
  * That split is the point. `fbevents.js` used to run in this page with full DOM
  * access, reporting the URL and title of every page it loaded on and, with one
  * checkbox in Events Manager, the contents of the email field. The waitlist asks
- * about weight and physical capacity, so nothing third-party is allowed to run
- * alongside it. What leaves the browser now is a slug and a click ID.
+ * questions that a visitor would not want an ad network reading over their
+ * shoulder, so nothing third-party is allowed to run alongside it. What leaves
+ * the browser now is a slug and a click ID.
  *
  * The request is same-origin, so tracking protection and content blockers can
  * still refuse it. That is deliberate: routing conversions through our own

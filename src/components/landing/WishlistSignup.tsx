@@ -15,6 +15,14 @@ type WishlistSignupProps = {
    * then stored on its own.
    */
   onResolveSubmissionId?: () => Promise<string | null>;
+  /**
+   * Takes over the write entirely, and is mutually exclusive with the resolver
+   * above. Supplied by the email-first arm (`config/waitlistOrder`), where this
+   * form runs before any question and the address *creates* the record rather
+   * than joining one that already exists. The parent advances past this form on
+   * success, so the confirmation state below never renders in that arm.
+   */
+  onSubmitEmail?: (email: string) => Promise<void>;
 };
 
 /**
@@ -24,7 +32,11 @@ type WishlistSignupProps = {
  * gate, which supplies its own heading and framing, and a second one here read
  * as the dialog asking twice.
  */
-export function WishlistSignup({ placement = 'landing', onResolveSubmissionId }: WishlistSignupProps) {
+export function WishlistSignup({
+  placement = 'landing',
+  onResolveSubmissionId,
+  onSubmitEmail,
+}: WishlistSignupProps) {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -45,19 +57,31 @@ export function WishlistSignup({ placement = 'landing', onResolveSubmissionId }:
     setError(null);
     setStatus('submitting');
     try {
-      const submissionId = onResolveSubmissionId ? await onResolveSubmissionId() : null;
-      await submitWishlistToFirestore(
-        getBrowserFeedbackId(),
-        normalizedEmail,
-        placement,
-        submissionId ? { submissionId } : undefined,
-      );
+      if (onSubmitEmail) {
+        await onSubmitEmail(normalizedEmail);
+      } else {
+        const submissionId = onResolveSubmissionId ? await onResolveSubmissionId() : null;
+        await submitWishlistToFirestore(
+          getBrowserFeedbackId(),
+          normalizedEmail,
+          placement,
+          submissionId ? { submissionId } : undefined,
+        );
+      }
       setEmail('');
       setStatus('success');
-      // Only the standalone band reports. The copy inside the waitlist gate is
-      // unlocked by six answers about weight progress and physical capacity, so
-      // a conversion fired there would tell Meta who answered them — see
-      // `services/conversionEvents` for why that rules the event out entirely.
+      // Only the standalone band reports, and both copies inside the gate stay
+      // silent — for two different reasons worth keeping straight.
+      //
+      // Questions-first: the email box is unlocked by all six answers, so a
+      // conversion here would tell Meta who gave them through timing alone. See
+      // `services/conversionEvents`; that one is a permanent rule.
+      //
+      // Email-first: the address genuinely does arrive before any question, so
+      // this *would* be reportable — but reporting it in one arm and not the
+      // other lets Meta optimize the two arms differently, and the order test
+      // stops measuring the order. See `config/waitlistOrder`; that one lifts
+      // when the test concludes.
       if (!isQuestionnaire) recordQualifiedAction('email_submitted');
     } catch {
       setStatus('idle');

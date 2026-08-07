@@ -10,7 +10,7 @@ export default function PrivacyPolicy() {
     <LandingLegalShell>
       <div className="max-w-3xl mx-auto px-6 py-10 md:py-16 min-h-screen bg-white text-black">
         <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
-        <p className="mb-2 text-sm text-gray-500">Last updated: August 2, 2026</p>
+        <p className="mb-2 text-sm text-gray-500">Last updated: August 6, 2026</p>
         <p className="mb-4">
           Delirio (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) provides an AI-powered fitness coaching
           mobile application. This Privacy Policy explains what information we collect, how we use and share it, and the
@@ -345,8 +345,14 @@ export default function PrivacyPolicy() {
 
         <h2 className="text-2xl font-semibold mb-4 mt-8">Data Retention</h2>
         <p className="mb-4">
-          We retain your personal information for as long as your account is active and as needed to provide the app. You
-          can delete your account and associated data at any time, as described below.
+          <strong>App accounts.</strong> We retain your personal information for as long as your account is active and
+          as needed to provide the app. You can delete your account and associated data at any time, as described below.
+        </p>
+        <p className="mb-4">
+          <strong>Website waitlist.</strong> Joining the waitlist does not create an account, so the paragraph above
+          does not describe it. We keep your waitlist record — the email address and the answers you gave, stored
+          together — until Delirio opens to you or until you ask us to delete it, whichever comes first. You can ask at
+          any time and do not need to give a reason; see <strong>Deleting Your Waitlist Entry</strong> below.
         </p>
 
         <h2 className="text-2xl font-semibold mb-4 mt-8">Deleting Your Account</h2>
@@ -366,6 +372,23 @@ export default function PrivacyPolicy() {
             contact@delirio.fit
           </a>
           . We may need to verify your identity before completing the request.
+        </p>
+
+        <h2 className="text-2xl font-semibold mb-4 mt-8">Deleting Your Waitlist Entry</h2>
+        <p className="mb-4">
+          The waitlist is separate from an app account and has no in-app delete button. To leave it, email{" "}
+          <a href="mailto:contact@delirio.fit?subject=Waitlist%20Opt-Out" className="text-blue-600 underline">
+            contact@delirio.fit
+          </a>
+          . We will confirm within 7 days and delete within 30. Because your email address and your answers are stored
+          as one record, deleting it removes both. If you would rather only stop the emails and leave your answers with
+          us, tell us and we will do that instead.
+        </p>
+        <p className="mb-4">
+          If you answered the waitlist questions but closed the page before entering your email, the record we kept
+          holds no email address, name, or anything else that identifies you — only a random identifier created in your
+          browser, which we cannot connect to any person. We are unable to locate that record to delete it, and we
+          would rather tell you that than imply otherwise.
         </p>
 
         <h2 className="text-2xl font-semibold mb-4 mt-8">Data Security</h2>

@@ -9,6 +9,12 @@ type WaitlistClaimProps = {
   onCommitOpenResponse: () => void;
   onResolveSubmissionId: () => Promise<string | null>;
   saveFailed: boolean;
+  /**
+   * Whether to ask for an email. False on the email-first arm's closing screen,
+   * where the address was given six screens ago and asking again would read as
+   * the form having lost it.
+   */
+  withEmail?: boolean;
 };
 
 /**
@@ -24,6 +30,7 @@ export function WaitlistClaim({
   onCommitOpenResponse,
   onResolveSubmissionId,
   saveFailed,
+  withEmail = true,
 }: WaitlistClaimProps) {
   const fieldId = `waitlist-open-${useId().replace(/:/g, '')}`;
 
@@ -51,7 +58,9 @@ export function WaitlistClaim({
         />
       </div>
 
-      <WishlistSignup placement="questionnaire" onResolveSubmissionId={onResolveSubmissionId} />
+      {withEmail && (
+        <WishlistSignup placement="questionnaire" onResolveSubmissionId={onResolveSubmissionId} />
+      )}
     </>
   );
 }

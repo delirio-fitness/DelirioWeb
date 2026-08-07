@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { WAITLIST_QUESTIONS } from '../../content/waitlistQuestions';
 import {
   submitWaitlistAnswersToFirestore,
+  submitWaitlistEmailToFirestore,
   updateWaitlistAnswersInFirestore,
 } from '../../services/feedbackSubmission';
 import { submitWishlistToFirestore } from '../../services/wishlistSubmission';
@@ -10,6 +11,7 @@ import { WaitlistModal } from './WaitlistModal';
 
 jest.mock('../../services/feedbackSubmission', () => ({
   submitWaitlistAnswersToFirestore: jest.fn(),
+  submitWaitlistEmailToFirestore: jest.fn(),
   updateWaitlistAnswersInFirestore: jest.fn(),
 }));
 jest.mock('../../services/wishlistSubmission', () => ({
@@ -20,14 +22,11 @@ jest.mock('../../utils/browserFeedbackId', () => ({
 }));
 
 const submitAnswersMock = jest.mocked(submitWaitlistAnswersToFirestore);
+const submitEmailMock = jest.mocked(submitWaitlistEmailToFirestore);
 const updateAnswersMock = jest.mocked(updateWaitlistAnswersInFirestore);
 const submitWishlistMock = jest.mocked(submitWishlistToFirestore);
 
-/** The locked panel's countdown, derived so a changed question set still matches. */
-const lockedCopy = (remaining: number) =>
-  new RegExp(`${remaining} questions? left to unlock your spot`, 'i');
-
-/** Picks each question's first option, in whatever design is on screen. */
+/** Picks each question's first option, one screen at a time. */
 async function answerEverything(user: ReturnType<typeof userEvent.setup>) {
   for (const question of WAITLIST_QUESTIONS) {
     const option = question.options[0];
@@ -40,6 +39,7 @@ describe('WaitlistModal', () => {
 
   beforeEach(() => {
     submitAnswersMock.mockReset().mockResolvedValue('waitlist-document-id');
+    submitEmailMock.mockReset().mockResolvedValue('waitlist-document-id');
     updateAnswersMock.mockReset().mockResolvedValue('waitlist-document-id');
     submitWishlistMock.mockReset().mockResolvedValue('waitlist-document-id');
     window.sessionStorage.clear();
@@ -49,7 +49,7 @@ describe('WaitlistModal', () => {
 
   it('holds the email back until every question is answered', async () => {
     const user = userEvent.setup();
-    render(<WaitlistModal open design="steps" startAtFirstQuestion />);
+    render(<WaitlistModal open startAtFirstQuestion />);
 
     expect(screen.queryByRole('textbox', { name: /email address/i })).not.toBeInTheDocument();
 
@@ -60,16 +60,16 @@ describe('WaitlistModal', () => {
 
   it('records the answers before asking for the email at all', async () => {
     const user = userEvent.setup();
-    render(<WaitlistModal open design="steps" startAtFirstQuestion />);
+    render(<WaitlistModal open startAtFirstQuestion />);
 
     await answerEverything(user);
 
     // The write happens on the last answer, so someone who closes the dialog at
     // the email box still counts as a read on demand.
     await waitFor(() => expect(submitAnswersMock).toHaveBeenCalledTimes(1));
-    const [browserId, responses, design] = submitAnswersMock.mock.calls[0];
+    const [browserId, responses, order] = submitAnswersMock.mock.calls[0];
     expect(browserId).toBe('browser_id_1234567890');
-    expect(design).toBe('steps');
+    expect(order).toBe('questions');
     expect(responses).toHaveLength(WAITLIST_QUESTIONS.length);
     expect(responses[0]).toEqual({
       id: WAITLIST_QUESTIONS[0].id,
@@ -83,7 +83,7 @@ describe('WaitlistModal', () => {
 
   it('attaches the email to the answers it followed', async () => {
     const user = userEvent.setup();
-    render(<WaitlistModal open design="steps" startAtFirstQuestion />);
+    render(<WaitlistModal open startAtFirstQuestion />);
 
     await answerEverything(user);
     await user.type(
@@ -100,10 +100,10 @@ describe('WaitlistModal', () => {
     ));
   });
 
-  describe('stepped design', () => {
+  describe('one question per screen', () => {
     it('shows one question at a time and offers a way back', async () => {
       const user = userEvent.setup();
-      render(<WaitlistModal open design="steps" startAtFirstQuestion />);
+      render(<WaitlistModal open startAtFirstQuestion />);
 
       expect(screen.getAllByRole('radio')).toHaveLength(WAITLIST_QUESTIONS[0].options.length);
       expect(screen.queryByRole('button', { name: /back/i })).not.toBeInTheDocument();
@@ -116,59 +116,17 @@ describe('WaitlistModal', () => {
     });
 
     it('introduces itself when the gate was not opened by a call to action', () => {
-      render(<WaitlistModal open design="steps" />);
+      render(<WaitlistModal open />);
 
       expect(screen.getByRole('heading', { name: new RegExp(`${WAITLIST_QUESTIONS.length} questions, then your spot`, 'i') })).toBeInTheDocument();
       expect(screen.queryByRole('radio')).not.toBeInTheDocument();
     });
   });
 
-  describe('single-page design', () => {
-    it('shows every question at once behind a locked email box', () => {
-      render(<WaitlistModal open design="single" />);
-
-      for (const question of WAITLIST_QUESTIONS) {
-        expect(screen.getByText(question.prompt)).toBeInTheDocument();
-      }
-      expect(screen.getByText(lockedCopy(WAITLIST_QUESTIONS.length))).toBeInTheDocument();
-      expect(screen.queryByRole('textbox', { name: /email address/i })).not.toBeInTheDocument();
-    });
-
-    it('counts down as the questions are answered', async () => {
-      const user = userEvent.setup();
-      render(<WaitlistModal open design="single" />);
-
-      await user.click(screen.getByRole('radio', { name: WAITLIST_QUESTIONS[0].options[0].label }));
-      expect(screen.getByText(lockedCopy(WAITLIST_QUESTIONS.length - 1))).toBeInTheDocument();
-
-      await user.click(screen.getByRole('radio', { name: WAITLIST_QUESTIONS[1].options[0].label }));
-      expect(screen.getByText(lockedCopy(WAITLIST_QUESTIONS.length - 2))).toBeInTheDocument();
-    });
-
-    it('rewrites the record rather than forking it when an answer changes late', async () => {
-      const user = userEvent.setup();
-      render(<WaitlistModal open design="single" />);
-
-      await answerEverything(user);
-      await waitFor(() => expect(submitAnswersMock).toHaveBeenCalledTimes(1));
-
-      // Every question stays editable here, unlike the stepped design.
-      await user.click(screen.getByRole('radio', { name: WAITLIST_QUESTIONS[0].options[1].label }));
-
-      await waitFor(() => expect(updateAnswersMock).toHaveBeenCalledWith(
-        'waitlist-document-id',
-        expect.arrayContaining([
-          expect.objectContaining({ value: WAITLIST_QUESTIONS[0].options[1].value }),
-        ]),
-      ));
-      expect(submitAnswersMock).toHaveBeenCalledTimes(1);
-    });
-  });
-
   describe('the open question', () => {
     it('never stands between the visitor and the email box', async () => {
       const user = userEvent.setup();
-      render(<WaitlistModal open design="steps" startAtFirstQuestion />);
+      render(<WaitlistModal open startAtFirstQuestion />);
 
       await answerEverything(user);
 
@@ -188,7 +146,7 @@ describe('WaitlistModal', () => {
 
     it('attaches an answer to the record once the field is left', async () => {
       const user = userEvent.setup();
-      render(<WaitlistModal open design="steps" startAtFirstQuestion />);
+      render(<WaitlistModal open startAtFirstQuestion />);
 
       await answerEverything(user);
       await user.type(
@@ -214,7 +172,7 @@ describe('WaitlistModal', () => {
 
     it('does not spend a write when the field is left untouched', async () => {
       const user = userEvent.setup();
-      render(<WaitlistModal open design="steps" startAtFirstQuestion />);
+      render(<WaitlistModal open startAtFirstQuestion />);
 
       await answerEverything(user);
       const field = await screen.findByRole('textbox', { name: /90 days from now/i });
@@ -225,17 +183,19 @@ describe('WaitlistModal', () => {
     });
   });
 
-  it('reads the design from the query string', async () => {
-    window.history.replaceState({}, '', '/?wl=single');
+  it('reads the experiment arm from the query string', () => {
+    window.history.replaceState({}, '', '/?wo=email');
     render(<WaitlistModal open />);
 
-    expect(screen.getByText(lockedCopy(WAITLIST_QUESTIONS.length))).toBeInTheDocument();
+    // Email-first opens on the address, with no question on screen yet.
+    expect(screen.getByRole('textbox', { name: /email address/i })).toBeInTheDocument();
+    expect(screen.queryByRole('radio')).not.toBeInTheDocument();
   });
 
   it('still takes the email when the answer write failed', async () => {
     const user = userEvent.setup();
     submitAnswersMock.mockRejectedValue(new Error('permission denied'));
-    render(<WaitlistModal open design="steps" startAtFirstQuestion />);
+    render(<WaitlistModal open startAtFirstQuestion />);
 
     await answerEverything(user);
     const waitlist = within(await screen.findByRole('dialog'));
@@ -260,9 +220,79 @@ describe('WaitlistModal', () => {
   it('closes on Escape', async () => {
     const user = userEvent.setup();
     const onClose = jest.fn();
-    render(<WaitlistModal open onClose={onClose} design="steps" startAtFirstQuestion />);
+    render(<WaitlistModal open onClose={onClose} startAtFirstQuestion />);
 
     await user.keyboard('{Escape}');
     expect(onClose).toHaveBeenCalled();
+  });
+
+  /** The `?wo=email` arm. See `config/waitlistOrder` for what it is testing. */
+  describe('email-first arm', () => {
+    async function join(user: ReturnType<typeof userEvent.setup>) {
+      await user.type(screen.getByRole('textbox', { name: /email address/i }), 'person@example.com');
+      await user.click(screen.getByRole('button', { name: /^join$/i }));
+    }
+
+    it('asks for the email before any question', async () => {
+      render(<WaitlistModal open order="email" />);
+
+      expect(screen.getByRole('textbox', { name: /email address/i })).toBeInTheDocument();
+      expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+    });
+
+    it('creates the record from the email, then moves on to the questions', async () => {
+      const user = userEvent.setup();
+      render(<WaitlistModal open order="email" />);
+
+      await join(user);
+
+      await waitFor(() => expect(submitEmailMock).toHaveBeenCalledWith(
+        'browser_id_1234567890',
+        'person@example.com',
+        'email',
+      ));
+      expect(await screen.findByRole('radio', { name: WAITLIST_QUESTIONS[0].options[0].label }))
+        .toBeInTheDocument();
+    });
+
+    /**
+     * The arm's whole premise. Without a way out the questions are still a toll,
+     * just one charged after the fact.
+     */
+    it('offers a way out of the questions on every screen', async () => {
+      const user = userEvent.setup();
+      render(<WaitlistModal open order="email" />);
+      await join(user);
+
+      const skip = await screen.findByRole('button', { name: /skip for now/i });
+      await user.click(skip);
+
+      expect(await screen.findByText(/you.re on the waitlist/i)).toBeInTheDocument();
+      expect(screen.queryByRole('radio')).not.toBeInTheDocument();
+    });
+
+    it('keeps answers given before the visitor skipped', async () => {
+      const user = userEvent.setup();
+      render(<WaitlistModal open order="email" />);
+      await join(user);
+
+      await user.click(await screen.findByRole('radio', { name: WAITLIST_QUESTIONS[0].options[0].label }));
+
+      // Patched onto the record the email created, rather than held until the
+      // set is complete — which it never will be if they skip next.
+      await waitFor(() => expect(updateAnswersMock).toHaveBeenCalled());
+      expect(submitAnswersMock).not.toHaveBeenCalled();
+    });
+
+    it('does not ask for the email a second time at the end', async () => {
+      const user = userEvent.setup();
+      render(<WaitlistModal open order="email" />);
+      await join(user);
+      await answerEverything(user);
+
+      expect(await screen.findByText(/you.re on the waitlist/i)).toBeInTheDocument();
+      expect(screen.queryByRole('textbox', { name: /email address/i })).not.toBeInTheDocument();
+    });
+
   });
 });

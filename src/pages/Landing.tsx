@@ -131,8 +131,8 @@ export default function Landing() {
    * The CTA path, and the only one that reports a conversion.
    *
    * `waitlist_started` is fired here rather than deeper in the flow because this
-   * is the last moment before the questions render, and those ask about weight
-   * and physical capacity — see `services/conversionEvents`. The auto-open calls
+   * is the last moment before the first question renders — see
+   * `services/conversionEvents` for why that boundary is the rule. The auto-open
    * `showQuestionnaire` instead: being shown a modal on a timer is not an action
    * a visitor took, and reporting it would make the signal worthless anyway.
    */

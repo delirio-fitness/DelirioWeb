@@ -19,6 +19,20 @@ describe('LandingFooter', () => {
     expect(screen.queryByRole('textbox', { name: /email address/i })).not.toBeInTheDocument();
   });
 
+  /**
+   * The waitlist form lives behind the gate, so this is the only route off the
+   * list anywhere on the site — and it renders on the legal pages too, which is
+   * where someone looking for it will go. Deleting it leaves people with no way
+   * out of a record holding their email and their answers together.
+   */
+  it('offers the only way off the waitlist, on every page it renders', () => {
+    render(<MemoryRouter><LandingFooter /></MemoryRouter>);
+
+    const optOut = document.querySelector('.d3-footer-optout a');
+    expect(optOut).toHaveAttribute('href', expect.stringContaining('mailto:contact@delirio.fit'));
+    expect(screen.getByText(/leave the waitlist and have your answers deleted/i)).toBeInTheDocument();
+  });
+
   it('keeps the waitlist link on the page for an in-page footer', () => {
     render(<MemoryRouter><LandingFooter sectionPrefix="" /></MemoryRouter>);
 

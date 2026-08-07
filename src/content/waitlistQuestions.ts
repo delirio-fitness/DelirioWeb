@@ -22,14 +22,23 @@
  * data privacy policy linked from the home page. This site has neither, so the
  * question had to go rather than the compliance apparatus get built around it.
  *
- * What is left is deliberately framed as goal progress rather than body
- * condition. That is a weaker claim on those statutes, not an exemption from
- * them — weight sits closer to the line than age or training history do. Ask
- * anything more clinical than this and the whole regime comes back.
+ * What is left is deliberately framed as **goals, history, and what the visitor
+ * wants from a plan** — never as a description of their body. `weightProgress`
+ * asks how an effort is going rather than what anyone weighs, and
+ * `activityBarrier` asks what plans get wrong rather than what a body cannot do.
+ * That is a weaker claim on those statutes, not an exemption from them: weight
+ * still sits closer to the line than age or training history. Ask anything more
+ * clinical than this and the whole regime comes back.
+ *
+ * The test to apply to a new question or option: **could the answer be read as a
+ * statement about this person's physical or mental state?** If yes, rewrite it
+ * to be about the plan, the schedule, or the goal instead. That is what saved
+ * the barrier question, and it cost almost nothing in signal.
  *
  * Stored records are self-describing: each entry in `responses` carries its own
- * `id` and question text, so a reader can tell a pre-change document (which has
- * a `glp1Stage` entry) from a later one without a schema version to branch on.
+ * `id` and question text, so a reader can tell an older document — one with a
+ * `glp1Stage` or `body_capacity` entry — from a later one without a schema
+ * version to branch on.
  */
 export type WaitlistQuestionId =
   | 'age'

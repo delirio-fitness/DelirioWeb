@@ -78,34 +78,57 @@ sits **beside** the email box rather than in front of it. It does not gate anyth
 labelled optional. A mandatory free-text field in front of a signup is where signups go to die,
 and this is the most expensive answer in the set to give.
 
-Two designs render the same questions and write the same record, chosen with `?wl=`
-(`src/config/waitlistDesign.ts`, remembered per tab like `?v=`):
+**One question per screen, always.** `WaitlistSteps` auto-advances on selection and `WaitlistModal`
+owns the shell and the answer state. A second design once rendered all six on a single scrolling
+card behind a locked email box, chosen with `?wl=`; it was scrapped, and `WaitlistSinglePage`,
+`config/waitlistDesign.ts`, the `design` prop, the `design` field on new records, and ~30
+`d3-questionnaire-single*` CSS rules went with it. `?wl=` is now inert. Records written before the
+scrap still carry `design: 'steps' | 'single'`, so that field's presence is what dates a document.
 
-- `?wl=steps` (default) — `WaitlistSteps`: one question per screen, auto-advancing on selection,
-  waitlist last. Has an intro screen, skipped when a CTA opened the gate.
-- `?wl=single` — `WaitlistSinglePage`: all five on one scrolling card with the email box locked
-  underneath, counting down what is left. No intro; the header is part of the card.
+### Which comes first: the questions or the email
 
-`WaitlistModal` owns the shell and the shared answer state; the two design components own only
-their own progression, and both end in the same `WaitlistClaim` — shared deliberately, because if
-the last screen differed, a difference in signup rate would say nothing about the question layouts
-above it.
+`?wo=` (`src/config/waitlistOrder.ts`, remembered per tab like `?v=`) picks the sequence:
 
-The questions themselves are `src/content/waitlistQuestions.ts` and nothing else. Neither design
-component needs touching to add, remove, or reword one, and the counts in the copy ("6 QUESTIONS,
+- `?wo=questions` (default, the control) — intro, six questions, then the email box. The questions
+  gate the address, so answering is the price of joining.
+- `?wo=email` — the email box first, then the same six questions with a `Skip for now →` on every
+  screen. The record is created *from the email*, and each answer is patched on as it arrives, so
+  someone who answers two and skips still leaves those two behind.
+
+Two rules for running it, both in that file's header comment: **measure it in Firestore**, counting
+records that carry an `email` grouped by `order` (`waitlist_started` is a clean denominator — it
+fires on the CTA click in both arms), and **do not report `email_submitted` while it runs**, or
+Meta optimizes the arms differently and the test stops being about the order.
+
+Every `?wo=email` record has an email, so none of them hit the "we cannot find your entry to
+delete it" case the privacy policy has to describe for the control.
+
+The questions themselves are `src/content/waitlistQuestions.ts` and nothing else. Neither the
+component nor the tests need touching to add, remove, or reword one — the counts in the copy ("6 QUESTIONS,
 THEN YOUR SPOT", "2 questions left to unlock") are derived, as are the tests. A question may
 carry a `note` for small print; `weightProgress` uses it, because that answer is sensitive and ends
 up attached to an email address.
 
-**No question here may ask about medication, diagnosis, treatment, or a body measurement.**
-`weightProgress` replaced a question asking where the visitor was with GLP-1s, down to titration
-stage — see the header comment in that file for why it had to go, and why a compliance apparatus
-was the more expensive alternative.
+**No question or option here may read as a statement about the visitor's body or mind.** Apply that
+test to anything new: if the answer could be read as describing someone's physical or mental state,
+rewrite it to be about the plan, the schedule, or the goal. Two questions have already been through
+this:
 
-Writes, in this order, and the order is the point:
+- `weightProgress` replaced one asking where the visitor was with GLP-1s, down to titration stage.
+  Prescription medication status is named outright as consumer health data by Washington's My
+  Health My Data Act and Nevada SB 370, neither of which has a revenue threshold.
+- `activityBarrier`'s first option was "Some days my body just can't" (`body_capacity`); it now
+  reads "Most plans ask more than I can give". Same product signal, no self-report about a body.
+
+The header comment in that file carries the full reasoning, including why building the consent-and-
+policy apparatus was the more expensive alternative. Older Firestore records still carry the
+retired `glp1Stage` and `body_capacity` values — `responses` entries are self-describing, so a
+reader can tell the vintages apart without a schema version.
+
+Writes in the **questions-first control**, in this order, and the order is the point:
 
 1. Answers land in `webQuestionaire` (`schemaVersion: 3`, flat `responses` array of
-   `{id, kind, question, answer, value?}`, plus which `design` produced them) the moment the last
+   `{id, kind, question, answer, value?}`, plus the `order` that produced them) the moment the last
    *choice* question is answered — *before* the email is asked for. Someone who fills in the
    questions and then declines to leave an address still counts as a read on demand, which is the
    whole reason the questions are there.
@@ -121,8 +144,9 @@ the answer write fails outright the email still goes in — as a standalone `war
 and the failure is logged as `[delirio-waitlist]`. **Do not make that catch silent**: a
 demand-measurement feature that stops recording without saying so is the worst case here.
 
-Only the single-page design can edit an answer after the set is complete, which is why
-`updateWaitlistAnswersInFirestore` exists.
+`?wo=email` inverts step 1 and 3: `submitWaitlistEmailToFirestore` creates the record from the
+address, then `updateWaitlistAnswersInFirestore` patches each answer onto it as it is given. That
+writer is the email-first arm's workhorse; the control reaches it only for the free text.
 
 ### The header CTA is hidden until the hero's is gone
 
@@ -298,7 +322,7 @@ Product pricing and acquisition configuration live in `src/config/product.ts`.
 ## Ad conversion tracking
 
 **There is no Meta pixel on this site, and one must not be added back.** The waitlist asks how a
-visitor's weight loss is going and what their body can manage on a bad day
+visitor's weight loss is going and what they want from a training plan
 (`src/content/waitlistQuestions.ts`). `fbevents.js` is closed-source, runs with full DOM access,
 reports the URL and title of every page it loads on, collects the text of what visitors click, and
 — with one checkbox in Events Manager, *Automatic Advanced Matching* — scrapes the email field and

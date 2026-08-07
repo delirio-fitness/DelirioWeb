@@ -148,7 +148,12 @@ describe('Landing journey', () => {
 
   it('offers a direct pricing contact option', () => {
     render(<MemoryRouter><Landing /></MemoryRouter>);
-    expect(screen.getByRole('link', { name: 'contact@delirio.fit' })).toHaveAttribute('href', 'mailto:contact@delirio.fit');
+
+    // Scoped to the pricing block: the footer carries a second link to the same
+    // address for waitlist opt-out, so a page-wide query matches both.
+    const pricingContact = document.querySelector('.d3-pricing-contact a');
+    expect(pricingContact).toHaveAttribute('href', 'mailto:contact@delirio.fit');
+    expect(pricingContact).toHaveTextContent('contact@delirio.fit');
   });
 
   it('links How it works directly to the product journey carousel', () => {

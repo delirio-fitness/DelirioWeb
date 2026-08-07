@@ -19,6 +19,15 @@ export function LandingFooter({
         <div className="d3-footer-copy">
           <h2>YOUR COACH.<br />READY WHEN YOU ARE.</h2>
           <p>Delirio is opening in stages so every new coach gets the attention they signed up for. Join the waitlist and we will email you when your spot is ready.</p>
+          {/* The only way off the list, so it cannot live behind the gate — a
+              visitor who wants out will not reopen the form that put them on it.
+              Says "and your answers" on purpose: the email and the six answers
+              are one Firestore record, and someone opting out means both. */}
+          <p className="d3-footer-optout">
+            Already joined? Email{' '}
+            <a href="mailto:contact@delirio.fit?subject=Waitlist%20Opt-Out">contact@delirio.fit</a>{' '}
+            to leave the waitlist and have your answers deleted.
+          </p>
         </div>
         {/* The form itself lives behind the gate; a second one out here would
             split the signup between two records and skip the questions. */}

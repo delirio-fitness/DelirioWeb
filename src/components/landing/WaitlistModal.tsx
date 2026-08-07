@@ -1,11 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
-import {
-  DEFAULT_WAITLIST_DESIGN,
-  resolveWaitlistDesign,
-  type WaitlistDesign,
-} from '../../config/waitlistDesign';
+import { resolveWaitlistOrder, type WaitlistOrder } from '../../config/waitlistOrder';
 import {
   isComplete,
   toResponses,
@@ -14,20 +10,20 @@ import {
 } from '../../content/waitlistQuestions';
 import {
   submitWaitlistAnswersToFirestore,
+  submitWaitlistEmailToFirestore,
   updateWaitlistAnswersInFirestore,
 } from '../../services/feedbackSubmission';
 import { getBrowserFeedbackId } from '../../utils/browserFeedbackId';
-import { WaitlistSinglePage } from './WaitlistSinglePage';
 import { WaitlistSteps } from './WaitlistSteps';
 
 type WaitlistModalProps = {
   invocationId?: number;
   open?: boolean;
   onClose?: () => void;
-  /** Skips the stepped design's intro screen. The single-page design has none. */
+  /** Skips the intro screen, for a visitor who already chose the waitlist off-page. */
   startAtFirstQuestion?: boolean;
-  /** Test seam: pins the design instead of reading `?wl=`. */
-  design?: WaitlistDesign;
+  /** Test seam: pins the order instead of reading `?wo=`. */
+  order?: WaitlistOrder;
 };
 
 const focusableSelector = [
@@ -38,31 +34,33 @@ const focusableSelector = [
 ].join(',');
 
 /**
- * The waitlist gate.
+ * The waitlist gate: one question per screen, in the order `?wo=` selects.
  *
- * Asks the filter questions, then — and only then — asks for an email. Two
- * designs render the same questions and write the same record; `?wl=` picks
- * between them (see `config/waitlistDesign`).
+ * A second design once rendered all six questions on a single card, chosen with
+ * `?wl=`. It is gone — `WaitlistSinglePage`, `config/waitlistDesign`, and the
+ * `design` field on new Firestore records went with it. Records written before
+ * that still carry `design: 'steps' | 'single'`; nothing writes it now, so its
+ * presence is what dates a document.
  *
- * Answers are saved the moment the last one is given, before the email is
- * requested, so abandoning at the email box still leaves a usable read on
- * demand. The save runs in the background rather than gating the email screen;
- * `resolveSubmissionId` below is what keeps a fast typist from racing it.
+ * In the questions-first control, answers are saved the moment the last one is
+ * given, before the email is requested, so abandoning at the email box still
+ * leaves a usable read on demand. The save runs in the background rather than
+ * gating the email screen; `resolveSubmissionId` below is what keeps a fast
+ * typist from racing it. The email-first arm inverts this — see `submitEmailFirst`.
  */
 export function WaitlistModal({
   invocationId,
   open: controlledOpen,
   onClose,
   startAtFirstQuestion = false,
-  design: pinnedDesign,
+  order: pinnedOrder,
 }: WaitlistModalProps = {}) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [answers, setAnswers] = useState<WaitlistAnswers>({});
   const [openResponse, setOpenResponse] = useState('');
   const [saveFailed, setSaveFailed] = useState(false);
-  const [design] = useState<WaitlistDesign>(
-    () => pinnedDesign ?? resolveWaitlistDesign() ?? DEFAULT_WAITLIST_DESIGN,
-  );
+  const [order] = useState<WaitlistOrder>(() => pinnedOrder ?? resolveWaitlistOrder());
+  const emailFirst = order === 'email';
   const dialogRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const ownsHistoryEntryRef = useRef(false);
@@ -113,16 +111,16 @@ export function WaitlistModal({
         try {
           const submissionId = existingId
             ? await updateWaitlistAnswersInFirestore(existingId, responses)
-            : await submitWaitlistAnswersToFirestore(getBrowserFeedbackId(), responses, design);
+            : await submitWaitlistAnswersToFirestore(getBrowserFeedbackId(), responses, order);
           submissionIdRef.current = submissionId;
           setSaveFailed(false);
           // Nothing is reported to Meta from inside this gate, and nothing may
-          // be. The questions ask about weight progress and physical capacity,
-          // so an ad event fired anywhere downstream of them discloses health
-          // through its timing — the payload does not have to carry the answer.
+          // be — an ad event fired anywhere downstream of the questions
+          // discloses health through its timing, whatever its payload omits.
           // The conversion for this flow is `waitlist_started`, reported in
-          // `Landing.tsx` before the first question renders. See
-          // `services/conversionEvents`.
+          // `Landing.tsx` before the first question renders. The rule and the
+          // reasoning live in `services/conversionEvents`; do not re-derive it
+          // from how tame the current questions look.
           return submissionId;
         } catch (error) {
           // Loud on purpose. The email box still works without this —
@@ -139,18 +137,43 @@ export function WaitlistModal({
       savePromiseRef.current = save;
       return save;
     },
-    [design],
+    [order],
+  );
+
+  /**
+   * Email-first entry point: the address creates the record, and the answers are
+   * patched onto it afterwards — the exact reverse of the control.
+   *
+   * Every record from this arm therefore carries an email, which is what keeps
+   * it out of the "we cannot find your entry to delete it" case the privacy
+   * policy has to describe for the control.
+   */
+  const submitEmailFirst = useCallback(
+    async (email: string) => {
+      const submissionId = await submitWaitlistEmailToFirestore(
+        getBrowserFeedbackId(),
+        email,
+        order,
+      );
+      submissionIdRef.current = submissionId;
+      setSaveFailed(false);
+    },
+    [order],
   );
 
   const answerQuestion = useCallback(
     (questionId: WaitlistQuestionId, value: string) => {
       setAnswers((current) => {
         const next = { ...current, [questionId]: value };
-        if (isComplete(next)) void saveAnswers(next);
+        // Email-first patches every answer as it arrives, because the record
+        // already exists and skipping is offered on every screen — a visitor who
+        // leaves after two questions should still leave those two behind.
+        // Questions-first has nothing to patch until the set is complete.
+        if (emailFirst || isComplete(next)) void saveAnswers(next);
         return next;
       });
     },
-    [saveAnswers],
+    [emailFirst, saveAnswers],
   );
 
   /**
@@ -246,17 +269,16 @@ export function WaitlistModal({
     saveFailed,
   };
 
-  const body =
-    design === 'single' ? (
-      <WaitlistSinglePage answers={answers} onAnswer={answerQuestion} claim={claim} />
-    ) : (
-      <WaitlistSteps
-        answers={answers}
-        onAnswer={answerQuestion}
-        claim={claim}
-        startAtFirstQuestion={startAtFirstQuestion}
-      />
-    );
+  const body = (
+    <WaitlistSteps
+      answers={answers}
+      onAnswer={answerQuestion}
+      claim={claim}
+      startAtFirstQuestion={startAtFirstQuestion}
+      order={order}
+      onSubmitEmail={emailFirst ? submitEmailFirst : undefined}
+    />
+  );
 
   return createPortal(
     <div
@@ -267,7 +289,7 @@ export function WaitlistModal({
     >
       <div
         ref={dialogRef}
-        className={`d3-questionnaire d3-questionnaire--${design}`}
+        className="d3-questionnaire d3-questionnaire--steps"
         role="dialog"
         aria-modal="true"
         aria-labelledby="questionnaire-question"

@@ -41,10 +41,9 @@ describe('WishlistSignup', () => {
   });
 
   /**
-   * The copy inside the gate is unlocked by six answers about weight progress
-   * and physical capacity. A conversion fired here would tell Meta who answered
-   * them through timing alone, so this form reports nothing — see
-   * `conversionEvents`.
+   * The copy inside the gate is unlocked by all six waitlist answers, so a
+   * conversion fired here would tell Meta who gave them through timing alone.
+   * This form reports nothing — see `conversionEvents`.
    */
   it('reports nothing from the copy inside the waitlist gate', async () => {
     const user = userEvent.setup();

@@ -18,6 +18,16 @@ import type { WarmNetworkLead } from './warmNetworkTypes';
  * filter. Version 2 documents carry `answers.{wish,coachingUsefulness,nextBuild}`
  * as JSON strings; version 3 carries a flat `responses` array instead, so a
  * reader has to branch on this rather than assume a shape.
+ *
+ * Not bumped for two later changes, because both are legible without it and
+ * neither restructures anything:
+ *
+ * - `design` was dropped when the single-page gate was scrapped. Its presence
+ *   dates a document to before that; only the stepped flow exists now.
+ * - `order` was added for the `?wo=` experiment (`config/waitlistOrder`), and
+ *   tells you which sequence produced the record — `questions` writes answers
+ *   first and may never gain an `email`, `email` writes the address first and
+ *   may never gain `responses`. Neither field is guaranteed on a v3 document.
  */
 const WAITLIST_SCHEMA_VERSION = 3;
 
@@ -27,11 +37,16 @@ async function requireUid() {
   return { database, uid: user.uid };
 }
 
-/** Records the answers and returns the document id the email is appended to. */
+/**
+ * Records the answers and returns the document id the email is appended to.
+ *
+ * The questions-first entry point: the record begins as answers with no email,
+ * and gains one only if the visitor gets to the end and gives it.
+ */
 export async function submitWaitlistAnswersToFirestore(
   browserId: string,
   responses: readonly WaitlistResponse[],
-  design: string,
+  order: string,
 ) {
   const { database, uid } = await requireUid();
 
@@ -39,7 +54,37 @@ export async function submitWaitlistAnswersToFirestore(
     browserId,
     ownerUid: uid,
     responses,
-    design,
+    order,
+    source: 'delirio-website-waitlist',
+    schemaVersion: WAITLIST_SCHEMA_VERSION,
+    createdAt: serverTimestamp(),
+  });
+
+  return document.id;
+}
+
+/**
+ * Records the email and returns the document id the answers are appended to.
+ *
+ * The email-first entry point, and the mirror of the writer above: the record
+ * begins as a signup and gains answers only if the visitor chooses to give them.
+ * Two consequences worth knowing — every record from this arm is reachable by
+ * email, so none of them hit the "we cannot find your entry to delete it" case
+ * in the privacy policy; and `responses` is absent rather than empty until the
+ * first answer lands, so a reader must not assume the field exists.
+ */
+export async function submitWaitlistEmailToFirestore(
+  browserId: string,
+  email: string,
+  order: string,
+) {
+  const { database, uid } = await requireUid();
+
+  const document = await addDoc(collection(database, 'webQuestionaire'), {
+    browserId,
+    ownerUid: uid,
+    email,
+    order,
     source: 'delirio-website-waitlist',
     schemaVersion: WAITLIST_SCHEMA_VERSION,
     createdAt: serverTimestamp(),
@@ -51,9 +96,11 @@ export async function submitWaitlistAnswersToFirestore(
 /**
  * Rewrites the answers on an existing document.
  *
- * Only the single-page design can reach this: its questions stay editable after
- * the set is complete, so an answer changed after the first write would
- * otherwise leave the stored record disagreeing with what the visitor sees.
+ * The email-first arm's workhorse: the document already exists — created from
+ * the email — so every answer is patched onto it as it is given, and abandoning
+ * halfway still leaves behind the answers that were volunteered. The
+ * questions-first control reaches this only for the free-text field, which is
+ * committed on blur after the set is already saved.
  */
 export async function updateWaitlistAnswersInFirestore(
   submissionId: string,

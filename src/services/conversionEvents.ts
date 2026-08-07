@@ -13,19 +13,21 @@
  *    and the questionnaire auto-opening are absent because they would buy volume
  *    by diluting the signal the event exists to carry.
  *
- * 2. **The action has to happen before the waitlist questions.** The waitlist
- *    asks how weight loss is going and what a visitor's body can manage on a bad
- *    day. An event that fires only for people who answered those tells Meta
- *    something about their health through its timing alone — the payload does
- *    not need to contain the answer, and renaming the event does not help,
- *    because the correlation is the disclosure. Both triggers below sit upstream
- *    of the first question. Nothing downstream of it may be added, and that
- *    includes the email box inside the gate, which only opens once all six
- *    answers are given.
+ * 2. **The action has to happen before the waitlist questions.** They ask about
+ *    weight-loss progress and what someone wants from a training plan
+ *    (`content/waitlistQuestions.ts`). An event that fires only for people who
+ *    answered them tells Meta something about their health through its timing
+ *    alone — the payload does not need to contain the answer, and renaming the
+ *    event does not help, because the correlation is the disclosure. Both
+ *    triggers below sit upstream of the first question. Nothing downstream of it
+ *    may be added, and that includes the email box inside the gate, which only
+ *    opens once all six answers are given.
  *
- *    This held when the third question asked about GLP-1 medication, and it
- *    still holds now that it does not. The rule is about where an event fires,
- *    not about how sensitive any one question happens to be this month.
+ *    **This rule does not loosen when the questions do.** It held when the third
+ *    question asked about GLP-1 titration stage; it still holds now that the set
+ *    avoids describing anyone's body at all. It governs where an event fires,
+ *    not how sensitive this month's wording happens to be — which is the whole
+ *    reason it survives rewrites of the question bank.
  *
  * The transport is `conversionBeacon` → `netlify/functions/conversion.mts`. There
  * is no Meta pixel in the page; what a trigger is worth and what Meta calls it

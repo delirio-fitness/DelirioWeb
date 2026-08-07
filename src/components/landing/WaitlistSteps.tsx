@@ -4,7 +4,9 @@ import {
   type WaitlistAnswers,
   type WaitlistQuestionId,
 } from '../../content/waitlistQuestions';
+import { DEFAULT_WAITLIST_ORDER, type WaitlistOrder } from '../../config/waitlistOrder';
 import { WaitlistClaim } from './WaitlistClaim';
+import { WishlistSignup } from './WishlistSignup';
 
 /** How long a chosen option stays lit before the next question replaces it. */
 const ANSWER_CONFIRMATION_MS = 450;
@@ -14,24 +16,44 @@ type WaitlistStepsProps = {
   onAnswer: (questionId: WaitlistQuestionId, value: string) => void;
   claim: ComponentProps<typeof WaitlistClaim>;
   startAtFirstQuestion: boolean;
+  /** Which sequence to run. See `config/waitlistOrder` for the experiment. */
+  order?: WaitlistOrder;
+  /** Email-first only: persists the address, creating the record. */
+  onSubmitEmail?: (email: string) => Promise<void>;
 };
 
-type Phase = 'intro' | 'questions' | 'waitlist';
+type Phase = 'intro' | 'email' | 'questions' | 'waitlist' | 'done';
 
 /**
- * One question per screen, advancing on selection, waitlist last.
+ * One question per screen, advancing on selection.
  *
  * The visitor never sees more than one decision at a time, which makes the set
  * feel shorter than it is — but it also hides how long the set is, so the
  * progress bar carries the whole promise that this ends.
+ *
+ * Two sequences run through the same screens:
+ *
+ * - `questions` — intro, six questions, then the email. The questions gate the
+ *   address, so answering is the price of joining.
+ * - `email` — the address first, then the same six questions with a standing
+ *   offer to skip them. Nothing is gated, so answering is a favour rather than
+ *   a toll, and every record is reachable by email afterwards.
  */
 export function WaitlistSteps({
   answers,
   onAnswer,
   claim,
   startAtFirstQuestion,
+  order = DEFAULT_WAITLIST_ORDER,
+  onSubmitEmail,
 }: WaitlistStepsProps) {
-  const [phase, setPhase] = useState<Phase>(startAtFirstQuestion ? 'questions' : 'intro');
+  const emailFirst = order === 'email';
+  const [phase, setPhase] = useState<Phase>(
+    // Email-first ignores `startAtFirstQuestion`: the flag exists to skip the
+    // intro for someone who already chose the waitlist off-page, and the email
+    // box is what that person came for.
+    emailFirst ? 'email' : startAtFirstQuestion ? 'questions' : 'intro',
+  );
   const [step, setStep] = useState(0);
   const [isAdvancing, setIsAdvancing] = useState(false);
   const advanceTimerRef = useRef<number | null>(null);
@@ -59,7 +81,9 @@ export function WaitlistSteps({
     onAnswer(questionId, value);
 
     if (isLastQuestion) {
-      setPhase('waitlist');
+      // Email-first has nothing left to ask for — the address arrived first —
+      // so the run ends on a thank-you rather than a form.
+      setPhase(emailFirst ? 'done' : 'waitlist');
       return;
     }
 
@@ -69,6 +93,41 @@ export function WaitlistSteps({
       advanceTimerRef.current = null;
       setStep((current) => current + 1);
     }, ANSWER_CONFIRMATION_MS);
+  }
+
+  if (phase === 'email') {
+    return (
+      <div className="d3-questionnaire-intro d3-questionnaire-email-first">
+        <p>NO QUESTIONS FIRST</p>
+        <h2 ref={headingRef} id="questionnaire-question" tabIndex={-1}>
+          YOUR SPOT IS RESERVED.
+        </h2>
+        <span>
+          Delirio is opening in stages. Leave your email and we will tell you when your spot is
+          ready — that is the whole requirement.
+        </span>
+        <WishlistSignup
+          placement="questionnaire"
+          onSubmitEmail={async (email) => {
+            if (onSubmitEmail) await onSubmitEmail(email);
+            setPhase('questions');
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (phase === 'done') {
+    return (
+      <div className="d3-questionnaire-waitlist">
+        <p>THAT IS EVERYTHING WE NEEDED</p>
+        <h2 ref={headingRef} id="questionnaire-question" tabIndex={-1}>
+          YOU’RE ON THE WAITLIST.
+        </h2>
+        <span>We will email you when your spot is ready.</span>
+        <WaitlistClaim {...claim} withEmail={false} />
+      </div>
+    );
   }
 
   if (phase === 'intro') {
@@ -168,6 +227,21 @@ export function WaitlistSteps({
               </label>
             ))}
           </fieldset>
+
+          {/* Email-first only, and it has to be visible rather than a buried
+              link: the whole point of this arm is that answering is optional,
+              and an opt-out nobody can find is not one. Questions-first has no
+              skip because there the answers are what unlock the email box. */}
+          {emailFirst && (
+            <button
+              className="d3-questionnaire-skip"
+              type="button"
+              disabled={isAdvancing}
+              onClick={() => setPhase('done')}
+            >
+              Skip for now →
+            </button>
+          )}
         </div>
       </div>
     </>
