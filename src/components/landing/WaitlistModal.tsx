@@ -213,8 +213,19 @@ export function WaitlistModal({
   const commitOpenResponse = useCallback(() => {
     const trimmed = openResponse.trim();
     if (trimmed === savedOpenResponseRef.current) return;
-    // Nothing to attach it to yet: the questions gate this field, so this only
-    // happens if the first write failed. It rides along with the email instead.
+    // Nothing to attach it to, and **this text is then dropped** — it does not
+    // ride along with the email. The questions gate this field, so reaching
+    // here at all means the answer write failed; the email submit that follows
+    // finds no submission id and becomes a standalone `warmNetwork` lead, and
+    // `WarmNetworkLead` has no field for free text. The six answers are lost
+    // with it, which is the trade the `saveAnswers` catch already accepts: a
+    // failed write must not block the ask.
+    //
+    // Not silent, at least. `saveFailed` renders "We could not save your
+    // answers just now" directly above this field, so anyone typing into it has
+    // been told. Making it true rather than merely honest means retrying the
+    // answer write here instead of returning — worth doing if this path ever
+    // shows up in `[delirio-waitlist]` logs with real frequency.
     if (!submissionIdRef.current) return;
     void saveAnswers({ ...answers, openResponse: trimmed });
   }, [answers, openResponse, saveAnswers]);

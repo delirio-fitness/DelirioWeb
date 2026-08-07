@@ -1,26 +1,24 @@
 /**
  * Landing page acquisition experiment.
  *
- * Meta ad sets point at `/?v=a` and `/?v=b`. Both cells render the same page
- * body and differ only in the hero, so the hero treatment is the single variable
- * behind whatever the waitlist signup rate does.
+ * Ad sets are meant to point at `/?v=a` and `/?v=b`. Both cells render the same
+ * page body and differ only in the hero, so the hero treatment is the single
+ * variable behind whatever the waitlist signup rate does.
  *
  * - `a` — `HeroV3`: the standard hero, with one arrow-led `JOIN THE WAITLIST`.
  * - `b` — `HeroFocus`: a centred hero built around a single oversized button.
  *
- * ## The letters were reassigned, and old numbers do not carry over
+ * **Nothing has run yet.** No ad has pointed here and no `landing_*` figure
+ * exists in Events Manager, so both cells start from zero and the letters carry
+ * no history — which is the only reason the reassignment below was free.
  *
  * There used to be three cells. The original A and B were the same `HeroV3` with
- * the button drawn two ways, which made them a test of arrow placement rather
- * than of anything worth spending on; the clearer of the two survived and took
- * the letter A, and the old C became B.
- *
- * So **`landing_a` in Events Manager means one thing before that change and
- * another after**, and the old `landing_c` figures are this cell B. Anything
- * comparing across the change has to account for it — the cells were renamed,
- * not re-randomised, so the underlying populations are fine, but the labels lie.
- * A live ad still pointing at `?v=c` now falls through to the default cell A
- * rather than rendering the centred hero it was built for; repoint those URLs.
+ * the button drawn two ways, a test of arrow placement rather than of anything
+ * worth spending on; the clearer treatment survived and took the letter A, and
+ * the old C became B. The `label-first` rendering was deleted with the cell it
+ * served — see `HeroV3`. A stale `?v=c` falls through to cell A rather than
+ * resolving to nothing, which matters only for a pasted link now, but keeps the
+ * failure a known landing instead of a blank.
  *
  * The resolved cell is published on `window.delirioLandingVariant` and mirrored
  * onto `data-landing-variant` on the page root, so ad tracking can segment

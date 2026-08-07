@@ -49,22 +49,20 @@ under `npm run dev`; only a Netlify-served build applies them.
 - `?v=b` — `HeroFocus`, a centred hero built around a single oversized button. Hero only;
   everything below it is identical in both cells.
 
-### The letters were reassigned, and old numbers do not carry over
+### Nothing has run yet, which is why the letters could be reassigned
+
+No ad has pointed at this site and no `landing_*` figure exists in Events Manager. Both cells
+start from zero, so the letters carry no history — worth knowing before reading any of the
+experiment scaffolding as though it has produced data.
 
 There were three cells. The original A and B were the *same* `HeroV3` with the button drawn
 label-first or arrow-first — a test of arrow placement, far too subtle to spend on. The clearer
 treatment survived and took the letter A; the old C became B. The `label-first` rendering,
-`HeroV3Cta`, and ~25 `d3-hero-questionnaire-*` CSS rules were deleted with the cell they served.
+`HeroV3Cta`, and ~25 `d3-hero-questionnaire-*` CSS rules were deleted with the cell they served,
+so `?hero=v3` no longer reaches that button either.
 
-Three consequences worth holding on to:
-
-- **`landing_a` in Events Manager means one thing before the change and another after**, and the
-  old `landing_c` figures are today's cell B. The cells were renamed, not re-randomised, so the
-  populations are intact — but the labels lie across the boundary.
-- **A live ad still pointing at `?v=c` now falls through to cell A**, not the centred hero it was
-  written for. Repoint those URLs. A test in `experiment.test.ts` pins that fallback so it stays a
-  known landing rather than a blank.
-- `?hero=v3` no longer reaches the label-first button, because nothing renders it.
+A stale `?v=c` falls through to cell A rather than resolving to nothing. That matters only for a
+pasted link now, but `experiment.test.ts` pins it so the failure stays a known landing.
 
 `src/config/experiment.ts` resolves the cell, remembers it in `sessionStorage` for the tab, and
 publishes it as `window.delirioLandingVariant` and `data-landing-variant` on `.d3-page` — that is
