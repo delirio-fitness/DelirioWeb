@@ -3139,6 +3139,44 @@ body,
   outline: 3px solid var(--ink);
   outline-offset: 3px;
 }
+/* The send button and what it reports back. Outlined rather than filled: on the
+   questions-first closing screen this sits directly above JOIN, which has to
+   stay the loudest thing on the screen. */
+.d3-questionnaire-open-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin-top: 12px;
+}
+.d3-questionnaire-open-actions > button {
+  background: transparent;
+  border: 1px solid rgba(18, 19, 15, 0.5);
+  border-radius: var(--radius-md);
+  color: var(--ink);
+  cursor: pointer;
+  font: 700 12px/1 'Exo 2';
+  letter-spacing: 0.08em;
+  min-height: 44px;
+  padding: 0 22px;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.d3-questionnaire-open-actions > button:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--paper);
+}
+.d3-questionnaire-open-actions > button:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
+.d3-questionnaire-open-status {
+  color: #64715d;
+  font: 600 12px/1.4 'Exo 2';
+  margin: 0;
+}
+.d3-questionnaire-open-status--failed {
+  color: #8a3524;
+}
 /* Shown only when the answer write failed. Calm on purpose: the visitor did
    nothing wrong and the email box below still works. */
 .d3-questionnaire-save-warning {

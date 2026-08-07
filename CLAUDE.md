@@ -86,6 +86,13 @@ sits **beside** the email box rather than in front of it. It does not gate anyth
 labelled optional. A mandatory free-text field in front of a signup is where signups go to die,
 and this is the most expensive answer in the set to give.
 
+It carries its own `SEND ANSWER` button, which reports `Saved — thank you.` or, if the write
+failed, says so beside the button. The button is **not** the write path — blur still commits, and
+must keep doing so, or text typed and abandoned is lost. It exists because a field that saves
+invisibly reads as a field that is going nowhere, and on the email-first closing screen there is no
+other button on the screen to imply otherwise. It is styled quieter than `JOIN` on purpose: on the
+questions-first closing screen the two sit one above the other, and the email has to stay primary.
+
 **One question per screen, always.** `WaitlistSteps` auto-advances on selection and `WaitlistModal`
 owns the shell and the answer state. A second design once rendered all six on a single scrolling
 card behind a locked email box, chosen with `?wl=`; it was scrapped, and `WaitlistSinglePage`,
@@ -156,7 +163,11 @@ is the point:
 2. The free text is patched on **blur**, not per keystroke. Clicking `JOIN` blurs the textarea
    first, so that write is already in flight when the email submits, and `resolveSubmissionId`
    awaits whichever write is latest — the two cannot land out of order. Typing and then
-   abandoning still keeps the text, which is the case worth protecting.
+   abandoning still keeps the text, which is the case worth protecting. `SEND ANSWER` blurs the
+   field the same way, so it usually finds its own text already in flight: `commitOpenResponse`
+   then reports on *that* write rather than on `savedOpenResponseRef`, which is set when a write
+   starts and is therefore no evidence one succeeded. Confirming a save that did not happen is the
+   one thing that button must never do.
 3. The email is patched onto that same document, so one visitor is one record.
 
 The email step awaits the answer write (`onResolveSubmissionId`) rather than reading a piece of

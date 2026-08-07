@@ -181,6 +181,83 @@ describe('WaitlistModal', () => {
 
       expect(updateAnswersMock).not.toHaveBeenCalled();
     });
+
+    // The blur write is invisible, so on its own the field reads as one that
+    // keeps nothing. These cover the button that says otherwise.
+    it('offers nothing to press until there is something to send', async () => {
+      const user = userEvent.setup();
+      render(<WaitlistModal open order="questions" startAtFirstQuestion />);
+
+      await answerEverything(user);
+      const send = await screen.findByRole('button', { name: /send answer/i });
+      expect(send).toBeDisabled();
+
+      await user.type(
+        screen.getByRole('textbox', { name: /90 days from now/i }),
+        'Two sessions a week.',
+      );
+
+      expect(send).toBeEnabled();
+    });
+
+    it('tells the visitor the text was kept', async () => {
+      const user = userEvent.setup();
+      render(<WaitlistModal open order="questions" startAtFirstQuestion />);
+
+      await answerEverything(user);
+      await user.type(
+        await screen.findByRole('textbox', { name: /90 days from now/i }),
+        'Two sessions a week without dreading them.',
+      );
+      await user.click(screen.getByRole('button', { name: /send answer/i }));
+
+      expect(await screen.findByText(/saved — thank you/i)).toBeInTheDocument();
+      await waitFor(() => expect(updateAnswersMock).toHaveBeenCalledWith(
+        'waitlist-document-id',
+        expect.arrayContaining([
+          expect.objectContaining({
+            kind: 'text',
+            answer: 'Two sessions a week without dreading them.',
+          }),
+        ]),
+      ));
+    });
+
+    it('says so where the visitor is looking when that write failed', async () => {
+      const user = userEvent.setup();
+      updateAnswersMock.mockRejectedValue(new Error('permission denied'));
+      render(<WaitlistModal open order="questions" startAtFirstQuestion />);
+
+      await answerEverything(user);
+      await user.type(
+        await screen.findByRole('textbox', { name: /90 days from now/i }),
+        'Two sessions a week without dreading them.',
+      );
+      await user.click(screen.getByRole('button', { name: /send answer/i }));
+
+      // Confirming a save that did not happen is the one thing a button like
+      // this must never do.
+      expect(await screen.findByText(/could not save that just now/i)).toBeInTheDocument();
+      expect(screen.queryByText(/saved — thank you/i)).not.toBeInTheDocument();
+    });
+
+    it('drops the confirmation once the text changes again', async () => {
+      const user = userEvent.setup();
+      render(<WaitlistModal open order="questions" startAtFirstQuestion />);
+
+      await answerEverything(user);
+      const field = await screen.findByRole('textbox', { name: /90 days from now/i });
+      await user.type(field, 'Two sessions a week.');
+      await user.click(screen.getByRole('button', { name: /send answer/i }));
+      expect(await screen.findByText(/saved — thank you/i)).toBeInTheDocument();
+
+      await user.type(field, ' Without dreading them.');
+
+      // "Saved" left standing over an edited answer is worse than no
+      // confirmation at all — it is a claim about text nobody has.
+      expect(screen.queryByText(/saved — thank you/i)).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /send answer/i })).toBeEnabled();
+    });
   });
 
   // Asserted with the non-default arm, so it is the query string being read and
@@ -212,7 +289,12 @@ describe('WaitlistModal', () => {
 
     await answerEverything(user);
     const waitlist = within(await screen.findByRole('dialog'));
-    expect(await waitlist.findByRole('status')).toHaveTextContent(/could not save your answers/i);
+    // Announced, not just printed — the free text's own status line is the other
+    // live region on this screen, which is why this asks for the text first.
+    expect(await waitlist.findByText(/could not save your answers/i)).toHaveAttribute(
+      'role',
+      'status',
+    );
 
     await user.type(
       screen.getByRole('textbox', { name: /email address/i }),
@@ -307,5 +389,33 @@ describe('WaitlistModal', () => {
       expect(screen.queryByRole('textbox', { name: /email address/i })).not.toBeInTheDocument();
     });
 
+    /**
+     * There is no `JOIN` on this screen — the address arrived seven screens ago
+     * — so the free text is the only thing left to act on, and its own button is
+     * the only thing that can tell the visitor it landed.
+     */
+    it('sends the free text from the closing screen, which has no other button', async () => {
+      const user = userEvent.setup();
+      render(<WaitlistModal open order="email" />);
+      await join(user);
+      await answerEverything(user);
+
+      await user.type(
+        await screen.findByRole('textbox', { name: /90 days from now/i }),
+        'Two sessions a week without dreading them.',
+      );
+      await user.click(screen.getByRole('button', { name: /send answer/i }));
+
+      expect(await screen.findByText(/saved — thank you/i)).toBeInTheDocument();
+      await waitFor(() => expect(updateAnswersMock).toHaveBeenCalledWith(
+        'waitlist-document-id',
+        expect.arrayContaining([
+          expect.objectContaining({
+            kind: 'text',
+            answer: 'Two sessions a week without dreading them.',
+          }),
+        ]),
+      ));
+    });
   });
 });
