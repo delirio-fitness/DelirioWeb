@@ -170,25 +170,16 @@ body,
   text-decoration: underline;
   text-underline-offset: 4px;
 }
-.d3-app-store-badge {
-  align-items: center;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  position: relative;
-}
-.d3-app-store-badge img {
-  display: block;
-  height: auto;
-  width: 100%;
-}
 .d3-header-cta {
   align-items: center;
   background: #f4f0e7;
   border: 1px solid #f4f0e7;
   border-radius: var(--radius-sm);
   color: #121211 !important;
+  cursor: pointer;
   display: flex;
+  /* Cell B renders this as a <button>, which would otherwise drop the brand face. */
+  font-family: inherit;
   height: auto;
   justify-content: center;
   min-height: 44px;
@@ -198,9 +189,22 @@ body,
   transition:
     background-color 160ms ease,
     color 160ms ease,
-    transform 220ms ease;
+    opacity 200ms ease,
+    transform 220ms ease,
+    visibility 200ms ease;
   width: auto;
   z-index: 1;
+}
+/* Hidden rather than unmounted: the header is `space-between`, so removing the
+   button outright would slide the nav and the menu across as it comes and goes.
+   `visibility` also takes it out of the tab order, which `opacity` alone would
+   not. */
+.d3-header-cta.is-hidden {
+  opacity: 0;
+  transition:
+    opacity 200ms ease,
+    visibility 200ms ease;
+  visibility: hidden;
 }
 .d3-header-cta:hover {
   background: transparent;
@@ -267,14 +271,21 @@ body,
   width: 100%;
   z-index: -1;
 }
+/* The hero photograph has no dark region of its own — it is sunlit foliage straight across,
+   brightest exactly where the heading sits. This gradient is therefore the *whole* scrim, not a
+   top-up of one baked into the image, which is why it runs heavier and further right than a
+   scrim over a dark photo would. The second, vertical pass only knocks down the blown-out sky
+   along the top so the kicker and the transparent header stay legible. */
 .d3-hero-contrast {
-  background: linear-gradient(
-    90deg,
-    rgba(0, 0, 0, 0.78) 0%,
-    rgba(0, 0, 0, 0.62) 35%,
-    rgba(0, 0, 0, 0.2) 68%,
-    rgba(0, 0, 0, 0.06) 100%
-  );
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.86) 0%,
+      rgba(0, 0, 0, 0.76) 38%,
+      rgba(0, 0, 0, 0.42) 70%,
+      rgba(0, 0, 0, 0.18) 100%
+    ),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.42) 0%, rgba(0, 0, 0, 0) 34%);
   inset: 0;
   pointer-events: none;
   position: absolute;
@@ -385,7 +396,10 @@ body,
   border: 0;
   border-radius: var(--radius-md);
   color: #0b0b0b !important;
+  cursor: pointer;
   display: inline-flex;
+  /* Cell B renders this as a <button>, which would otherwise drop the brand face. */
+  font-family: inherit;
   font-size: calc(0.95rem + 0.25vw);
   font-weight: 800;
   gap: 26px;
@@ -430,47 +444,6 @@ body,
   background: #f4f0e7;
   color: #0b0b0b;
   transform: translateX(3px);
-}
-.d3-hero-questionnaire-action {
-  align-items: center;
-  background: rgba(0, 0, 0, 0.38);
-  border: 1px solid rgba(244, 240, 231, 0.68);
-  border-radius: var(--radius-md);
-  color: #f4f0e7;
-  cursor: pointer;
-  display: inline-flex;
-  font:
-    800 calc(0.82rem + 0.18vw)/1 'Exo 2',
-    sans-serif;
-  gap: 22px;
-  justify-content: center;
-  letter-spacing: 0.08em;
-  min-height: 70px;
-  padding: 0 24px;
-  transition:
-    background-color 180ms ease,
-    color 180ms ease;
-}
-.d3-hero-questionnaire-action:hover,
-.d3-hero-questionnaire-action:focus-visible {
-  background: #f4f0e7;
-  color: #0b0b0b;
-}
-.d3-hero-questionnaire-action:focus-visible {
-  outline: 3px solid #f4f0e7;
-  outline-offset: 5px;
-}
-.d3-hero-questionnaire-action span {
-  font-size: 18px;
-  transition: transform 180ms ease;
-}
-.d3-hero-questionnaire-action span svg {
-  display: block;
-  height: 28px;
-  width: 28px;
-}
-.d3-hero-questionnaire-action:hover span {
-  transform: translate(2px, -2px);
 }
 .d3-hero-capabilities {
   font-size: 12px;
@@ -559,64 +532,107 @@ body,
   color: #fff;
   transform: none;
 }
-.d3-hero--v3 .d3-hero-actions > .d3-hero-action {
-  display: none;
+/* Cell C of the ad experiment: one centred column ending in a single loud CTA. */
+.d3-hero.d3-hero--focus {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  /* The copy is the whole hero, so it sits in the middle of the fold. The top
+     padding keeps it clear of the fixed header rather than of the viewport. */
+  justify-content: center;
+  /* Short landscape viewports scroll rather than crush the stack. */
+  min-height: 540px;
+  overflow: hidden;
+  padding: calc(68px + 2vh) clamp(20px, 5vw, 48px) calc(2rem + 4vh);
+  text-align: center;
 }
-.d3-hero--v3 .d3-hero-questionnaire-action {
-  background: transparent;
-  border: 0;
-  border-bottom: 2px solid var(--paper);
-  border-radius: 0;
-  color: var(--paper);
-  gap: 20px;
-  isolation: auto;
-  justify-content: flex-start;
-  min-height: 0;
-  min-width: 0;
-  overflow: visible;
-  padding: 10px 0 12px;
+/* The pool is centred on the copy rather than the section: with the phone gone
+   the text sits mid-fold, over the brightest part of the photograph. Cell C centres its copy, so
+   unlike the V3 hero it cannot lean on a dark side — the pool itself has to do the work, and it
+   runs deeper here than it did over the old, darker background. */
+.d3-hero-focus-scrim {
+  background:
+    radial-gradient(90% 60% at 50% 44%, rgba(0, 0, 0, 0.84) 0%, rgba(0, 0, 0, 0.55) 52%, rgba(0, 0, 0, 0.1) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0.18) 42%, rgba(0, 0, 0, 0.55) 100%);
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+.d3-hero-focus-content {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: calc(0.85rem + 0.5vh);
+  max-width: 60rem;
   position: relative;
+  width: 100%;
+  z-index: 2;
+}
+.d3-page .d3-hero-focus-capabilities {
+  color: rgba(244, 240, 231, 0.66);
+  font-size: clamp(9px, 0.5rem + 0.25vw, 12px);
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  margin: 0;
+}
+.d3-page .d3-hero--focus h1 {
+  font-size: clamp(1.6rem, 0.6rem + 4.4vw, 5rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 0.98;
+  margin: 0;
+  text-wrap: balance;
+}
+.d3-page .d3-hero-focus-support {
+  color: rgba(244, 240, 231, 0.82);
+  font-size: clamp(0.95rem, 0.85rem + 0.4vw, 1.2rem);
+  line-height: 1.5;
+  margin: 0;
+  max-width: 33rem;
+}
+.d3-hero-focus-action {
+  align-items: center;
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-soft);
+  border-radius: var(--radius-pill);
+  color: #0b0b0b !important;
+  cursor: pointer;
+  display: inline-flex;
+  /* Cell C renders this as a <button>: it opens the gate rather than navigating. */
+  font-family: inherit;
+  font-size: clamp(1rem, 0.9rem + 0.35vw, 1.3rem);
+  font-weight: 800;
+  justify-content: center;
+  letter-spacing: 0.08em;
+  margin-top: calc(0.5rem + 1vh);
+  min-height: 68px;
+  padding: 0 clamp(32px, 5vw, 64px);
+  text-decoration: none;
   transition:
-    color 180ms ease,
-    opacity 180ms ease,
+    background-color 180ms ease,
     transform 180ms ease;
-  width: fit-content;
+  width: min(100%, 25rem);
 }
-.d3-hero--v3 .d3-hero-questionnaire-action::before,
-.d3-hero--v3 .d3-hero-questionnaire-action::after {
-  content: none;
+.d3-hero-focus-action:hover {
+  background: var(--accent-soft-hover);
+  border-color: var(--accent-soft-hover);
+  transform: translateY(-2px);
 }
-.d3-hero--v3 .d3-hero-questionnaire-label {
-  font:
-    800 calc(1rem + 0.22vw)/1.1 'Exo 2',
-    sans-serif;
-  letter-spacing: 0.1em;
-  transition: letter-spacing 180ms ease;
+.d3-hero-focus-action:active {
+  transform: translateY(0);
 }
-.d3-hero--v3 .d3-hero-questionnaire-action > span {
-  transition: transform 180ms ease;
+.d3-hero-focus-action:focus-visible {
+  outline: 3px solid var(--paper);
+  outline-offset: 5px;
 }
-.d3-hero--v3 .d3-hero-questionnaire-action:hover,
-.d3-hero--v3 .d3-hero-questionnaire-action:active {
-  background: transparent;
-  border-color: var(--paper);
-  color: var(--paper);
-  opacity: 0.82;
-}
-.d3-hero--v3 .d3-hero-questionnaire-action:hover .d3-hero-questionnaire-label {
-  letter-spacing: 0.12em;
-}
-.d3-hero--v3 .d3-hero-questionnaire-action:hover > span {
-  transform: translate(4px, -4px);
-}
-.d3-hero--v3 .d3-hero-questionnaire-action:active {
-  transform: translateY(1px);
-}
-.d3-hero--v3 .d3-hero-questionnaire-action:focus-visible {
-  background: transparent;
-  color: var(--paper);
-  outline: 2px solid var(--paper);
-  outline-offset: 7px;
+.d3-page .d3-hero-focus-reassurance {
+  color: rgba(244, 240, 231, 0.62);
+  font-size: clamp(11px, 0.55rem + 0.25vw, 14px);
+  letter-spacing: 0.04em;
+  margin: 0;
 }
 .d3-hero-tactical {
   color: #f4f0e7;
@@ -902,154 +918,161 @@ body,
   );
   height: clamp(110px, 12vw, 180px);
 }
-
-/* Shared voice action used by the promoted Keep Going carousel chapter. */
-.d3-voice-cta {
-  align-items: center;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  color: #f4f0e7 !important;
-  display: flex;
-  font-size: 13px;
-  font-weight: 800;
-  gap: 22px;
-  height: 70px;
-  isolation: isolate;
-  justify-content: center;
-  letter-spacing: 1.25px;
-  margin: 72px 0 0;
-  overflow: hidden;
-  padding: 0 24px;
-  position: relative;
-  text-decoration: none;
-  transition:
-    border-color 180ms ease 300ms,
-    color 180ms ease 180ms;
-  width: 310px;
-}
-.d3-voice-cta::before {
-  background: #12130f;
-  content: '';
-  inset: 0;
-  position: absolute;
-  transform: scaleX(1);
-  transform-origin: right center;
-  transition: transform 560ms cubic-bezier(0.76, 0, 0.24, 1);
-  z-index: 0;
-}
-.d3-voice-cta::after {
-  background: #12130f;
-  bottom: 0;
-  box-shadow: 0 0 8px rgba(18, 19, 15, 0.5);
-  content: '';
-  left: 0;
-  opacity: 0;
-  position: absolute;
-  top: 0;
-  width: 2px;
-  z-index: 1;
-}
-.d3-voice-cta b,
-.d3-voice-cta span {
-  position: relative;
-  z-index: 2;
-}
-.d3-voice-cta b {
-  font: inherit;
-}
-.d3-voice-cta span {
-  transition: transform 180ms ease;
-}
-.d3-voice-cta span svg {
-  display: block;
-  height: 28px;
-  width: 28px;
-}
-.d3-voice-cta:visited {
-  color: #f4f0e7 !important;
-}
-.d3-voice-cta:hover,
-.d3-voice-cta:focus-visible,
-.d3-voice-cta:active {
-  border-color: #12130f;
-  color: #12130f !important;
-}
-.d3-voice-cta:hover::before,
-.d3-voice-cta:focus-visible::before,
-.d3-voice-cta:active::before {
-  transform: scaleX(0);
-}
-.d3-voice-cta:hover::after,
-.d3-voice-cta:focus-visible::after,
-.d3-voice-cta:active::after {
-  animation: d3-voice-cta-scan 560ms cubic-bezier(0.76, 0, 0.24, 1) both;
-}
-.d3-voice-cta:hover span {
-  transform: translate(2px, -2px);
-}
-.d3-voice-cta:focus-visible {
-  outline: 3px solid #12130f;
-  outline-offset: 5px;
-}
-@keyframes d3-voice-cta-scan {
-  0% {
-    left: 0;
-    opacity: 0;
-  }
-  8% {
-    opacity: 1;
-  }
-  88% {
-    opacity: 1;
-  }
-  100% {
-    left: 100%;
-    opacity: 0;
-  }
-}
-
-/* Each post-hero chapter arrives from depth while remaining beneath the chapter before it. */
-.d3-page .coach-trial {
+/*
+ * The coaches, introduced.
+ *
+ * This section used to run a live voice and text trial; the cards were buttons
+ * that picked a coach and opened a session. That is retired, so everything here
+ * is editorial — no hover growth, no focus ring, nothing to press. The two-card
+ * composition is kept because it is what the page's rhythm was built around.
+ */
+.d3-page .d3-coach-intro {
   background: #000;
   color: #f4f0e7;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  height: 100dvh;
+  height: auto;
   isolation: isolate;
   left: 50%;
   margin-top: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
   padding-block: 140px 20px;
   position: relative;
   transform: translateX(-50%);
   width: 100vw;
   z-index: 4;
 }
-.coach-trial__anchor {
+/* Lifts the scroll target clear of the sticky header for `#coaches` links. */
+.coach-intro__anchor {
   position: absolute;
   top: -104px;
 }
-.coach-trial__shell {
+.coach-intro__shell {
   backface-visibility: hidden;
-  background: transparent;
-  border-radius: var(--radius-lg);
   display: flex;
   flex: 1;
   flex-direction: column;
   gap: 44px;
   margin-inline: auto;
   min-height: 0;
+  /* Clips the cards' deliberate overhang past the viewport edge. */
   overflow: hidden;
   padding: 38px 0;
   position: relative;
   width: 100%;
   z-index: 1;
 }
-.coach-trial__shell.coach-trial__shell--choose {
-  margin-inline: calc(50% - 50vw);
-  padding-inline: 0;
-  width: 100vw;
+.coach-intro__intro {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-inline: 100px;
+  width: 100%;
+}
+.coach-intro__intro h2 {
+  font:
+    700 52px/56px 'Exo 2',
+    sans-serif;
+  letter-spacing: -0.04em;
+  margin: 0;
+}
+.coach-intro__intro p {
+  color: #9a9690;
+  margin: 0;
+  max-width: 56ch;
+}
+.coach-intro__choices {
+  /* The cards take their height from `stretch`, not a percentage: this row is
+     itself a flex item, so a `height: 100%` on the card resolves against an
+     indefinite parent and collapses it to its own content. */
+  align-items: stretch;
+  display: flex;
+  flex: 1;
+  gap: 14%;
+  justify-content: center;
+  margin-inline: calc(50% - 52vw);
+  min-height: 0;
+  position: relative;
+  width: 104vw;
+}
+.coach-intro__card {
+  border-radius: var(--radius-lg);
+  color: #0b0b0b;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  gap: 14px;
+  justify-content: flex-end;
+  min-width: 0;
+  padding: 42px 38px;
+  position: relative;
+}
+.coach-intro__card::before {
+  background: #f4f0e7;
+  border-radius: inherit;
+  content: '';
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+}
+.coach-intro__card:first-child {
+  align-items: flex-end;
+  text-align: right;
+}
+.coach-intro__card:last-child {
+  align-items: flex-start;
+  text-align: left;
+}
+.coach-intro__card-profile {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  left: 50%;
+  position: absolute;
+  text-align: center;
+  top: 47%;
+  transform: translate(-50%, -50%);
+  width: min(78%, 420px);
+  z-index: 1;
+}
+.coach-intro__card-profile img {
+  height: clamp(152px, 13vw, 196px);
+  margin: 0;
+  object-fit: contain;
+  width: clamp(152px, 13vw, 196px);
+}
+.coach-intro__card-description {
+  color: #0b0b0b;
+  display: block;
+  font-size: clamp(14px, 1.05vw, 17px);
+  font-weight: 600;
+  line-height: 1.45;
+  max-width: 380px;
+  text-align: left;
+}
+.coach-intro__card-meta {
+  align-items: inherit;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  mix-blend-mode: difference;
+  position: relative;
+  z-index: 1;
+}
+.coach-intro__card b {
+  font:
+    700 32px/1 'Exo 2',
+    sans-serif;
+}
+.coach-intro__card small {
+  color: inherit;
+  font-size: 14px;
+  font-weight: 700;
 }
 @keyframes d3-section-depth-arrive {
   from {
@@ -1078,600 +1101,6 @@ body,
     animation-range: entry 0% entry 90%;
     animation-timeline: view(block);
   }
-}
-.coach-trial__intro {
-  width: 100%;
-  padding-inline: 100px;
-  align-items: flex-start;
-  display: flex;
-  flex-direction: column;
-  height: auto;
-  justify-content: flex-start;
-}
-.coach-trial__step {
-  color: #9a9690;
-  font:
-    700 11px/16px 'Exo 2',
-    sans-serif;
-  margin: 0;
-}
-.coach-trial__intro h2 {
-  font:
-    700 52px/56px 'Exo 2',
-    sans-serif;
-  letter-spacing: -0.04em;
-  margin: 0 0 18px;
-}
-.coach-trial__panel {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 22px;
-  min-height: 0;
-  padding: 0;
-  position: relative;
-  width: 100%;
-}
-.coach-trial__panel--choose {
-  justify-content: flex-start;
-}
-.coach-trial__question {
-  font:
-    700 28px/1 'Exo 2',
-    sans-serif;
-  margin: 0;
-}
-.coach-trial__choices {
-  display: flex;
-  flex: 1;
-  gap: 14%;
-  height: auto;
-  justify-content: center;
-  margin-inline: calc(50% - 52vw);
-  min-height: 0;
-  overflow: visible;
-  position: relative;
-  width: 104vw;
-}
-.coach-trial__card {
-  background: transparent;
-  border: 0;
-  border-radius: var(--radius-lg);
-  color: #0b0b0b;
-  cursor: pointer;
-  display: flex;
-  flex: 1 1 0;
-  flex-direction: column;
-  gap: 14px;
-  height: 100%;
-  justify-content: flex-end;
-  min-width: 0;
-  outline: 0;
-  padding: 42px 38px;
-  position: relative;
-  top: 0;
-}
-.coach-trial__card::before {
-  border-radius: inherit;
-  content: '';
-  inset: 0;
-  pointer-events: none;
-  position: absolute;
-  transition:
-    inset 260ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    filter 180ms ease;
-  z-index: 0;
-}
-.coach-trial__card:first-child {
-  align-items: flex-end;
-  text-align: right;
-}
-.coach-trial__card:first-child::before {
-  background: #f4f0e7;
-}
-.coach-trial__card:last-child {
-  align-items: flex-start;
-  text-align: left;
-}
-.coach-trial__card:last-child::before {
-  background: #f4f0e7;
-}
-.coach-trial__card:first-child:hover::before {
-  filter: brightness(1.04);
-  right: -5vw;
-}
-.coach-trial__card:last-child:hover::before {
-  filter: brightness(1.04);
-  left: -5vw;
-}
-.coach-trial__card:focus-visible {
-  outline: 3px solid var(--accent-soft);
-  outline-offset: 4px;
-}
-.coach-trial__card-profile {
-  align-items: center;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  left: 50%;
-  position: absolute;
-  text-align: center;
-  top: 47%;
-  transform: translate(-50%, -50%);
-  width: min(78%, 420px);
-  z-index: 1;
-}
-.coach-trial__card-profile img {
-  height: clamp(152px, 13vw, 196px);
-  margin: 0;
-  object-fit: contain;
-  width: clamp(152px, 13vw, 196px);
-}
-.coach-trial__card-description {
-  color: #0b0b0b;
-  display: block;
-  font-size: clamp(14px, 1.05vw, 17px);
-  font-weight: 600;
-  line-height: 1.45;
-  max-width: 380px;
-  text-align: left;
-}
-.coach-trial__card-meta {
-  align-items: inherit;
-  color: #fff;
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  mix-blend-mode: difference;
-  position: relative;
-  z-index: 1;
-}
-.coach-trial__card b {
-  font:
-    700 32px/1 'Exo 2',
-    sans-serif;
-}
-.coach-trial__card small {
-  color: inherit;
-  font-size: 14px;
-  font-weight: 700;
-}
-.coach-trial__card u {
-  color: #fff;
-  font-size: 15px;
-  font-weight: 700;
-  mix-blend-mode: difference;
-  text-underline-offset: 4px;
-}
-.coach-trial__controls {
-  align-items: center;
-  display: flex;
-  gap: 18px;
-  height: 66px;
-  padding-inline: clamp(24px, 7vw, 100px);
-  width: 100%;
-}
-.coach-trial__coach-tabs {
-  display: flex;
-  gap: 12px;
-  height: 58px;
-  width: 326px;
-}
-.coach-trial__coach-tabs button {
-  align-items: center;
-  background: #242421;
-  border: 0;
-  border-radius: var(--radius-sm);
-  color: #f4f0e7;
-  cursor: pointer;
-  display: flex;
-  font-size: 12px;
-  font-weight: 700;
-  gap: 10px;
-  height: 58px;
-  min-width: 0;
-  padding: 8px 14px;
-  transition:
-    background-color 180ms ease,
-    color 180ms ease,
-    transform 180ms ease;
-  width: 154px;
-}
-.coach-trial__coach-tabs button:hover {
-  background: #34342f;
-  transform: translateY(-2px);
-}
-.coach-trial__coach-tabs button:focus-visible {
-  outline: 3px solid #c8d8c0;
-  outline-offset: 3px;
-}
-.coach-trial__coach-tabs button[aria-pressed='true'] {
-  background: #f4f0e7;
-  color: #0b0b0b;
-}
-.coach-trial__coach-tabs button[aria-pressed='true']:hover {
-  background: #eef2e9;
-}
-.coach-trial__coach-tabs img {
-  flex: 0 0 auto;
-  height: 40px;
-  object-fit: contain;
-  padding: 3px;
-  width: 40px;
-}
-.coach-trial__mode-tabs {
-  display: flex;
-  gap: 10px;
-  height: 58px;
-  margin-right: auto;
-  order: -1;
-  width: 360px;
-}
-.coach-trial__mode-tabs button {
-  background: transparent;
-  border: 1px solid rgba(244, 240, 231, 0.72);
-  border-radius: var(--radius-sm);
-  color: #f4f0e7;
-  cursor: pointer;
-  flex: 1;
-  font-size: 13px;
-  font-weight: 700;
-  height: 58px;
-  letter-spacing: 0.08em;
-  min-width: 0;
-  transition:
-    background-color 180ms ease,
-    color 180ms ease;
-  width: auto;
-}
-.coach-trial__mode-tabs button[aria-pressed='true'] {
-  background: #f4f0e7;
-  border-color: #f4f0e7;
-  color: #0b0b0b;
-}
-.coach-trial__stage {
-  align-items: flex-start;
-  background: var(--surface);
-  border: 1px solid #393936;
-  border-radius: var(--radius-md);
-  display: flex;
-  flex: 1;
-  gap: 28px;
-  min-height: 0;
-  padding: 32px;
-  width: 100%;
-}
-.coach-trial__stage--voice {
-  background: transparent;
-  border: 0;
-  overflow: hidden;
-  padding-left: 100px;
-  position: relative;
-}
-.coach-trial__stage--voice > .coach-trial__stage-portrait {
-  height: clamp(140px, 12vw, 180px);
-  left: 50%;
-  margin: 0;
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: clamp(140px, 12vw, 180px);
-  z-index: 2;
-}
-.coach-trial__voice-presence {
-  height: clamp(250px, 24vw, 340px);
-  left: 50%;
-  pointer-events: none;
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: clamp(300px, 31vw, 440px);
-  z-index: 1;
-}
-.coach-trial__mock-frequency {
-  align-items: center;
-  bottom: 0;
-  display: flex;
-  gap: clamp(4px, 0.55vw, 8px);
-  height: 54px;
-  justify-content: center;
-  left: 12%;
-  position: absolute;
-  right: 12%;
-}
-.coach-trial__mock-frequency i {
-  background: rgba(244, 240, 231, 0.7);
-  display: block;
-  min-height: 8px;
-  transform-origin: center;
-  transition: height 80ms linear;
-  width: clamp(3px, 0.3vw, 5px);
-}
-.coach-trial__mock-frequency.is-fallback i {
-  animation: coach-mock-frequency 0.85s ease-in-out infinite alternate;
-}
-.coach-trial__stage--voice.is-coach-speaking .coach-trial__mock-frequency.is-fallback i {
-  animation-duration: 0.48s;
-}
-.coach-trial__stage--voice.is-coach-speaking .coach-trial__mock-frequency i {
-  background: #f4f0e7;
-}
-.coach-trial__stage--text {
-  background: transparent;
-  border: 0;
-  display: block;
-  padding: 0 100px;
-  position: relative;
-}
-.coach-trial__mode-content {
-  animation: coach-mode-fade 0.28s ease-out both;
-}
-.coach-trial__stage-portrait {
-  flex: 0 0 96px;
-  height: 120px;
-  object-fit: contain;
-  width: 96px;
-}
-.coach-trial__voice-content,
-.coach-trial__text-content {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 12px;
-  height: 100%;
-  min-width: 0;
-}
-.coach-trial__session-label {
-  color: #aaa69d;
-  font-size: 11px;
-  font-weight: 700;
-  margin: 0;
-}
-.coach-trial__voice-content h3 {
-  font:
-    700 30px/1 'Exo 2',
-    sans-serif;
-  margin: 0;
-}
-.coach-trial__stage--voice.is-connected .coach-trial__voice-content h3 {
-  color: var(--accent-soft);
-}
-.coach-trial__transcript {
-  color: #9a9690;
-  font-size: 11px;
-  line-height: 16px;
-  margin: -4px 0;
-  max-height: 32px;
-  overflow: hidden;
-}
-.coach-trial__voice-actions {
-  align-items: center;
-  display: flex;
-  gap: 16px;
-  justify-content: flex-end;
-  margin-top: auto;
-}
-.coach-trial__voice-actions span {
-  color: #aaa69d;
-  flex: 1;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 14px;
-  max-width: fit-content;
-}
-.coach-trial__voice-actions span b {
-  color: #aaa69d;
-}
-.coach-trial__voice-actions button {
-  background: #f4f0e7;
-  border: 1px solid #f4f0e7;
-  border-radius: var(--radius-sm);
-  color: #0b0b0b;
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: 700;
-  height: 48px;
-  width: 210px;
-}
-.coach-trial__text-content {
-  gap: 16px;
-  position: relative;
-  width: 100%;
-}
-.coach-trial__text-header {
-  align-items: center;
-  border-bottom: 1px solid #292926;
-  display: flex;
-  gap: 12px;
-  min-height: 56px;
-  padding: 0 4px 12px;
-}
-.coach-trial__text-header .coach-trial__stage-portrait {
-  flex: 0 0 46px;
-  height: 46px;
-  width: 46px;
-}
-.coach-trial__text-header .coach-trial__session-label {
-  color: #aaa69d;
-  letter-spacing: 0.08em;
-}
-.coach-trial__message-viewport {
-  background: transparent;
-  border: 0;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-  padding: 30px 32px;
-  position: relative;
-}
-.coach-trial--text {
-  height: auto !important;
-  min-height: 100vh;
-  min-height: 100dvh;
-}
-.coach-trial--text .coach-trial__message-viewport {
-  align-self: center;
-  flex: none;
-  height: max(360px, calc(150dvh - 845px));
-  width: 75%;
-}
-.d3-page .coach-trial__chat-ghost {
-  color: #f4f0e7;
-  font-size: 19.5px;
-  font-weight: 700;
-  inset-inline: 0;
-  letter-spacing: 0.035em;
-  line-height: 28.5px;
-  margin: 0 auto;
-  max-width: 460px;
-  opacity: 0.36;
-  pointer-events: none;
-  position: absolute;
-  text-align: center;
-  top: 50%;
-  transform: translateY(-50%);
-  transition:
-    opacity 360ms ease,
-    transform 360ms ease;
-  width: calc(100% - 48px);
-}
-.d3-page .coach-trial__chat-ghost.is-hidden {
-  opacity: 0;
-  transform: translateY(calc(-50% - 6px));
-}
-.coach-trial__chat-form {
-  align-items: stretch;
-  align-self: center;
-  background: #161616;
-  border: 1px solid #5a5852;
-  border-radius: var(--radius-md);
-  display: flex;
-  flex: 0 0 70px;
-  gap: 0;
-  height: 70px;
-  overflow: hidden;
-  padding: 0;
-  position: relative;
-  width: 75%;
-}
-.coach-trial__chat-form input {
-  background: transparent;
-  border: 0;
-  color: #f4f0e7;
-  flex: 1;
-  font-size: 16px;
-  font-weight: 700;
-  height: 100%;
-  min-width: 0;
-  outline: 0;
-  padding: 0 14px;
-  width: auto;
-}
-.coach-trial__chat-form input::placeholder {
-  color: #9a9690;
-  opacity: 1;
-}
-.coach-trial__chat-form button {
-  align-items: center;
-  aspect-ratio: 1;
-  background: var(--accent-soft);
-  border: 0;
-  border-left: 1px solid #5a5852;
-  border-radius: 0;
-  color: #0b0b0b;
-  cursor: pointer;
-  display: flex;
-  flex: 0 0 auto;
-  height: 100%;
-  justify-content: center;
-  padding: 0;
-  transition:
-    background-color 160ms ease,
-    opacity 160ms ease,
-    transform 160ms ease;
-  width: auto;
-}
-.coach-trial__chat-form button svg {
-  fill: none;
-  height: 24px;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.8;
-  width: 24px;
-}
-.coach-trial__chat-form button:not(:disabled):hover {
-  transform: scale(1.05);
-}
-.coach-trial__chat-form button:disabled {
-  cursor: not-allowed;
-  opacity: 0.32;
-}
-.coach-trial__connection-status {
-  align-items: center;
-  align-self: center !important;
-  background: transparent !important;
-  border: 0 !important;
-  color: #aaa69d !important;
-  flex-direction: row !important;
-  font-weight: 700;
-  gap: 6px;
-  max-width: 100% !important;
-  padding: 8px 0 !important;
-  text-align: center;
-}
-.coach-trial__connection-status button {
-  background: none;
-  border: 0;
-  color: #f4f0e7;
-  cursor: pointer;
-  font: inherit;
-  padding: 0;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.coach-trial__connection-status:not(.is-error) {
-  color: var(--accent-soft) !important;
-}
-.coach-trial__messages {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  height: 100%;
-  overflow: auto;
-  padding: 2px;
-  scrollbar-color: #59594f #171717;
-  scrollbar-width: thin;
-}
-.coach-trial__messages p {
-  align-self: flex-start;
-  background: #141414;
-  border: 1px solid #2d2d29;
-  border-radius: var(--radius-md);
-  color: #c2bdad;
-  display: flex;
-  flex-direction: column;
-  font-size: 20.625px;
-  line-height: 27px;
-  margin: 0;
-  max-width: min(72%, 720px);
-  padding: 14px 16px;
-}
-.coach-trial__messages p:first-child {
-  margin-top: auto;
-}
-.coach-trial__messages p.user {
-  align-self: flex-end;
-  background: #1d1d1b;
-  border-color: #4d4b45;
-  color: #f4f0e7;
-  text-align: left;
-}
-.coach-trial__messages b {
-  color: #9a9690;
-  font-size: 13.5px;
-  letter-spacing: 0.08em;
-  margin-bottom: 5px;
 }
 @keyframes coach-mode-fade {
   from {
@@ -1707,20 +1136,6 @@ body,
   }
 }
 @supports (animation-timeline: view()) {
-  .d3-page .coach-trial {
-    view-timeline-axis: block;
-    view-timeline-name: --coach-section;
-  }
-  .coach-trial__card:first-child {
-    animation: d3-curtain-left linear both;
-    animation-range: entry 0% entry 80%;
-    animation-timeline: --coach-section;
-  }
-  .coach-trial__card:last-child {
-    animation: d3-curtain-right linear both;
-    animation-range: entry 0% entry 80%;
-    animation-timeline: --coach-section;
-  }
   .d3-plan-live {
     view-timeline-axis: block;
     view-timeline-name: --plan-live-section;
@@ -1755,36 +1170,8 @@ body,
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .coach-trial__mode-content {
-    animation: none;
-  }
-  .coach-trial__chat-ghost {
-    transition: none;
-  }
-  .coach-trial__mock-frequency i {
-    animation: none;
-  }
   .d3-hero--v3 .d3-hero-action::before {
     transition: none;
-  }
-  .d3-hero--v3 .d3-hero-questionnaire-action,
-  .d3-hero--v3 .d3-hero-questionnaire-label,
-  .d3-hero--v3 .d3-hero-questionnaire-action > span {
-    transition: none;
-  }
-  .d3-voice-cta::before {
-    transition: none;
-  }
-  .d3-voice-cta::after {
-    animation: none !important;
-    display: none;
-  }
-  .coach-trial__intro,
-  .coach-trial__card img,
-  .coach-trial__stage-portrait,
-  .coach-trial__mock-frequency {
-    animation: none;
-    opacity: 1;
   }
 }
 
@@ -2099,9 +1486,6 @@ body,
   top: 5%;
   width: 28%;
   z-index: 2;
-}
-.d3-plan-live-capture--voice .d3-plan-live-screen-overlay {
-  width: 32%;
 }
 .d3-plan-live-screen-overlay .d3-iphone-frame {
   aspect-ratio: 71.5/149.6;
@@ -2598,9 +1982,6 @@ body,
 .d3-plan-live-quiz small {
   color: rgba(18, 19, 15, 0.62);
   font: 600 12px/1.4 'Exo 2';
-}
-.d3-plan-live-voice-cta {
-  margin-top: 40px;
 }
 .d3-plan-live-archive {
   color: rgba(18, 19, 15, 0.58);
@@ -3539,6 +2920,12 @@ body,
   padding: 42px 70px;
   width: 100%;
 }
+.d3-questionnaire-counter {
+  color: #64715d;
+  font: 700 11px/1 'Exo 2';
+  letter-spacing: 0.13em;
+  margin: 0 0 20px;
+}
 .d3-questionnaire-step h2 {
   font: 700 clamp(38px, 5vw, 58px)/1.04 'Exo 2';
   letter-spacing: -2px;
@@ -3604,32 +2991,6 @@ body,
   letter-spacing: 0 !important;
   margin: 16px 0 0 !important;
 }
-.d3-questionnaire-loading {
-  align-items: center;
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  justify-content: center;
-  min-height: 0;
-  padding: 48px 32px 96px;
-  text-align: center;
-}
-.d3-questionnaire-loading-icon {
-  animation: d3-questionnaire-loading-spin 850ms linear infinite;
-  border: 3px solid rgba(18, 19, 15, 0.2);
-  border-radius: 50%;
-  border-top-color: #64715d;
-  height: 52px;
-  margin-bottom: 28px;
-  width: 52px;
-}
-.d3-questionnaire-loading h2 {
-  font: 700 clamp(24px, 3vw, 38px)/1.12 'Exo 2';
-  letter-spacing: -0.025em;
-  margin: 0;
-  max-width: 680px;
-  outline: 0;
-}
 .d3-questionnaire-intro {
   display: flex;
   flex: 1;
@@ -3680,84 +3041,111 @@ body,
 .d3-questionnaire-intro > button:hover {
   background: #64715d;
 }
-@keyframes d3-questionnaire-loading-spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-.d3-questionnaire-success {
-  margin: auto;
-  padding: 52px 72px 58px;
-  text-align: left;
-  width: 100%;
-}
-.d3-questionnaire-fit {
-  max-width: 1080px;
-}
-.d3-questionnaire-fit > p {
-  color: #64715d;
-  font: 700 11px/1 'Exo 2';
-  letter-spacing: 0.12em;
-  margin: 0 0 20px;
-}
-.d3-questionnaire-success .d3-questionnaire-fit h2 {
-  font: 700 clamp(34px, 3.5vw, 50px)/1.02 'Exo 2';
-  letter-spacing: -0.035em;
-  margin: 0 0 76px;
-  max-width: 1000px;
-  outline: 0;
-}
-.d3-questionnaire-fit ul {
-  list-style: none;
-  margin: 0;
-  max-width: 1080px;
+/* Email-first arm: the signup form stands in for the intro's CTA button, so it
+   inherits that button's spacing rather than the band styling it uses on the
+   landing page. See `config/waitlistOrder`. */
+.d3-questionnaire-email-first .d3-wishlist {
+  margin-top: 38px;
   padding: 0;
 }
-.d3-questionnaire-fit li {
-  align-items: start;
-  border-top: 1px solid rgba(18, 19, 15, 0.2);
-  display: grid;
-  gap: 28px;
-  grid-template-columns: minmax(220px, 300px) 1fr;
-  padding: 22px 0;
+/* The standing offer to stop answering. Deliberately a real, visible control
+   and not a buried link — the arm's whole premise is that the questions are
+   optional, and an opt-out nobody finds is not one. */
+.d3-questionnaire-skip {
+  align-self: flex-start;
+  background: none;
+  border: 0;
+  color: #55564f;
+  cursor: pointer;
+  font: 700 13px/1 'Exo 2';
+  letter-spacing: 0.02em;
+  margin-top: 30px;
+  min-height: 44px;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
-.d3-questionnaire-fit li strong {
-  font-size: 16px;
-  line-height: 1.25;
+.d3-questionnaire-skip:hover:not(:disabled) {
+  color: var(--ink);
 }
-.d3-questionnaire-fit li span {
-  color: #4e4d46;
-  font-size: 15px;
-  line-height: 1.5;
+.d3-questionnaire-skip:disabled {
+  cursor: default;
+  opacity: 0.45;
 }
-.d3-questionnaire-download {
-  border-top: 1px solid rgba(18, 19, 15, 0.2);
-  margin-top: 22px;
-  padding-top: 36px;
-  text-align: center;
+/* Stepped design: the screen the last answer leads to. */
+.d3-questionnaire-waitlist {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  margin: auto;
+  max-width: 860px;
+  padding: 48px 72px 72px;
+  width: 100%;
 }
-.d3-questionnaire-download > p {
+.d3-questionnaire-waitlist > p {
   color: #64715d;
   font: 700 11px/1 'Exo 2';
+  letter-spacing: 0.13em;
+  margin: 0 0 22px;
+}
+.d3-questionnaire-waitlist h2 {
+  font: 700 clamp(34px, 4.4vw, 56px)/1.02 'Exo 2';
+  letter-spacing: -0.04em;
+  margin: 0 0 34px;
+  outline: 0;
+}
+/* The optional free-text question, shown beside the email box in both designs.
+   Deliberately quieter than the email row next to it: it must not read as
+   another thing standing between the visitor and their spot. */
+.d3-questionnaire-open {
+  margin: 0 0 26px;
+}
+.d3-questionnaire-open label {
+  align-items: baseline;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.d3-questionnaire-open label > b {
+  font: 700 15px/1.3 'Exo 2';
+  letter-spacing: -0.01em;
+}
+.d3-questionnaire-open label > i {
+  color: #6b685e;
+  font: 600 10px/1 'Exo 2';
+  font-style: normal;
   letter-spacing: 0.12em;
-  margin: 0 0 14px;
+  text-transform: uppercase;
 }
-.d3-questionnaire-download h3 {
-  font: 700 clamp(28px, 3vw, 42px)/1.05 'Exo 2';
-  letter-spacing: -0.035em;
-  margin: 0 0 14px;
-}
-.d3-questionnaire-download > span {
-  color: #4e4d46;
+.d3-questionnaire-open textarea {
+  background: #fffdf7;
+  border: 1px solid rgba(18, 19, 15, 0.38);
+  border-radius: var(--radius-md);
+  color: var(--ink);
   display: block;
-  font-size: 16px;
-  line-height: 1.5;
-  margin-inline: auto;
-  max-width: 680px;
+  font: 500 14px/1.5 'Exo 2';
+  min-height: 84px;
+  padding: 14px 16px;
+  resize: vertical;
+  width: 100%;
 }
-.d3-questionnaire-app-store-badge {
-  margin: 24px auto 0;
-  width: min(210px, 100%);
+.d3-questionnaire-open textarea::placeholder {
+  color: #8c8a80;
+}
+.d3-questionnaire-open textarea:focus-visible {
+  border-color: var(--ink);
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+}
+/* Shown only when the answer write failed. Calm on purpose: the visitor did
+   nothing wrong and the email box below still works. */
+.d3-questionnaire-save-warning {
+  color: #69665d;
+  font: 500 12px/18px 'Exo 2';
+  margin: -18px 0 26px;
+  max-width: 560px;
 }
 
 .d3-faq {
@@ -3908,64 +3296,8 @@ body,
   color: #6b685e !important;
 }
 
-.d3-dialog-backdrop {
-  align-items: center;
-  background: rgba(0, 0, 0, 0.78);
-  display: flex;
-  inset: 0;
-  justify-content: center;
-  padding: 20px;
-  position: fixed;
-  z-index: 500;
-}
-.d3-dialog {
-  background: #000;
-  border: 1px solid rgba(247, 242, 229, 0.375);
-  border-radius: var(--radius-lg);
-  color: var(--paper);
-  max-width: 520px;
-  padding: 32px;
-  width: 100%;
-}
-.d3-dialog h2 {
-  font-size: 34px;
-  line-height: 1.05;
-  margin: 0 0 14px;
-}
-.d3-dialog > p:not(.d3-dialog-kicker) {
-  color: var(--muted);
-  line-height: 1.55;
-}
-.d3-dialog-kicker {
-  font-size: 11px;
-  font-weight: 700;
-  margin: 0 0 18px;
-  text-transform: uppercase;
-}
-.d3-dialog-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 26px;
-}
-.d3-dialog-actions button {
-  background: var(--paper);
-  border: 1px solid var(--paper);
-  border-radius: var(--radius-sm);
-  color: var(--ink);
-  cursor: pointer;
-  font-weight: 700;
-  min-height: 44px;
-  padding: 0 18px;
-}
-.d3-dialog-actions button.is-secondary {
-  background: transparent;
-  color: var(--paper);
-}
-
 @media (min-width: 1400px) {
   .d3-hero,
-  .d3-page .coach-trial,
   .d3-plan-live,
   .d3-pricing-wrap {
     height: 1400px;
@@ -3977,86 +3309,8 @@ body,
     min-height: 1050px;
   }
 
-  .d3-page .coach-trial {
-    height: 100vh;
-    height: 100dvh;
-    min-height: 0;
-  }
-
   .d3-hero-content {
     top: calc(0.3125 * (25.5vh + 25.5vw));
-  }
-  .d3-page .coach-trial {
-    padding-block: 168px 24px;
-  }
-  .coach-trial__shell {
-    padding: 50px 52px;
-  }
-  .coach-trial__intro {
-    height: auto;
-  }
-  .coach-trial__panel {
-    height: auto;
-    width: 100%;
-  }
-  .coach-trial__choices {
-    flex: 1;
-    height: auto;
-  }
-  .coach-trial__card {
-    height: 100%;
-  }
-  .coach-trial__card-profile img {
-    height: 196px;
-    width: 196px;
-  }
-  .coach-trial__controls {
-    height: 72px;
-    width: 100%;
-  }
-  .coach-trial__coach-tabs {
-    width: 391px;
-  }
-  .coach-trial__coach-tabs button {
-    flex: 1;
-    width: auto;
-  }
-  .coach-trial__mode-tabs {
-    width: 420px;
-  }
-  .coach-trial__mode-tabs button {
-    flex: 1;
-    width: auto;
-  }
-  .coach-trial__stage {
-    height: auto;
-    width: 100%;
-  }
-  .coach-trial__stage-portrait {
-    flex-basis: 115px;
-    height: 115px;
-    width: 115px;
-  }
-  .coach-trial__voice-content,
-  .coach-trial__text-content {
-    height: 100%;
-  }
-  .coach-trial__messages {
-    height: 100%;
-    padding-bottom: 0;
-  }
-  .coach-trial--text .coach-trial__message-viewport {
-    height: max(416px, calc(150dvh - 934px));
-  }
-  .coach-trial__chat-form {
-    width: 100%;
-  }
-  .coach-trial__chat-form input {
-    min-width: 0;
-    width: 100%;
-  }
-  .coach-trial__chat-form button {
-    width: auto;
   }
   .d3-pricing-wrap,
   .d3-faq-wrap {
@@ -4138,6 +3392,18 @@ body,
   margin: 0;
   max-width: 590px;
 }
+/* Quieter than the pitch above it, but still a real link — this is the only
+   route off the waitlist, so it must not read as fine print. */
+.d3-footer-copy p.d3-footer-optout {
+  font-size: 14px;
+  margin-top: 18px;
+  opacity: 0.75;
+}
+.d3-footer-copy p.d3-footer-optout a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .d3-app-card {
   align-content: center;
   display: grid;
@@ -4163,9 +3429,30 @@ body,
   height: 100px;
   width: 72px;
 }
-.d3-footer-app-badge {
+/* Scoped through `.d3-footer` to outrank `.d3-page a { color: inherit }`, which
+   would otherwise paint this label paper-on-paper and hide it completely.
+   Renders as a <button> on the landing page, where it opens the gate directly,
+   and as an <a> on the legal pages, which have no gate mounted. */
+.d3-footer .d3-footer-waitlist-cta {
+  align-items: center;
+  background: var(--paper);
+  border: 0;
+  border-radius: var(--radius-md);
+  color: var(--ink);
+  cursor: pointer;
+  display: flex;
   flex: 0 1 216px;
+  font: 800 12px/1 'Exo 2';
+  justify-content: center;
+  letter-spacing: 0.1em;
+  min-height: 56px;
+  padding: 0 20px;
+  text-align: center;
+  text-decoration: none;
   width: min(216px, 100%);
+}
+.d3-footer .d3-footer-waitlist-cta:hover {
+  background: var(--accent-soft);
 }
 .d3-app-copy small {
   color: var(--muted);
@@ -4178,6 +3465,12 @@ body,
   letter-spacing: 0.08em;
   margin-top: 9px;
 }
+/*
+ * `.d3-wishlist` is the email form itself. It only ever renders inside the
+ * waitlist gate now (`--questionnaire` below); the base rules are what the
+ * modifier overrides, and are also what an ungated placement would use if one
+ * is ever wanted again.
+ */
 .d3-wishlist {
   align-items: end;
   border-bottom: 1px solid #d8d4cc;
@@ -4314,22 +3607,6 @@ body,
   padding: 0;
   text-align: left;
 }
-.d3-wishlist--questionnaire .d3-wishlist-copy > p {
-  color: #64715d;
-  margin-bottom: 12px;
-}
-.d3-wishlist--questionnaire .d3-wishlist-copy h3 {
-  color: var(--ink);
-  font-size: 21px;
-  letter-spacing: -0.02em;
-  line-height: 1;
-  margin: 0 0 14px;
-  font-weight: bold;
-}
-.d3-wishlist--questionnaire .d3-wishlist-copy > span {
-  color: #6b685e;
-  font-size: 14px;
-}
 .d3-wishlist--questionnaire .d3-wishlist-entry {
   margin: 0;
 }
@@ -4444,20 +3721,6 @@ body,
   .d3-river-fade.is-top {
     top: 382px;
   }
-  .d3-page #session {
-    grid-template-columns: 1fr;
-  }
-  .d3-page .coach-trial {
-    height: 100vh;
-    height: 100dvh;
-  }
-  .coach-trial__panel {
-    width: 100%;
-  }
-  .coach-trial__controls,
-  .coach-trial__stage {
-    max-width: 100%;
-  }
   .d3-pricing {
     grid-template-columns: 1fr 1fr;
   }
@@ -4473,13 +3736,6 @@ body,
 @media (min-width: 761px) and (max-width: 1399px) {
   .d3-page {
     --radius-section: 28px;
-  }
-  .coach-trial__panel {
-    flex: 1;
-    height: auto;
-  }
-  .coach-trial__stage {
-    min-height: 0;
   }
 }
 @media (min-width: 761px) and (max-width: 1023px) {
@@ -4634,7 +3890,7 @@ body,
   .d3-app-download {
     gap: 18px;
   }
-  .d3-footer-app-badge {
+  .d3-footer-waitlist-cta {
     flex-basis: 190px;
   }
   .d3-wishlist {
@@ -4702,17 +3958,9 @@ body,
     min-height: 0;
     width: calc(100vw - 40px);
   }
-  .d3-questionnaire-success {
+  .d3-questionnaire-waitlist {
     margin: 0 auto;
     padding: 42px 48px 52px;
-  }
-  .d3-questionnaire-success .d3-questionnaire-fit h2 {
-    font-size: clamp(38px, 5vw, 50px);
-    margin-bottom: 44px;
-  }
-  .d3-questionnaire-fit li {
-    gap: 24px;
-    grid-template-columns: minmax(190px, 0.42fr) minmax(0, 1fr);
   }
   .d3-wishlist--questionnaire {
     margin-top: 36px;
@@ -4866,12 +4114,8 @@ body,
   .d3-faq-contact {
     flex: 1 0 100%;
   }
-  .d3-questionnaire-success {
+  .d3-questionnaire-waitlist {
     padding-inline: 40px;
-  }
-  .d3-questionnaire-fit li {
-    gap: 10px;
-    grid-template-columns: minmax(0, 1fr);
   }
   .d3-plan-live {
     min-height: 0;
@@ -5054,12 +4298,6 @@ body,
   .d3-plan-live-quiz button {
     min-height: 46px;
     padding-inline: 24px;
-  }
-  .d3-plan-live-voice-cta {
-    height: 60px;
-    margin-top: 20px;
-    max-width: 100%;
-    width: 290px;
   }
   .d3-plan-live-archive {
     margin-top: 32px;
@@ -5292,8 +4530,7 @@ body,
     gap: 10px;
     width: min(100%, 320px);
   }
-  .d3-hero-action,
-  .d3-hero-questionnaire-action {
+  .d3-hero-action {
     min-height: 58px;
     min-width: 0;
     width: 100%;
@@ -5304,17 +4541,31 @@ body,
   .d3-hero::after {
     height: 160px;
   }
-  .d3-hero--v3 .d3-hero-questionnaire-action {
-    min-height: 0;
-    width: fit-content;
+  .d3-hero.d3-hero--focus {
+    padding: calc(64px + 2vh) 20px calc(1.5rem + 3vh);
+  }
+  .d3-hero-focus-content {
+    gap: calc(0.75rem + 0.4vh);
+  }
+  .d3-hero-focus-action {
+    min-height: 60px;
+    width: 100%;
+  }
+  /* A phone crops to the middle ~26% of the frame, and centred that is empty path and trees —
+     the subject sits at 59-75% of the width and disappears completely. Bias the crop toward her
+     so the mobile hero still shows a person training. */
+  .d3-hero-image {
+    object-position: 70% center;
   }
   .d3-hero-contrast {
-    background: linear-gradient(
-      90deg,
-      rgba(0, 0, 0, 0.74) 0%,
-      rgba(0, 0, 0, 0.58) 70%,
-      rgba(0, 0, 0, 0.4) 100%
-    );
+    background:
+      linear-gradient(
+        90deg,
+        rgba(0, 0, 0, 0.82) 0%,
+        rgba(0, 0, 0, 0.7) 70%,
+        rgba(0, 0, 0, 0.56) 100%
+      ),
+      linear-gradient(180deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0) 30%);
   }
   .d3-hero--v2 .d3-hero-content {
     bottom: auto;
@@ -5381,10 +4632,6 @@ body,
   .d3-movements p {
     margin-top: 18px;
   }
-  .d3-voice-cta {
-    margin: 42px 0 0;
-    max-width: 100%;
-  }
   .d3-product-river {
     height: 1300px;
     margin: 0 -20px;
@@ -5442,163 +4689,64 @@ body,
     left: 0;
     width: 1120px;
   }
-  .d3-page #session {
-    margin-top: 0;
+  /* The two coach cards stack and each overhangs its own edge of the phone. */
+  .d3-page .d3-coach-intro {
+    display: block;
     padding-block: 112px 16px;
   }
-  .d3-page .coach-trial {
-    display: block;
-    height: auto;
-    min-height: 100vh;
-    min-height: 100dvh;
-  }
-  .coach-trial__shell {
-    border-radius: 20px;
-    gap: 0;
+  .coach-intro__shell {
+    gap: 28px;
     min-height: calc(100dvh - 128px);
     padding: 28px 20px;
   }
-  .coach-trial__intro {
-    height: auto;
-    min-height: 0;
+  .coach-intro__intro {
     padding-inline: 0;
   }
-  .coach-trial__intro h2 {
+  .coach-intro__intro h2 {
     font-size: 36px;
     line-height: 40px;
   }
-  .coach-trial__panel {
-    height: auto;
-    margin-top: 36px;
-    padding: 0;
-  }
-  .coach-trial__choices {
-    display: flex;
+  .coach-intro__choices {
     flex-direction: column;
     gap: 18px;
     height: auto;
+    margin-block: 36px 0;
     margin-inline: calc(50% - 50vw);
     width: 100vw;
   }
-  .coach-trial__card {
+  .coach-intro__card {
     flex: none;
     height: 420px;
     padding: 30px 28px;
     width: 100vw;
   }
-  .coach-trial__card:first-child {
+  .coach-intro__card:first-child {
     align-self: flex-start;
     margin-left: -32px;
   }
-  .coach-trial__card:last-child {
+  .coach-intro__card:last-child {
     align-self: flex-end;
     margin-right: -32px;
   }
-  .coach-trial__card-profile {
+  .coach-intro__card-profile {
     gap: 10px;
     top: 44%;
     width: 86%;
   }
-  .coach-trial__card-profile img {
+  .coach-intro__card-profile img {
     height: 138px;
     width: 138px;
   }
-  .coach-trial__card-description {
+  .coach-intro__card-description {
     font-size: 13px;
     line-height: 1.35;
     max-width: 290px;
   }
-  .coach-trial__card b {
+  .coach-intro__card b {
     font-size: 24px;
   }
-  .coach-trial__card small {
+  .coach-intro__card small {
     font-size: 12px;
-  }
-  .coach-trial__card u {
-    font-size: 13px;
-  }
-  .coach-trial__controls {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 12px;
-    height: auto;
-    padding-inline: 0;
-    width: 100%;
-  }
-  .coach-trial__coach-tabs {
-    gap: 8px;
-    height: auto;
-    min-height: 58px;
-    width: 100%;
-  }
-  .coach-trial__coach-tabs button {
-    flex: 1;
-    min-height: 58px;
-    padding-inline: clamp(10px, 3.5vw, 14px);
-    width: auto;
-  }
-  .coach-trial__coach-tabs button span {
-    white-space: nowrap;
-  }
-  .coach-trial__mode-tabs {
-    gap: 8px;
-    height: auto;
-    margin: 0;
-    min-height: 58px;
-    width: 100%;
-  }
-  .coach-trial__mode-tabs button {
-    flex: 1;
-    min-height: 58px;
-    width: auto;
-  }
-  .coach-trial__stage {
-    align-items: center;
-    flex-direction: column;
-    height: auto;
-    min-height: 420px;
-    padding: 20px;
-    width: 100%;
-  }
-  .coach-trial__voice-content,
-  .coach-trial__text-content {
-    flex: auto;
-    height: auto;
-    width: 100%;
-  }
-  .coach-trial__voice-actions span {
-    max-width: none;
-  }
-  .coach-trial__voice-actions button {
-    max-width: 210px;
-    width: 60%;
-  }
-  .coach-trial__chat-form {
-    bottom: auto;
-    grid-template-columns: minmax(0, 1fr) 82px;
-    left: auto;
-    margin-top: auto;
-    position: relative;
-    transform: none;
-    width: 100%;
-  }
-  .coach-trial__chat-form input {
-    min-width: 0;
-    width: 100%;
-  }
-  .coach-trial__chat-form button {
-    width: auto;
-  }
-  .coach-trial__message-viewport {
-    min-height: 240px;
-    padding: 24px;
-  }
-  .coach-trial--text .coach-trial__message-viewport {
-    height: 360px;
-    min-height: 360px;
-  }
-  .coach-trial__messages {
-    height: 180px;
   }
   .d3-memory-intro h2 {
     font-size: 36px;
@@ -5691,27 +4839,12 @@ body,
     letter-spacing: -1.5px;
     margin-bottom: 32px;
   }
-  .d3-questionnaire-success {
-    padding: 30px 20px;
+  .d3-questionnaire-waitlist {
+    padding: 30px 20px 40px;
   }
-  .d3-questionnaire-download {
-    padding-top: 28px;
-  }
-  .d3-questionnaire-download h3 {
-    font-size: 30px;
-  }
-  .d3-questionnaire-download > span {
-    font-size: 15px;
-  }
-  .d3-questionnaire-app-store-badge {
-    width: 190px;
-  }
-  .d3-questionnaire-success h2 {
-    font-size: 48px;
-  }
-  .d3-questionnaire-success-actions {
-    align-items: center;
-    flex-direction: column;
+  .d3-questionnaire-waitlist h2 {
+    font-size: clamp(30px, 9vw, 42px);
+    margin-bottom: 26px;
   }
   .d3-faq {
     display: grid;
@@ -5771,7 +4904,7 @@ body,
     height: 88px;
     width: 64px;
   }
-  .d3-footer-app-badge {
+  .d3-footer-waitlist-cta {
     flex-basis: 180px;
     max-width: 180px;
   }
@@ -5809,9 +4942,6 @@ body,
   }
 }
 @media (max-width: 760px) {
-  .d3-questionnaire-success {
-    padding: 30px 20px 40px;
-  }
   .d3-questionnaire-intro {
     padding: 36px 20px 60px;
   }
@@ -5825,15 +4955,6 @@ body,
   .d3-questionnaire-intro > button {
     margin-top: 30px;
     width: 100%;
-  }
-  .d3-questionnaire-success .d3-questionnaire-fit h2 {
-    font-size: 34px;
-    margin-bottom: 56px;
-  }
-  .d3-questionnaire-fit li {
-    gap: 9px;
-    grid-template-columns: 1fr;
-    padding: 18px 4px;
   }
   .d3-wishlist--questionnaire {
     margin-top: 50px;
@@ -5855,17 +4976,14 @@ body,
   .d3-river-lane,
   .d3-sequence-content h1,
   .d3-hero-typewriter::after,
-  .coach-trial__shell,
   .d3-faq-wrap,
   .d3-plan-live,
-  .d3-plan-live-background,
-  .d3-questionnaire-loading-icon {
+  .d3-plan-live-background {
     animation: none;
   }
   .d3-hero-typewriter::after {
     opacity: 0;
   }
-  .coach-trial__shell,
   .d3-faq-wrap {
     transform: none;
   }
@@ -5894,15 +5012,7 @@ body,
 .d3-header-cta,
 .d3-hero-action,
 .d3-hero-capabilities,
-.d3-voice-cta,
-.coach-trial__step,
-.coach-trial__card small,
-.coach-trial__card u,
-.coach-trial__coach-tabs button,
-.coach-trial__mode-tabs button,
-.coach-trial__session-label,
-.coach-trial__voice-actions span,
-.coach-trial__voice-actions button,
+.coach-intro__card small,
 .d3-plan-live-archive,
 .d3-river-kicker,
 .d3-river-intro small,
@@ -5938,12 +5048,11 @@ body,
 .d3-memory-intro > p:last-child,
 .d3-pricing-intro > p,
 .d3-questionnaire-options label > span,
-.d3-questionnaire-success p,
 .d3-faq-intro > p {
   font-size: var(--type-body);
   line-height: 1.5;
 }
-.coach-trial__intro h2,
+.coach-intro__intro h2,
 .d3-plan-live-editorial h2,
 .d3-product-river > h2,
 .d3-memory-intro h2,
@@ -5957,33 +5066,16 @@ body,
   font-size: var(--type-heading-lg);
   line-height: 1.02;
 }
-.coach-trial__question,
-.coach-trial__voice-content h3,
 .d3-memory-core,
 .d3-memory-close h3,
-.d3-effective,
-.d3-dialog h2 {
+.d3-effective {
   font-size: var(--type-heading-sm);
   line-height: 1.12;
 }
-.coach-trial__card b,
+.coach-intro__card b,
 .d3-plan-live-menu button > b {
   font-size: calc(1rem + 0.35vw);
   line-height: 1.2;
-}
-.coach-trial__chat-form input {
-  font-size: var(--type-body);
-}
-.d3-page .coach-trial__chat-ghost {
-  font-size: calc(0.95rem + 0.3vw);
-  line-height: 1.45;
-}
-.coach-trial__messages p {
-  font-size: calc(1rem + 0.3vw);
-  line-height: 1.4;
-}
-.coach-trial__messages b {
-  font-size: var(--type-small);
 }
 .d3-loop article span {
   font-size: calc(1.35rem + 0.375vw);
@@ -6005,7 +5097,7 @@ body,
   font-size: calc(2.5rem + 1.3vw);
 }
 .d3-questionnaire-step h2,
-.d3-questionnaire-success h2 {
+.d3-questionnaire-waitlist h2 {
   font-size: calc(2rem + 1.6vw);
   line-height: 1.04;
 }

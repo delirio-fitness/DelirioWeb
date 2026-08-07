@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
-import { ArrowUpRight } from 'lucide-react';
 import workoutPlan from '../../images/appScreenshots/workoutPlan.png';
 import clickStart from '../../images/appScreenshots/clickStart.png';
 import inSession from '../../images/appScreenshots/see-the-rep/v4/image.png';
@@ -15,11 +14,10 @@ import { Logo } from '../logo';
 
 const sequence = [
   {
-    number: '01', label: 'MEET YOUR COACH', detail: 'TRY LIVE VOICE', capture: 'IRIS + REED + LIVE COACHING', image: midSetVoiceCoaching,
+    number: '01', label: 'MEET YOUR COACH', detail: 'IRIS AND REED', capture: 'IRIS + REED + LIVE COACHING', image: midSetVoiceCoaching,
     v2Photo: { shape: 'square', src: keepGoingGenerated, alt: 'A woman checking in with her coach during a strength workout at home' },
     heading: ['AI COACHES THAT', 'LISTEN, RESPOND,', 'AND REMEMBER.'],
-    body: 'Choose Iris or Reed and talk naturally. Your coach responds to what you share, guides the next step, and remembers the context across your training.',
-    voiceCta: true,
+    body: 'Iris and Reed coach in different styles. Your coach responds to what you share, guides the next step, and remembers the context across your training.',
     coachCollage: true,
   },
   {
@@ -50,13 +48,7 @@ const sequence = [
 
 const SEQUENCE_INTERVAL_MS = 6000;
 
-export function PlanToLiveGuidance({
-  onStartVoice,
-  onTakeQuiz,
-}: {
-  onStartVoice?: () => void;
-  onTakeQuiz?: () => void;
-}) {
+export function PlanToLiveGuidance({ onJoinWaitlist }: { onJoinWaitlist?: () => void }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [progressCycle, setProgressCycle] = useState(0);
   const activeIndexRef = useRef(0);
@@ -154,21 +146,15 @@ export function PlanToLiveGuidance({
             <p className="d3-plan-live-body">{activeStage.body}</p>
             {'quizCta' in activeStage && activeStage.quizCta && (
               <div className="d3-plan-live-quiz">
-                <button type="button" onClick={onTakeQuiz}>TAKE QUIZ</button>
+                <button type="button" onClick={onJoinWaitlist}>JOIN THE WAITLIST</button>
                 <small>See how Delirio can help you.</small>
               </div>
-            )}
-            {'voiceCta' in activeStage && activeStage.voiceCta && (
-              <a className="d3-voice-cta d3-plan-live-voice-cta" href="#coaches" onClick={onStartVoice}>
-                <b>START VOICE SESSION</b>
-                <span aria-hidden="true"><ArrowUpRight strokeWidth={3} /></span>
-              </a>
             )}
           </div>
         </div>
 
         <div className="d3-plan-live-stage" aria-live="polite">
-          <div className={`d3-plan-live-capture${activePhoto ? ` d3-plan-live-capture--photo is-${activePhoto.shape}` : ''}${secondaryImage ? ' d3-plan-live-capture--channels' : ''}${coachCollage ? ' d3-plan-live-capture--coach-collage' : ''}${'voiceCta' in activeStage && activeStage.voiceCta ? ' d3-plan-live-capture--voice' : ''}`} key={`capture-${activeIndex}`}>
+          <div className={`d3-plan-live-capture${activePhoto ? ` d3-plan-live-capture--photo is-${activePhoto.shape}` : ''}${secondaryImage ? ' d3-plan-live-capture--channels' : ''}${coachCollage ? ' d3-plan-live-capture--coach-collage' : ''}`} key={`capture-${activeIndex}`}>
             {coachCollage ? (
               <CoachCapabilityCollage />
             ) : secondaryImage ? (

@@ -1,0 +1,247 @@
+/**
+ * The only thing on this site that talks to Meta.
+ *
+ * There is no Meta pixel in the browser — see `docs/ad-tracking.md`. `fbevents.js`
+ * is a closed-source third-party script with full DOM access: it reports the page
+ * URL and title on every event, scrapes form fields when Automatic Advanced
+ * Matching is enabled in Events Manager, and collects the text of what visitors
+ * click. None of that is configurable from here, and the waitlist asks about
+ * weight-loss progress and training history, so a script we cannot audit is not
+ * allowed in the page.
+ *
+ * This function is the replacement. It receives a trigger slug from the browser,
+ * looks up everything else in the table below, and posts a Conversions API event
+ * built entirely on this side. Meta learns that a conversion happened on a given
+ * ad click. It learns nothing else about the site or the visitor.
+ *
+ * Deliberately absent from every payload: email (hashed or otherwise), name,
+ * phone, external ID, questionnaire answers, page path, page title, referrer.
+ * `user_data` carries IP, user-agent, and `fbc` — the ad click ID — and nothing
+ * more. Do not add identifiers here without re-reading the privacy policy first;
+ * the "Advertising, Attribution, and Tracking" section makes promises about
+ * exactly this payload.
+ */
+
+const GRAPH_API_VERSION = 'v21.0';
+
+/**
+ * What a trigger is worth, and what it is called.
+ *
+ * This table lives on the server and not in the bundle so the browser cannot
+ * name its own conversions: the endpoint is public, so an unknown trigger has to
+ * be droppable without reference to anything the caller said about it. It also
+ * keeps ad configuration out of the client entirely, which is the property that
+ * makes the "nothing on the page knows about Meta" claim true rather than
+ * aspirational.
+ *
+ * `value` is relative intent, not revenue — do not compute ROAS from it. Both
+ * triggers sit upstream of the waitlist questions on purpose. Nothing downstream
+ * of them may be added here: an event that fires only for people who answered
+ * those questions discloses health status through its timing, whatever it is
+ * named and whatever its payload omits.
+ */
+const TRIGGERS = {
+  waitlist_started: { custom: 'DelirioWaitlistStarted', value: 3 },
+  email_submitted: { custom: 'DelirioEmailSubmitted', value: 4 },
+} as const;
+
+type Trigger = keyof typeof TRIGGERS;
+
+/** Campaign parameters we set ourselves. Anything not listed here is dropped. */
+const ATTRIBUTION_FIELDS = ['source', 'medium', 'campaign', 'content', 'term'] as const;
+
+const MAX_BODY_BYTES = 2048;
+const MAX_FIELD_LENGTH = 200;
+
+type IncomingEvent = {
+  trigger?: unknown;
+  eventId?: unknown;
+  variant?: unknown;
+  firstOfVisit?: unknown;
+  fbclid?: unknown;
+  fbclidAt?: unknown;
+  attribution?: unknown;
+};
+
+function isTrigger(value: unknown): value is Trigger {
+  return typeof value === 'string' && Object.prototype.hasOwnProperty.call(TRIGGERS, value);
+}
+
+function cleanString(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim().slice(0, MAX_FIELD_LENGTH);
+  return trimmed.length > 0 ? trimmed : undefined;
+}
+
+/**
+ * Builds Meta's click-ID cookie value without a cookie.
+ *
+ * `fb.<subdomainIndex>.<clickTime>.<fbclid>`; index 1 is an apex domain. The
+ * browser captured `fbclid` and its arrival time on the landing URL, so the
+ * click time is real rather than "whenever the conversion happened" — which
+ * matters, because Meta matches on it.
+ */
+function buildFbc(fbclid: string, fbclidAt: unknown): string {
+  const clickedAt = typeof fbclidAt === 'number' && Number.isFinite(fbclidAt) && fbclidAt > 0
+    ? Math.floor(fbclidAt)
+    : Date.now();
+  return `fb.1.${clickedAt}.${fbclid}`;
+}
+
+/** The visitor's IP, as Netlify presents it. Meta needs it to match at all. */
+function clientIp(request: Request): string | undefined {
+  const forwarded = request.headers.get('x-nf-client-connection-ip')
+    ?? request.headers.get('x-forwarded-for');
+  return forwarded?.split(',')[0]?.trim() || undefined;
+}
+
+export default async function handler(request: Request): Promise<Response> {
+  if (request.method !== 'POST') {
+    return new Response(null, { status: 405, headers: { allow: 'POST' } });
+  }
+
+  const datasetId = process.env.META_DATASET_ID;
+  const accessToken = process.env.META_CAPI_ACCESS_TOKEN;
+
+  // Unconfigured is a valid state, not an error: deploy previews and any branch
+  // without the secrets should accept the call and report nothing, exactly as
+  // the browser did when `VITE_META_PIXEL_ID` was unset.
+  if (!datasetId || !accessToken) {
+    return Response.json({ reported: false, reason: 'unconfigured' });
+  }
+
+  // The endpoint is public and writes to a live dataset, so anything that does
+  // not look like our own page calling it is refused. A *missing* `Origin` is
+  // refused too, not waved through: browsers set it on every POST, so its
+  // absence means the caller is not a page, and accepting it made forging a
+  // conversion a one-line curl with no header at all.
+  //
+  // This does not stop someone who sets the header by hand, and it is not meant
+  // to — the trigger table above is the allowlist that bounds what a forged
+  // call can even claim. It removes the free case.
+  //
+  // Logged rather than refused quietly. If a browser ever stops sending the
+  // header, or the site's primary domain drifts from `URL`, every conversion
+  // starts 403ing and this line is the only thing that would say so.
+  const siteUrl = process.env.URL ?? process.env.DEPLOY_URL;
+  const origin = request.headers.get('origin');
+  if (siteUrl && origin !== new URL(siteUrl).origin) {
+    console.warn('[delirio-ads] refused a conversion from origin', origin ?? '(none sent)');
+    return new Response(null, { status: 403 });
+  }
+
+  const raw = await request.text();
+  if (raw.length > MAX_BODY_BYTES) return new Response(null, { status: 413 });
+
+  let body: IncomingEvent;
+  try {
+    body = JSON.parse(raw) as IncomingEvent;
+  } catch {
+    return new Response(null, { status: 400 });
+  }
+
+  const { trigger } = body;
+  if (!isTrigger(trigger)) return new Response(null, { status: 400 });
+
+  const eventId = cleanString(body.eventId);
+  if (!eventId) return new Response(null, { status: 400 });
+
+  const { custom, value } = TRIGGERS[trigger];
+  const variant = cleanString(body.variant);
+
+  const userData: Record<string, string> = {};
+  const ip = clientIp(request);
+  const userAgent = request.headers.get('user-agent');
+  if (ip) userData.client_ip_address = ip;
+  if (userAgent) userData.client_user_agent = userAgent.slice(0, 512);
+  const fbclid = cleanString(body.fbclid);
+  if (fbclid) userData.fbc = buildFbc(fbclid, body.fbclidAt);
+
+  const customData: Record<string, string | number> = {
+    content_name: trigger,
+    value,
+    currency: 'USD',
+  };
+  if (variant) customData.content_category = `landing_${variant}`;
+
+  const attribution = body.attribution;
+  if (attribution && typeof attribution === 'object') {
+    for (const field of ATTRIBUTION_FIELDS) {
+      const parsed = cleanString((attribution as Record<string, unknown>)[field]);
+      if (parsed) customData[`delirio_${field}`] = parsed;
+    }
+  }
+
+  const eventTime = Math.floor(Date.now() / 1000);
+  // The origin only. Meta uses this for reporting context and it is the same
+  // string for every visitor — the questions live in a modal, so no path or
+  // query has ever distinguished one waitlist visitor from another.
+  const eventSourceUrl = siteUrl ? new URL(siteUrl).origin : undefined;
+
+  const base = {
+    event_time: eventTime,
+    event_id: eventId,
+    action_source: 'website' as const,
+    ...(eventSourceUrl ? { event_source_url: eventSourceUrl } : {}),
+    user_data: userData,
+    custom_data: customData,
+  };
+
+  // The `Delirio*` name always goes: it is what makes Events Manager readable,
+  // and it is weak to optimize on because Meta has no cross-advertiser priors
+  // for a name we invented. `Lead` is the one ad sets optimize on, and it goes
+  // only on the visit's first qualifying action — so it counts qualified
+  // *visitors*, and one person doing two effortful things stays one conversion.
+  const data: (typeof base & { event_name: string })[] = [{ ...base, event_name: custom }];
+  if (body.firstOfVisit === true) data.unshift({ ...base, event_name: 'Lead' });
+  const payload = { data };
+
+  // Routes this event to the Test Events panel in Events Manager, which is the
+  // only way to watch one arrive: the panel shows nothing for events that do
+  // not carry a code, so without this there is no way to confirm the wiring
+  // short of waiting for the dataset totals to move.
+  //
+  // **Unset in production, always.** Meta excludes test events from attribution
+  // and optimization, so a code left in place reports nothing while this
+  // function still answers `reported: true` on every call — invisible from the
+  // browser, from this return value, and from anything short of the dataset
+  // sitting at zero. The `test: true` below exists so the response says which
+  // mode it ran in rather than making that guessable only from the env.
+  //
+  // It is a routing hint and carries no visitor data, so it does not touch the
+  // payload rules in the header.
+  const testEventCode = process.env.META_TEST_EVENT_CODE?.trim();
+  if (testEventCode) {
+    console.warn(
+      '[delirio-ads] META_TEST_EVENT_CODE is set — events route to Test Events and do NOT count as conversions',
+    );
+  }
+
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/${GRAPH_API_VERSION}/${datasetId}/events`,
+      {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          ...payload,
+          ...(testEventCode ? { test_event_code: testEventCode } : {}),
+          access_token: accessToken,
+        }),
+      },
+    );
+
+    if (!response.ok) {
+      // Meta's error body names the offending field, and without it a rejected
+      // event is invisible: the browser cannot see this response and would not
+      // act on it anyway.
+      console.error('[delirio-ads] Meta rejected the event', response.status, await response.text());
+      return Response.json({ reported: false, reason: 'rejected' }, { status: 502 });
+    }
+  } catch (error) {
+    console.error('[delirio-ads] could not reach Meta', error);
+    return Response.json({ reported: false, reason: 'unreachable' }, { status: 502 });
+  }
+
+  return Response.json(testEventCode ? { reported: true, test: true } : { reported: true });
+}

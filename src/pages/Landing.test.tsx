@@ -1,83 +1,84 @@
-import { act, render, screen, within } from '@testing-library/react';
+import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
-const disconnect = jest.fn();
-const connect = jest.fn();
-const clearMessages = jest.fn();
-
-jest.mock('../utils/pipecatConfig', () => ({
-  generateDiscoveryId: () => 'test-session',
-}));
-
-jest.mock('../hooks/useVoiceSession', () => ({
-  useVoiceSession: () => ({
-    sessionState: 'idle',
-    isBotSpeaking: false,
-    isBotProcessing: false,
-    isUserSpeaking: false,
-    botTranscript: '',
-    botTurns: [],
-    userTranscript: '',
-    failureKind: null,
-    frequencyLevels: Array(16).fill(0),
-    isFrequencyListening: false,
-    connect,
-    disconnect,
-    cancelConnect: disconnect,
-  }),
-}));
-
-jest.mock('../hooks/useTextChat', () => ({
-  useTextChat: () => ({
-    messages: [{ role: 'user', text: 'Existing preview' }],
-    isLoading: false,
-    connectionState: 'idle',
-    error: null,
-    failedMessage: null,
-    sendMessage: jest.fn(),
-    retryLastMessage: jest.fn(),
-    clearMessages,
-  }),
-}));
-
+import { WAITLIST_QUESTIONS } from '../content/waitlistQuestions';
 import Landing from './Landing';
+
+/** Derived, so rewriting the questions does not break unrelated assertions. */
+const introCopy = new RegExp(`${WAITLIST_QUESTIONS.length} questions, then your spot`, 'i');
 
 describe('Landing journey', () => {
   afterEach(() => jest.useRealTimers());
 
-  it('starts voice automatically after the initial coach choice', async () => {
-    const user = userEvent.setup();
+  it('introduces both coaches without asking the visitor to pick one', () => {
     render(<MemoryRouter><Landing /></MemoryRouter>);
 
-    expect(screen.getByRole('heading', { name: /choose how you.*want to be coached/i })).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: /reed.*select coach/i }));
-    expect(screen.getByAltText(/reed, selected delirio coach/i)).toBeInTheDocument();
-    expect(connect).toHaveBeenCalledTimes(1);
-    expect(screen.queryByRole('button', { name: /start voice session/i })).not.toBeInTheDocument();
+    const coaches = screen.getByRole('region', { name: /meet iris and reed/i });
+    expect(within(coaches).getByRole('img', { name: /iris, a delirio ai coach/i })).toBeInTheDocument();
+    expect(within(coaches).getByRole('img', { name: /reed, a delirio ai coach/i })).toBeInTheDocument();
+    expect(within(coaches).getByText(/warm, patient, and understanding/i)).toBeInTheDocument();
+    expect(within(coaches).getByText(/structured, direct, and schedule-driven/i)).toBeInTheDocument();
+
+    // Nothing in the section is pressable — it introduces, it does not connect.
+    expect(within(coaches).queryAllByRole('button')).toHaveLength(0);
+    expect(within(coaches).queryAllByRole('link')).toHaveLength(0);
   });
 
-  it('disconnects voice when switching to text', async () => {
-    const user = userEvent.setup();
+  it('offers no route to the App Store anywhere on the page', () => {
     render(<MemoryRouter><Landing /></MemoryRouter>);
 
-    await user.click(screen.getByRole('button', { name: /reed.*select coach/i }));
-    disconnect.mockClear();
-    await user.click(screen.getByRole('button', { name: 'TEXT' }));
-    expect(disconnect).toHaveBeenCalledTimes(1);
+    // Ads point here while the app update is in review, so a download link
+    // would both leak traffic to the store and undercut the waitlist premise.
+    expect(document.querySelector('[href*="apps.apple.com"]')).toBeNull();
+    expect(document.querySelector('[href="/app"]')).toBeNull();
+    expect(document.querySelector('[data-cta]')).toBeNull();
+    expect(screen.queryByText(/download on the app store/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /1 week free/i })).not.toBeInTheDocument();
   });
 
-  it('confirms a destructive coach switch while preserving the mode controls', async () => {
-    const user = userEvent.setup();
+  it('keeps both plan cards intact but sells neither', () => {
     render(<MemoryRouter><Landing /></MemoryRouter>);
 
-    await user.click(screen.getByRole('button', { name: /reed.*select coach/i }));
-    await user.click(screen.getByRole('button', { name: 'IRIS' }));
-    expect(screen.getByRole('alertdialog')).toHaveTextContent(/switch to iris/i);
-    await user.click(screen.getByRole('button', { name: /switch coach/i }));
-    expect(screen.getByAltText(/iris, selected delirio coach/i)).toBeInTheDocument();
-    expect(disconnect).toHaveBeenCalled();
-    expect(clearMessages).toHaveBeenCalled();
+    const plans = document.querySelectorAll('.d3-plan');
+    expect(plans).toHaveLength(2);
+    for (const plan of plans) {
+      expect(within(plan as HTMLElement).getByRole('heading')).toBeInTheDocument();
+      expect(within(plan as HTMLElement).getAllByRole('listitem').length).toBeGreaterThan(0);
+      expect(within(plan as HTMLElement).queryByRole('link')).not.toBeInTheDocument();
+    }
+  });
+
+  it('asks for no email anywhere on the page itself', () => {
+    render(<MemoryRouter><Landing /></MemoryRouter>);
+
+    // The only email box lives behind the gate, after the questions. A second
+    // one out here would let a visitor skip the filter the gate exists for.
+    expect(document.querySelectorAll('.d3-wishlist')).toHaveLength(0);
+    expect(screen.queryByRole('textbox', { name: /email address/i })).not.toBeInTheDocument();
+  });
+
+  it('opens the gate for an off-page waitlist link instead of hunting for a section', async () => {
+    window.history.replaceState({}, '', '/#wishlist');
+    render(<MemoryRouter><Landing /></MemoryRouter>);
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument();
+    // Straight to question one: following that link was already the decision.
+    expect(screen.getByRole('heading', { name: WAITLIST_QUESTIONS[0].prompt })).toBeInTheDocument();
+    // Cleared, so a reload does not reopen it.
+    await waitFor(() => expect(window.location.hash).toBe(''));
+  });
+
+  it('leaves no way to start a coaching session from the website', () => {
+    render(<MemoryRouter><Landing /></MemoryRouter>);
+
+    expect(screen.queryByRole('heading', { name: /choose how you.*want to be coached/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /select coach/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'TEXT' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'VOICE' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /start voice session/i })).not.toBeInTheDocument();
+    expect(screen.queryByPlaceholderText(/type a message/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 
   it('shows three closed FAQs initially and reveals up to three more on each request', async () => {
@@ -142,13 +143,17 @@ describe('Landing journey', () => {
     expect(screen.queryByText(/hear what changes/i)).not.toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: /clear about what is known/i })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /start the questions/i })).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /start voice session/i })).toBeInTheDocument();
     expect(document.querySelector('.d3-voice-product')).not.toBeInTheDocument();
   });
 
   it('offers a direct pricing contact option', () => {
     render(<MemoryRouter><Landing /></MemoryRouter>);
-    expect(screen.getByRole('link', { name: 'contact@delirio.fit' })).toHaveAttribute('href', 'mailto:contact@delirio.fit');
+
+    // Scoped to the pricing block: the footer carries a second link to the same
+    // address for waitlist opt-out, so a page-wide query matches both.
+    const pricingContact = document.querySelector('.d3-pricing-contact a');
+    expect(pricingContact).toHaveAttribute('href', 'mailto:contact@delirio.fit');
+    expect(pricingContact).toHaveTextContent('contact@delirio.fit');
   });
 
   it('links How it works directly to the product journey carousel', () => {
@@ -157,7 +162,7 @@ describe('Landing journey', () => {
     expect(screen.getByRole('link', { name: /how it works/i })).toHaveAttribute('href', '#how-it-works');
     const problemBand = document.querySelector('.d3-problem-band');
     const carousel = document.getElementById('how-it-works');
-    const coachStudio = document.getElementById('session');
+    const coachStudio = document.getElementById('coaches-section');
     expect(carousel).toHaveClass('d3-plan-live');
     expect(carousel).toHaveAttribute('data-theme', 'light');
     expect(Boolean((problemBand?.compareDocumentPosition(carousel as Node) ?? 0) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(true);
@@ -165,21 +170,125 @@ describe('Landing journey', () => {
     expect(document.querySelector('.d3-wheel-transition')).not.toBeInTheDocument();
   });
 
-  it('opens the first quiz question from the default hero', async () => {
+  it('opens the first waitlist question from the default hero', async () => {
     const user = userEvent.setup();
     render(<MemoryRouter><Landing /></MemoryRouter>);
 
-    await user.click(screen.getByRole('button', { name: /take a quiz/i }));
-    expect(screen.getByRole('heading', { name: /is a glp-1 medication currently part of your routine/i })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /take the 60-second quiz/i })).not.toBeInTheDocument();
+    await user.click(within(document.querySelector('.d3-hero') as HTMLElement)
+      .getByRole('button', { name: 'JOIN THE WAITLIST' }));
+    expect(screen.getByRole('heading', { name: WAITLIST_QUESTIONS[0].prompt })).toBeInTheDocument();
+    // A CTA press skips the intro: the visitor already chose to be here.
+    expect(screen.queryByRole('button', { name: /start — takes a minute/i })).not.toBeInTheDocument();
   });
 
-  it('opens the quiz invitation after two seconds', async () => {
+  it('offers nothing called a quiz', () => {
+    render(<MemoryRouter><Landing /></MemoryRouter>);
+    expect(screen.queryByText(/quiz/i)).not.toBeInTheDocument();
+  });
+
+  it('opens the waitlist invitation after thirty seconds', async () => {
     jest.useFakeTimers();
     render(<MemoryRouter><Landing /></MemoryRouter>);
 
-    act(() => jest.advanceTimersByTime(2000));
-    expect(await screen.findByText(/see what could make staying fit feel easier/i)).toBeInTheDocument();
+    act(() => jest.advanceTimersByTime(29000));
+    expect(screen.queryByText(introCopy)).not.toBeInTheDocument();
+
+    act(() => jest.advanceTimersByTime(1000));
+    expect(await screen.findByText(introCopy)).toBeInTheDocument();
     jest.useRealTimers();
+  });
+
+  describe('acquisition experiment cells', () => {
+    beforeEach(() => window.sessionStorage.clear());
+    afterEach(() => window.history.replaceState({}, '', '/'));
+
+    it('leaves the hero to make the ask on its own at the top of the page', () => {
+      render(<MemoryRouter><Landing /></MemoryRouter>);
+
+      const header = within(document.querySelector('.d3-header') as HTMLElement);
+      expect(header.queryByRole('button', { name: /waitlist/i })).not.toBeInTheDocument();
+      expect(within(document.querySelector('.d3-hero') as HTMLElement)
+        .getByRole('button', { name: 'JOIN THE WAITLIST' })).toBeInTheDocument();
+      expect(document.querySelector('.d3-page')).toHaveAttribute('data-landing-variant', 'a');
+    });
+
+    it('keeps the hidden header button off the keyboard too', () => {
+      render(<MemoryRouter><Landing /></MemoryRouter>);
+
+      // It stays mounted so the row does not reflow, so the hiding cannot be
+      // left to a stylesheet.
+      const cta = document.querySelector('.d3-header-cta') as HTMLElement;
+      expect(cta).toHaveClass('is-hidden');
+      expect(cta).toHaveAttribute('aria-hidden', 'true');
+      expect(cta).toHaveAttribute('tabindex', '-1');
+    });
+
+    it('renders the centred waitlist hero in cell B without touching the page below', () => {
+      window.history.replaceState({}, '', '/?v=b');
+      render(<MemoryRouter><Landing /></MemoryRouter>);
+
+      expect(document.querySelector('.d3-page')).toHaveAttribute('data-landing-variant', 'b');
+      expect(screen.getByRole('heading', { name: /get fit and stay fit without the planning/i })).toBeInTheDocument();
+      expect(document.getElementById('how-it-works')).toBeInTheDocument();
+      expect(document.getElementById('pricing')).toBeInTheDocument();
+      expect(document.getElementById('faq')).toBeInTheDocument();
+    });
+
+    it('never covers cell B with the gate on a timer', () => {
+      jest.useFakeTimers();
+      window.history.replaceState({}, '', '/?v=b');
+      render(<MemoryRouter><Landing /></MemoryRouter>);
+
+      act(() => jest.advanceTimersByTime(120000));
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      jest.useRealTimers();
+    });
+
+    it.each(['a', 'b'] as const)(
+      'hands cell %s over to the header once the hero CTA scrolls away',
+      async (variant) => {
+        window.history.replaceState({}, '', `/?v=${variant}`);
+        render(<MemoryRouter><Landing /></MemoryRouter>);
+
+        // Scoped to the header: every hero carries its own waitlist button, so
+        // an unscoped query would pass before the handover ever happens.
+        const header = () => within(document.querySelector('.d3-header') as HTMLElement);
+        expect(header().queryByRole('button', { name: /waitlist/i })).not.toBeInTheDocument();
+
+        Object.defineProperty(window, 'scrollY', { configurable: true, value: window.innerHeight });
+        window.dispatchEvent(new Event('scroll'));
+
+        await waitFor(() => expect(header().getByRole('button', { name: 'JOIN THE WAITLIST' })).toBeInTheDocument());
+
+        Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 });
+      },
+    );
+
+    it('opens the gate from the header once it has taken over', async () => {
+      const user = userEvent.setup();
+      render(<MemoryRouter><Landing /></MemoryRouter>);
+
+      Object.defineProperty(window, 'scrollY', { configurable: true, value: window.innerHeight });
+      window.dispatchEvent(new Event('scroll'));
+
+      const header = () => within(document.querySelector('.d3-header') as HTMLElement);
+      await user.click(await waitFor(() => header().getByRole('button', { name: 'JOIN THE WAITLIST' })));
+      expect(screen.getByRole('heading', { name: WAITLIST_QUESTIONS[0].prompt })).toBeInTheDocument();
+
+      Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 });
+    });
+
+    it('publishes the assigned cell for ad tracking', () => {
+      window.history.replaceState({}, '', '/?v=b');
+      render(<MemoryRouter><Landing /></MemoryRouter>);
+      expect(window.delirioLandingVariant).toBe('b');
+    });
+
+    /** A live ad may still carry the retired letter; it must land somewhere sane. */
+    it('sends a stale ?v=c ad URL to the control cell', () => {
+      window.history.replaceState({}, '', '/?v=c');
+      render(<MemoryRouter><Landing /></MemoryRouter>);
+      expect(document.querySelector('.d3-page')).toHaveAttribute('data-landing-variant', 'a');
+    });
   });
 });

@@ -10,7 +10,7 @@ export default function PrivacyPolicy() {
     <LandingLegalShell>
       <div className="max-w-3xl mx-auto px-6 py-10 md:py-16 min-h-screen bg-white text-black">
         <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
-        <p className="mb-2 text-sm text-gray-500">Last updated: August 2, 2026</p>
+        <p className="mb-2 text-sm text-gray-500">Last updated: August 6, 2026</p>
         <p className="mb-4">
           Delirio (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) provides an AI-powered fitness coaching
           mobile application. This Privacy Policy explains what information we collect, how we use and share it, and the
@@ -41,12 +41,15 @@ export default function PrivacyPolicy() {
 
         <h3 className="text-xl font-semibold mb-2 mt-6">Website Feedback and Wishlist</h3>
         <p className="mb-4">
-          If you submit our website feedback form, we collect your responses and a randomly generated identifier stored
+          If you submit our website waitlist form, we collect your responses and a randomly generated identifier stored
           in your browser. This identifier helps us distinguish submissions from the same browser without asking for
-          your name, email address, or phone number. Questionnaire responses may include optional information about
-          whether a GLP-1 medication is or was part of your routine, where you are in that experience, and what most
-          often disrupts your training. We use this information to tailor the remaining questions, evaluate product
-          requests, and improve Delirio.
+          your name, email address, or phone number. Waitlist responses cover your age range, how you describe yourself,
+          how any weight-loss effort is going, what motivates you to stay active, your training history, and what most
+          often gets in the way. Every one of those questions offers an answer you can pick if you would rather not say.
+          We use this information to decide who to open Delirio to first, evaluate product requests, and improve the
+          app. <strong>We do not ask about medications, diagnoses, treatment, or any measurement of your body</strong>,
+          and we never share these answers with advertisers — see <strong>Advertising, Attribution, and Tracking</strong>{' '}
+          below.
         </p>
         <p className="mb-4">
           If you join the Delirio wishlist, we collect the email address you submit and your explicit request to receive
@@ -244,6 +247,35 @@ export default function PrivacyPolicy() {
           involved are listed under <strong>Advertising and Attribution</strong> above.
         </p>
         <p className="mb-4">
+          <strong>This website.</strong> Separately from the app, we measure how our ads perform on delirio.fit.{' '}
+          <strong>There is no Meta pixel or other third-party advertising script on this site.</strong> No advertising
+          company&rsquo;s code runs in your browser here, and none of them can see the pages you visit, what those pages
+          say, or what you type into them.
+        </p>
+        <p className="mb-4">
+          Instead, two actions are reported from our own servers: choosing to open the waitlist, and submitting your
+          email in the waitlist section of the home page. What we send is the name of that action, the campaign
+          parameters in the link you arrived from, which version of the page you saw, your IP address, and your browser&rsquo;s
+          user-agent string. That is the complete list.
+        </p>
+        <p className="mb-4">
+          <strong>We never report anything you tell the waitlist questions.</strong> Your answers about age, gender,
+          weight-loss progress, motivation, training history, and what gets in your way are stored only by us, and are
+          never sent to Meta or any other advertising company — not the answers themselves, and not the fact that you
+          answered them.
+          No conversion is reported at any point after those questions begin, so nothing we send can indicate whether
+          you started them, finished them, or what you said. We also never send your email address, in any form,
+          including hashed or encrypted forms.
+        </p>
+        <p className="mb-4">
+          Your browser tells our own server that the action happened, and our server is what contacts Meta. Because that
+          first request goes to delirio.fit and not to an advertising domain, some blockers will not recognize it,
+          though tracking protection and content blockers can still refuse it. You can manage ad personalization through
+          Meta&rsquo;s ad-preference tools, and if you would rather we report nothing at all, email us at{' '}
+          <a href="mailto:contact@delirio.fit" className="text-blue-600 underline">contact@delirio.fit</a> and we will
+          honor that.
+        </p>
+        <p className="mb-4">
           <strong>App Tracking Transparency.</strong> Before any tracking occurs, iOS asks for your permission through
           the App Tracking Transparency prompt. If you allow tracking, the Advertising Identifier is used to measure ad
           performance and to help show you more relevant ads. If you decline, the app relies only on privacy-preserving
@@ -313,8 +345,14 @@ export default function PrivacyPolicy() {
 
         <h2 className="text-2xl font-semibold mb-4 mt-8">Data Retention</h2>
         <p className="mb-4">
-          We retain your personal information for as long as your account is active and as needed to provide the app. You
-          can delete your account and associated data at any time, as described below.
+          <strong>App accounts.</strong> We retain your personal information for as long as your account is active and
+          as needed to provide the app. You can delete your account and associated data at any time, as described below.
+        </p>
+        <p className="mb-4">
+          <strong>Website waitlist.</strong> Joining the waitlist does not create an account, so the paragraph above
+          does not describe it. We keep your waitlist record — the email address and the answers you gave, stored
+          together — until Delirio opens to you or until you ask us to delete it, whichever comes first. You can ask at
+          any time and do not need to give a reason; see <strong>Deleting Your Waitlist Entry</strong> below.
         </p>
 
         <h2 className="text-2xl font-semibold mb-4 mt-8">Deleting Your Account</h2>
@@ -334,6 +372,23 @@ export default function PrivacyPolicy() {
             contact@delirio.fit
           </a>
           . We may need to verify your identity before completing the request.
+        </p>
+
+        <h2 className="text-2xl font-semibold mb-4 mt-8">Deleting Your Waitlist Entry</h2>
+        <p className="mb-4">
+          The waitlist is separate from an app account and has no in-app delete button. To leave it, email{" "}
+          <a href="mailto:contact@delirio.fit?subject=Waitlist%20Opt-Out" className="text-blue-600 underline">
+            contact@delirio.fit
+          </a>
+          . We will confirm within 7 days and delete within 30. Because your email address and your answers are stored
+          as one record, deleting it removes both. If you would rather only stop the emails and leave your answers with
+          us, tell us and we will do that instead.
+        </p>
+        <p className="mb-4">
+          If you answered the waitlist questions but closed the page before entering your email, the record we kept
+          holds no email address, name, or anything else that identifies you — only a random identifier created in your
+          browser, which we cannot connect to any person. We are unable to locate that record to delete it, and we
+          would rather tell you that than imply otherwise.
         </p>
 
         <h2 className="text-2xl font-semibold mb-4 mt-8">Data Security</h2>

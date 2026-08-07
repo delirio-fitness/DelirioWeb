@@ -1,18 +1,15 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Activity, ChevronDown, ChevronRight, Flame, Headset, Menu, Timer, TrendingUp, X } from 'lucide-react';
-import { APP_STORE_URL, MONTHLY_PRICE_USD, YEARLY_MONTHLY_EQUIVALENT_USD, YEARLY_PRICE_USD } from '../config/product';
-import { ConfirmDialog } from '../components/landing/ConfirmDialog';
-import { FeedbackSection } from '../components/landing/FeedbackSection';
+import { MONTHLY_PRICE_USD, YEARLY_MONTHLY_EQUIVALENT_USD, YEARLY_PRICE_USD } from '../config/product';
+import { CoachIntroSection } from '../components/landing/CoachIntroSection';
 import { HeroExperiment } from '../components/landing/HeroExperiment';
 import { LandingFooter } from '../components/landing/LandingFooter';
 import { ProductMomentsSection } from '../components/landing/ProductMomentsSection';
-import { SessionStudio, type SessionMode } from '../components/landing/SessionStudio';
+import { WaitlistModal } from '../components/landing/WaitlistModal';
 import { Logo } from '../components/logo';
-import { coachProfiles, type CoachId } from '../content/landingContent';
-import { useTextChat } from '../hooks/useTextChat';
-import { useVoiceSession } from '../hooks/useVoiceSession';
-import { generateDiscoveryId } from '../utils/pipecatConfig';
+import { useLandingVariant } from '../hooks/useLandingVariant';
+import { recordQualifiedAction } from '../services/conversionEvents';
 
 const frictionMoments = [
   {
@@ -56,6 +53,7 @@ const faqCategoryLabels: Record<FaqCategory, string> = {
 const faqCategories: FaqCategory[] = ['AI', 'COACHING', 'PRODUCT', 'PRICE'];
 const INITIAL_FAQ_COUNT = 3;
 const FAQ_BATCH_SIZE = 3;
+const AUTO_QUESTIONNAIRE_DELAY_MS = 30000;
 
 const faqSections: Record<FaqCategory, readonly (readonly [string, string])[]> = {
   AI: [
@@ -98,43 +96,103 @@ const faqSections: Record<FaqCategory, readonly (readonly [string, string])[]> =
   ],
 };
 
+/** Whether this page load was an off-page `JOIN THE WAITLIST` link. */
+function arrivedForWaitlist() {
+  return window.location.hash === '#wishlist';
+}
+
 export default function Landing() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [headerAtTop, setHeaderAtTop] = useState(true);
   const [faqCategory, setFaqCategory] = useState<FaqCategory>('AI');
   const [openFaqs, setOpenFaqs] = useState(() => new Set<number>());
   const [visibleFaqCount, setVisibleFaqCount] = useState(INITIAL_FAQ_COUNT);
-  const [selectedCoach, setSelectedCoach] = useState<CoachId | null>(null);
-  const [mode, setMode] = useState<SessionMode>('voice');
-  const [chatInput, setChatInput] = useState('');
-  const [pendingCoach, setPendingCoach] = useState<CoachId | null>(null);
-  const [hasVoiceEnded, setHasVoiceEnded] = useState(false);
-  const [questionnaireOpen, setQuestionnaireOpen] = useState(false);
+  // Read at mount, not in an effect: arriving on `/#wishlist` should paint with
+  // the gate already open rather than flashing the page behind it first.
+  const [questionnaireOpen, setQuestionnaireOpen] = useState(arrivedForWaitlist);
   const [questionnaireInvocation, setQuestionnaireInvocation] = useState(0);
-  const [questionnaireStartsAtFirstQuestion, setQuestionnaireStartsAtFirstQuestion] = useState(false);
+  const [questionnaireStartsAtFirstQuestion, setQuestionnaireStartsAtFirstQuestion] = useState(arrivedForWaitlist);
   const [autoQuestionnaireReady, setAutoQuestionnaireReady] = useState(false);
-  const [sessionUserId] = useState(() => generateDiscoveryId());
+  const [pastHeroCta, setPastHeroCta] = useState(false);
+  const landingVariant = useLandingVariant();
+  // Cell B is a single-CTA test, so nothing is allowed to cover its button. It
+  // was cell C before the letters were reassigned — see `config/experiment`.
+  const autoQuestionnaireDelayMs = landingVariant === 'b' ? null : AUTO_QUESTIONNAIRE_DELAY_MS;
   const faqPanelRef = useRef<HTMLDivElement>(null);
   const previousFaqHeightRef = useRef<number | null>(null);
-  const hasAutoOpenedQuestionnaireRef = useRef(false);
+  const hasAutoOpenedQuestionnaireRef = useRef(arrivedForWaitlist());
 
-  const activePersonality = selectedCoach ?? 'reed';
-  const voice = useVoiceSession({ personality: activePersonality, userId: sessionUserId, context: 'default_app' });
-  const { connect: connectVoice, disconnect: disconnectVoice, sessionState: voiceSessionState } = voice;
-  const text = useTextChat({ personality: activePersonality, userId: sessionUserId, context: 'default_app' });
-  const hasDestructiveContext = voiceSessionState === 'connected' || voiceSessionState === 'connecting' || text.messages.length > 0;
-  const openQuestionnaire = useCallback((startAtFirstQuestion = false) => {
+  const showQuestionnaire = useCallback((startAtFirstQuestion = false) => {
     hasAutoOpenedQuestionnaireRef.current = true;
     setQuestionnaireStartsAtFirstQuestion(startAtFirstQuestion);
     setQuestionnaireInvocation((current) => current + 1);
     setQuestionnaireOpen(true);
   }, []);
+
+  /**
+   * The CTA path, and the only one that reports a conversion.
+   *
+   * `waitlist_started` is fired here rather than deeper in the flow because this
+   * is the last moment before the first question renders — see
+   * `services/conversionEvents` for why that boundary is the rule. The auto-open
+   * `showQuestionnaire` instead: being shown a modal on a timer is not an action
+   * a visitor took, and reporting it would make the signal worthless anyway.
+   */
+  const openQuestionnaire = useCallback((startAtFirstQuestion = false) => {
+    recordQualifiedAction('waitlist_started');
+    showQuestionnaire(startAtFirstQuestion);
+  }, [showQuestionnaire]);
   const closeQuestionnaire = useCallback(() => setQuestionnaireOpen(false), []);
 
+  // A hash that arrives with the document — `#coaches` from a legal page's nav,
+  // say — is resolved by the browser before React has rendered anything, so the
+  // target does not exist yet and the jump is silently dropped: the visitor
+  // lands at the top of the page instead of on the section they asked for.
+  // Repeat it once the section is actually in the DOM, and again after `load`,
+  // because a late image can move the target out from under the first jump.
+  //
+  // `#wishlist` is the exception. There is no waitlist section to scroll to any
+  // more — the form lives behind the gate — so the hash opened the gate above,
+  // and all that is left here is to clear it. Every off-page `JOIN THE WAITLIST`
+  // link relies on that, and clearing stops a reload from reopening the modal.
   useEffect(() => {
-    const timer = window.setTimeout(() => setAutoQuestionnaireReady(true), 10000);
-    return () => window.clearTimeout(timer);
+    const targetId = window.location.hash.slice(1);
+    if (!targetId) return;
+
+    if (targetId === 'wishlist') {
+      // Arriving on `/#wishlist` is a `JOIN THE WAITLIST` link that was clicked
+      // somewhere else, so it is the same deliberate act as the CTAs above and
+      // reports the same conversion. The gate is already open — it was opened by
+      // the initial state, before this effect ran.
+      recordQualifiedAction('waitlist_started');
+      window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search);
+      return;
+    }
+
+    let frame = 0;
+    let landedAt: number | null = null;
+    const jump = () => {
+      // Once the visitor has scrolled for themselves, stop moving the page.
+      if (landedAt !== null && Math.abs(window.scrollY - landedAt) > 2) return;
+      document.getElementById(targetId)?.scrollIntoView({ behavior: 'instant', block: 'start' });
+      landedAt = window.scrollY;
+    };
+    frame = window.requestAnimationFrame(jump);
+    window.addEventListener('load', jump);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener('load', jump);
+    };
   }, []);
+
+  // Cell C is a single-CTA test, so nothing is allowed to cover its button; the
+  // other cells still invite the quiz, but late enough to let the page be read
+  // first.
+  useEffect(() => {
+    if (autoQuestionnaireDelayMs === null) return;
+    const timer = window.setTimeout(() => setAutoQuestionnaireReady(true), autoQuestionnaireDelayMs);
+    return () => window.clearTimeout(timer);
+  }, [autoQuestionnaireDelayMs]);
 
   useEffect(() => {
     if (
@@ -143,8 +201,9 @@ export default function Landing() {
       || hasAutoOpenedQuestionnaireRef.current
     ) return;
     hasAutoOpenedQuestionnaireRef.current = true;
-    openQuestionnaire();
-  }, [autoQuestionnaireReady, openQuestionnaire, questionnaireOpen]);
+    // Not `openQuestionnaire`: the timer opening this is not a conversion.
+    showQuestionnaire();
+  }, [autoQuestionnaireReady, showQuestionnaire, questionnaireOpen]);
 
   useEffect(() => {
     let frame = 0;
@@ -153,6 +212,9 @@ export default function Landing() {
       const atTop = window.scrollY <= 8;
       setHeaderAtTop(atTop);
       if (atTop) setMenuOpen(false);
+      // Half a viewport is roughly where the centred hero's own button leaves
+      // the screen, which is when cell C's header has to take the waitlist over.
+      setPastHeroCta(window.scrollY > window.innerHeight * 0.5);
     };
     const requestUpdate = () => {
       if (!frame) frame = window.requestAnimationFrame(updateHeader);
@@ -164,50 +226,6 @@ export default function Landing() {
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, []);
-
-  const applyCoach = useCallback((coach: CoachId) => {
-    if (coach !== selectedCoach) {
-      void disconnectVoice();
-      text.clearMessages();
-      setChatInput('');
-      setHasVoiceEnded(false);
-      setSelectedCoach(coach);
-    }
-  }, [disconnectVoice, selectedCoach, text]);
-
-  function requestCoach(coach: CoachId) {
-    if (coach === selectedCoach) return;
-    if (selectedCoach && hasDestructiveContext) setPendingCoach(coach);
-    else applyCoach(coach);
-  }
-
-  function startVoiceWithIris() {
-    setMode('voice');
-    requestCoach('iris');
-  }
-
-  function handleModeChange(nextMode: SessionMode) {
-    if (nextMode === 'text' && mode === 'voice') {
-      void disconnectVoice();
-      setHasVoiceEnded(true);
-    } else if (nextMode === 'voice' && mode !== 'voice') {
-      setHasVoiceEnded(false);
-    }
-    setMode(nextMode);
-  }
-
-  useEffect(() => {
-    if (!selectedCoach || mode !== 'voice' || hasVoiceEnded || voiceSessionState !== 'idle') return;
-    void connectVoice();
-  }, [connectVoice, hasVoiceEnded, mode, selectedCoach, voiceSessionState]);
-
-  function handleChatSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const message = chatInput.trim();
-    if (!message || text.isLoading) return;
-    void text.sendMessage(message);
-    setChatInput('');
-  }
 
   useLayoutEffect(() => {
     const panel = faqPanelRef.current;
@@ -257,8 +275,9 @@ export default function Landing() {
     ));
   }
 
+
   return (
-    <div className="d3-page">
+    <div className="d3-page" data-landing-variant={landingVariant}>
       <a className="d3-skip" href="#main-content">Skip to main content</a>
       <header className={`d3-header ${headerAtTop ? 'is-at-top' : ''}`}>
         <Link className="d3-logo" to="/" aria-label="Delirio home"><Logo color="white" width="22" height="31" /></Link>
@@ -268,12 +287,26 @@ export default function Landing() {
           <a href="#coaches" onClick={() => setMenuOpen(false)}>Coaches</a>
           <a href="#pricing" onClick={() => setMenuOpen(false)}>Pricing</a>
         </nav>
-        <a className="d3-header-cta" href={APP_STORE_URL} rel="noopener noreferrer" target="_blank">TRY 1 WEEK FREE</a>
+        {/* Held back until the hero's own button has scrolled away, so the page
+            never shows two of the same ask at once, and never none. Rendered
+            either way rather than mounted on scroll: `visibility` keeps the
+            row's spacing fixed, so the nav and menu do not jump when it
+            arrives. `aria-hidden` and `tabIndex` do the same job for screen
+            readers and the keyboard, rather than leaving it to a stylesheet. */}
+        <button
+          className={`d3-header-cta ${pastHeroCta ? '' : 'is-hidden'}`}
+          type="button"
+          aria-hidden={!pastHeroCta}
+          tabIndex={pastHeroCta ? undefined : -1}
+          onClick={() => openQuestionnaire(true)}
+        >
+          JOIN THE WAITLIST
+        </button>
         <button className="d3-menu" type="button" aria-label={menuOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X /> : <Menu />}</button>
       </header>
 
       <main id="main-content">
-        <HeroExperiment onTakeQuiz={() => openQuestionnaire(true)} />
+        <HeroExperiment variant={landingVariant} onJoinWaitlist={() => openQuestionnaire(true)} />
 
         <section id="product" className="d3-system" aria-label="Delirio coaching experience">
           <section className="d3-problem-band" aria-labelledby="problem-band-title">
@@ -292,16 +325,8 @@ export default function Landing() {
               ))}
             </div>
           </section>
-          <ProductMomentsSection
-            onStartVoice={startVoiceWithIris}
-            onTakeQuiz={() => openQuestionnaire(true)}
-          />
-          <SessionStudio
-            selectedCoach={selectedCoach} onSelectCoach={requestCoach}
-            mode={mode} onModeChange={handleModeChange}
-            voice={{ sessionState: voiceSessionState, isBotSpeaking: voice.isBotSpeaking, isBotProcessing: voice.isBotProcessing, isUserSpeaking: voice.isUserSpeaking, botTranscript: voice.botTranscript, botTurns: voice.botTurns, userTranscript: voice.userTranscript, failureKind: voice.failureKind, frequencyLevels: voice.frequencyLevels, isFrequencyListening: voice.isFrequencyListening, hasEnded: hasVoiceEnded, onStart: () => { setHasVoiceEnded(false); void connectVoice(); }, onCancel: () => { setHasVoiceEnded(true); void voice.cancelConnect(); }, onEnd: () => { setHasVoiceEnded(true); void disconnectVoice(); } }}
-            text={{ messages: text.messages, input: chatInput, isLoading: text.isLoading, connectionState: text.connectionState, error: text.error, onInputChange: setChatInput, onSubmit: handleChatSubmit, onRetry: () => { void text.retryLastMessage(); } }}
-          />
+          <ProductMomentsSection onJoinWaitlist={() => openQuestionnaire(true)} />
+          <CoachIntroSection />
         </section>
 
         <section id="pricing" className="d3-pricing-wrap" aria-labelledby="pricing-title">
@@ -316,7 +341,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <FeedbackSection
+        <WaitlistModal
           invocationId={questionnaireInvocation}
           open={questionnaireOpen}
           onClose={closeQuestionnaire}
@@ -363,9 +388,7 @@ export default function Landing() {
         </section>
       </main>
 
-      <LandingFooter sectionPrefix="" />
-
-      <ConfirmDialog open={pendingCoach !== null} coachName={pendingCoach ? coachProfiles[pendingCoach].name : ''} onCancel={() => setPendingCoach(null)} onConfirm={() => { if (pendingCoach) applyCoach(pendingCoach); setPendingCoach(null); }} />
+      <LandingFooter sectionPrefix="" onJoinWaitlist={() => openQuestionnaire(true)} />
     </div>
   );
 }
@@ -374,5 +397,5 @@ function PlanCard({ kind }: { kind: 'monthly' | 'annual' }) {
   const annual = kind === 'annual';
   const price = annual ? YEARLY_PRICE_USD : MONTHLY_PRICE_USD;
   const annualSavings = MONTHLY_PRICE_USD * 12 - YEARLY_PRICE_USD;
-  return <article className={`d3-plan d3-plan-${kind}`}><div className="d3-plan-tag">{annual ? 'BEST VALUE' : 'FLEXIBLE'}</div><p>{annual ? 'ANNUAL' : 'MONTHLY'}</p><h3>${price}</h3><strong>PER {annual ? 'YEAR' : 'MONTH'}</strong>{annual ? <><div className="d3-effective">${YEARLY_MONTHLY_EQUIVALENT_USD} / MONTH</div><small>SAVE ${annualSavings} VS. 12 MONTHLY PAYMENTS</small></> : <small>BILLED MONTHLY</small>}<ul>{benefits.map((benefit) => <li key={benefit}>✓&nbsp;&nbsp; {benefit}</li>)}</ul><a href={APP_STORE_URL} rel="noopener noreferrer" target="_blank">DOWNLOAD ON THE APP STORE</a></article>;
+  return <article className={`d3-plan d3-plan-${kind}`}><div className="d3-plan-tag">{annual ? 'BEST VALUE' : 'FLEXIBLE'}</div><p>{annual ? 'ANNUAL' : 'MONTHLY'}</p><h3>${price}</h3><strong>PER {annual ? 'YEAR' : 'MONTH'}</strong>{annual ? <><div className="d3-effective">${YEARLY_MONTHLY_EQUIVALENT_USD} / MONTH</div><small>SAVE ${annualSavings} VS. 12 MONTHLY PAYMENTS</small></> : <small>BILLED MONTHLY</small>}<ul>{benefits.map((benefit) => <li key={benefit}>✓&nbsp;&nbsp; {benefit}</li>)}</ul></article>;
 }

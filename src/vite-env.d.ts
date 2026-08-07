@@ -1,8 +1,6 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  readonly VITE_CHAT_ENGINE_URL?: string;
-  readonly VITE_PIPECAT_BACKEND_URL?: string;
   readonly VITE_APP_STORE_URL?: string;
 }
 

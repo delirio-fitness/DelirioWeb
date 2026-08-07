@@ -4,8 +4,6 @@
       "private": true,
       "type": "module",
       "dependencies": {
-            "@pipecat-ai/client-js": "^1.6.0",
-            "@pipecat-ai/daily-transport": "^1.6.0",
             "firebase": "^12.16.0",
             "lucide-react": "^0.487.0",
             "react": "^18.3.1",

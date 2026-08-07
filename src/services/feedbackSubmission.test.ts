@@ -2,8 +2,11 @@ import { signInAnonymously } from 'firebase/auth';
 import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { getFirebaseServices } from './firebaseClient';
 import {
-  appendQuestionnaireEmailToFirestore,
+  appendWaitlistEmailToFirestore,
+  submitWaitlistAnswersToFirestore,
+  submitWaitlistEmailToFirestore,
   submitWarmNetworkWishlistToFirestore,
+  updateWaitlistAnswersInFirestore,
 } from './feedbackSubmission';
 
 jest.mock('firebase/auth', () => ({ signInAnonymously: jest.fn() }));
@@ -42,7 +45,7 @@ describe('website Firebase submission paths', () => {
   });
 
   it('updates the originating questionnaire document without creating another record', async () => {
-    await appendQuestionnaireEmailToFirestore('questionnaire-document-id', 'person@example.com');
+    await appendWaitlistEmailToFirestore('questionnaire-document-id', 'person@example.com');
 
     expect(documentMock).toHaveBeenCalledWith(
       database,
@@ -53,7 +56,66 @@ describe('website Firebase submission paths', () => {
     expect(addDocMock).not.toHaveBeenCalled();
   });
 
-  it('writes a footer-only opt-in as a create-only warmNetwork record', async () => {
+  it('records the answers before an email exists, under the current schema', async () => {
+    addDocMock.mockResolvedValue({ id: 'waitlist-document-id' } as never);
+    const responses = [
+      { id: 'startTiming', kind: 'choice' as const, question: 'When would you start?', answer: 'Right away', value: 'immediately' },
+    ];
+
+    await expect(
+      submitWaitlistAnswersToFirestore('browser_id_1234567890', responses, 'questions'),
+    ).resolves.toBe('waitlist-document-id');
+
+    expect(collectionMock).toHaveBeenCalledWith(database, 'webQuestionaire');
+    expect(addDocMock).toHaveBeenCalledWith('collection-ref', {
+      browserId: 'browser_id_1234567890',
+      ownerUid: 'anonymous-user-id',
+      responses,
+      order: 'questions',
+      source: 'delirio-website-waitlist',
+      schemaVersion: 3,
+      createdAt: 'server-time',
+    });
+  });
+
+  /**
+   * The mirror of the test above, and the reason the A/B test is readable: the
+   * email-first arm creates the record from the address, so `responses` is
+   * absent rather than empty until the first answer lands.
+   */
+  it('records the email before any answers exist, in the email-first arm', async () => {
+    addDocMock.mockResolvedValue({ id: 'waitlist-document-id' } as never);
+
+    await expect(
+      submitWaitlistEmailToFirestore('browser_id_1234567890', 'person@example.com', 'email'),
+    ).resolves.toBe('waitlist-document-id');
+
+    expect(collectionMock).toHaveBeenCalledWith(database, 'webQuestionaire');
+    expect(addDocMock).toHaveBeenCalledWith('collection-ref', {
+      browserId: 'browser_id_1234567890',
+      ownerUid: 'anonymous-user-id',
+      email: 'person@example.com',
+      order: 'email',
+      source: 'delirio-website-waitlist',
+      schemaVersion: 3,
+      createdAt: 'server-time',
+    });
+    expect(addDocMock.mock.calls[0][1]).not.toHaveProperty('responses');
+  });
+
+  it('rewrites answers in place rather than creating a second record', async () => {
+    const responses = [
+      { id: 'startTiming', kind: 'choice' as const, question: 'When would you start?', answer: 'Within a month', value: 'within_a_month' },
+    ];
+
+    await updateWaitlistAnswersInFirestore('waitlist-document-id', responses);
+
+    expect(documentMock).toHaveBeenCalledWith(database, 'webQuestionaire', 'waitlist-document-id');
+    expect(updateDocMock).toHaveBeenCalledWith('document-ref', { responses });
+    expect(addDocMock).not.toHaveBeenCalled();
+  });
+
+  it('writes an opt-in that skipped the questions as a create-only warmNetwork record', async () => {
     await expect(
       submitWarmNetworkWishlistToFirestore('browser_id_1234567890', 'person@example.com'),
     ).resolves.toBe('warm-network-document-id');
@@ -73,7 +135,7 @@ describe('website Firebase submission paths', () => {
     getFirebaseServicesMock.mockReturnValue({ auth: { currentUser: null }, database } as never);
     signInAnonymouslyMock.mockResolvedValue({ user: { uid: 'anonymous-user-id' } } as never);
 
-    await appendQuestionnaireEmailToFirestore('questionnaire-document-id', 'person@example.com');
+    await appendWaitlistEmailToFirestore('questionnaire-document-id', 'person@example.com');
 
     expect(signInAnonymouslyMock).toHaveBeenCalledWith({ currentUser: null });
     expect(updateDocMock).toHaveBeenCalledWith('document-ref', { email: 'person@example.com' });

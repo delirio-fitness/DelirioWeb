@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom';
-import { APP_STORE_URL } from '../../config/product';
 import { Logo } from '../logo';
 
 const navItems = [
@@ -22,7 +21,7 @@ export function LandingHeader({ sectionPrefix = '' }: { sectionPrefix?: '' | '/'
             <a key={id} href={`${sectionPrefix}#${id}`}>{label}</a>
           ))}
         </nav>
-        <a className="d3-header-cta" href={APP_STORE_URL} rel="noopener noreferrer" target="_blank">TRY 1 WEEK FREE</a>
+        <a className="d3-header-cta" href={`${sectionPrefix}#wishlist`}>JOIN THE WAITLIST</a>
       </header>
     </>
   );

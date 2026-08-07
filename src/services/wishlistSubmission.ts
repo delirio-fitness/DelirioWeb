@@ -1,20 +1,19 @@
 import {
-  appendQuestionnaireEmailToFirestore,
+  appendWaitlistEmailToFirestore,
   submitWarmNetworkWishlistToFirestore,
-  type FeedbackAnswers,
 } from './feedbackSubmission';
 
-export type WishlistPlacement = 'footer' | 'questionnaire';
+export type WishlistPlacement = 'landing' | 'questionnaire';
 
+/** Identifies the answer document an email should be attached to. */
 export type QuestionnaireWishlistContext = {
-  answers: FeedbackAnswers;
   submissionId: string;
 };
 
 /**
- * Stores an explicit website wishlist opt-in. Quiz completion updates the
- * existing questionnaire document; a footer-only opt-in creates a warmNetwork
- * record with no questionnaire response attached.
+ * Routes an explicit waitlist opt-in to the right record. An email that arrived
+ * through the gate is patched onto the answers the visitor just gave; one that
+ * arrived without answering anything becomes a standalone warmNetwork lead.
  */
 export function submitWishlistToFirestore(
   browserId: string,
@@ -23,11 +22,8 @@ export function submitWishlistToFirestore(
   questionnaire?: QuestionnaireWishlistContext,
 ) {
   if (questionnaire) {
-    return appendQuestionnaireEmailToFirestore(questionnaire.submissionId, email);
+    return appendWaitlistEmailToFirestore(questionnaire.submissionId, email);
   }
 
-  return submitWarmNetworkWishlistToFirestore(
-    browserId,
-    email,
-  );
+  return submitWarmNetworkWishlistToFirestore(browserId, email);
 }
