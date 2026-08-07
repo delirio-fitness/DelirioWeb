@@ -203,16 +203,20 @@ export function WaitlistModal({
   );
 
   /**
-   * Writes the free text on blur rather than on every keystroke.
+   * Writes the free text, and resolves to whether it landed.
+   *
+   * Driven by the send button beside the field — a textarea that saves on blur
+   * alone gives no sign it saved anything, which reads as a field that does
+   * nothing. Blur still commits as well, so typing and then abandoning keeps
+   * the text; that is the case worth protecting, and it is why the button never
+   * became the only way in.
    *
    * Clicking `JOIN` blurs the textarea first, so the write is already in flight
    * by the time the email submits — and `resolveSubmissionId` awaits whatever
-   * the latest write is, so the two cannot land out of order. Typing and then
-   * abandoning still keeps the text, which is the case worth protecting.
+   * the latest write is, so the two cannot land out of order.
    */
-  const commitOpenResponse = useCallback(() => {
+  const commitOpenResponse = useCallback(async (): Promise<boolean> => {
     const trimmed = openResponse.trim();
-    if (trimmed === savedOpenResponseRef.current) return;
     // Nothing to attach it to, and **this text is then dropped** — it does not
     // ride along with the email. The questions gate this field, so reaching
     // here at all means the answer write failed; the email submit that follows
@@ -221,12 +225,26 @@ export function WaitlistModal({
     // `saveAnswers` catch already accepts: a failed write must not block the ask.
     //
     // Not silent, at least. `saveFailed` renders "We could not save your
-    // answers just now" directly above this field, so anyone typing into it has
-    // been told. Making it true rather than merely honest means retrying the
-    // answer write here instead of returning — worth doing if this path ever
-    // shows up in `[delirio-waitlist]` logs with real frequency.
-    if (!submissionIdRef.current) return;
-    void saveAnswers({ ...answers, openResponse: trimmed });
+    // answers just now" directly above this field, and returning false tells the
+    // button to say so where the visitor is looking. Making it true rather than
+    // merely honest means retrying the answer write here instead of returning —
+    // worth doing if this path ever shows up in `[delirio-waitlist]` logs with
+    // real frequency.
+    if (!submissionIdRef.current) return false;
+    if (trimmed === savedOpenResponseRef.current) {
+      // Blur fires before the click that caused it, so a press of the send
+      // button routinely lands here with its own text already in flight. Report
+      // on that write rather than on the ref: `savedOpenResponseRef` is set when
+      // a write *starts*, so it is not evidence one succeeded.
+      if ((await savePromiseRef.current?.catch(() => null)) != null) return true;
+      // It failed. Nothing typed means nothing to retry — this is a blur on an
+      // untouched field, and spending a write on an empty answer is the one
+      // thing that path must not do.
+      if (!trimmed) return false;
+      // Otherwise fall through and write it again, so pressing the button a
+      // second time means what it says rather than repeating the same refusal.
+    }
+    return (await saveAnswers({ ...answers, openResponse: trimmed })) != null;
   }, [answers, openResponse, saveAnswers]);
 
   const resolveSubmissionId = useCallback(
