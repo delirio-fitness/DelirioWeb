@@ -115,9 +115,6 @@ export default function Landing() {
   const [autoQuestionnaireReady, setAutoQuestionnaireReady] = useState(false);
   const [pastHeroCta, setPastHeroCta] = useState(false);
   const landingVariant = useLandingVariant();
-  // Cell B is a single-CTA test, so nothing is allowed to cover its button. It
-  // was cell C before the letters were reassigned — see `config/experiment`.
-  const autoQuestionnaireDelayMs = landingVariant === 'b' ? null : AUTO_QUESTIONNAIRE_DELAY_MS;
   const faqPanelRef = useRef<HTMLDivElement>(null);
   const previousFaqHeightRef = useRef<number | null>(null);
   const hasAutoOpenedQuestionnaireRef = useRef(arrivedForWaitlist());
@@ -185,14 +182,13 @@ export default function Landing() {
     };
   }, []);
 
-  // Cell C is a single-CTA test, so nothing is allowed to cover its button; the
-  // other cells still invite the quiz, but late enough to let the page be read
-  // first.
+  // Every cell invites the gate on a timer, but late enough to let the page be
+  // read first. Cell B used to be exempt as a single-CTA test; it is the shipped
+  // page now, so the invitation follows it rather than the letter.
   useEffect(() => {
-    if (autoQuestionnaireDelayMs === null) return;
-    const timer = window.setTimeout(() => setAutoQuestionnaireReady(true), autoQuestionnaireDelayMs);
+    const timer = window.setTimeout(() => setAutoQuestionnaireReady(true), AUTO_QUESTIONNAIRE_DELAY_MS);
     return () => window.clearTimeout(timer);
-  }, [autoQuestionnaireDelayMs]);
+  }, []);
 
   useEffect(() => {
     if (

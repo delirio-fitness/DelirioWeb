@@ -45,9 +45,15 @@ under `npm run dev`; only a Netlify-served build applies them.
 
 `/` renders one of two acquisition cells, selected by `?v=`:
 
-- `?v=a` (or no param) — `HeroV3`, the standard hero, with one arrow-led `JOIN THE WAITLIST`.
-- `?v=b` — `HeroFocus`, a centred hero built around a single oversized button. Hero only;
-  everything below it is identical in both cells.
+- `?v=b` (**or no param — this is what `delirio.fit` serves**) — `HeroFocus`, a centred hero
+  built around a single oversized button.
+- `?v=a` — `HeroV3`, the standard hero, with one arrow-led `JOIN THE WAITLIST`. Opt-in now.
+
+Hero only; everything below it is identical in both cells. The letters did **not** move when B
+became the default — `?v=b` still means what it always meant, and every fallback resolves through
+`DEFAULT_LANDING_VARIANT` rather than a literal `'a'`, so they followed the default on their own.
+`HeroExperiment` returns `HeroFocus` as its terminal branch for the same reason: a cell that goes
+unrecognised should land on the shipped page.
 
 ### Nothing has run yet, which is why the letters could be reassigned
 
@@ -61,16 +67,24 @@ treatment survived and took the letter A; the old C became B. The `label-first` 
 `HeroV3Cta`, and ~25 `d3-hero-questionnaire-*` CSS rules were deleted with the cell they served,
 so `?hero=v3` no longer reaches that button either.
 
-A stale `?v=c` falls through to cell A rather than resolving to nothing. That matters only for a
-pasted link now, but `experiment.test.ts` pins it so the failure stays a known landing.
+A stale `?v=c` falls through to the default cell rather than resolving to nothing. That matters
+only for a pasted link now, but `experiment.test.ts` pins it so the failure stays a known landing.
+
+Choosing B as the default was decided the same way, and for the same reason: nothing had run, so
+it was a judgement about which page to serve rather than a result. **Tests that want to prove a
+cell was actually read must pin `a`** — asking for `b` and getting it passes just as happily with
+the URL and the session store both ignored, which is how the default flip quietly gutted four of
+them.
 
 `src/config/experiment.ts` resolves the cell, remembers it in `sessionStorage` for the tab, and
 publishes it as `window.delirioLandingVariant` and `data-landing-variant` on `.d3-page` — that is
 where ad tracking reads the assignment from. `?hero=v1|v2|v2.3|v3` still pins a saved hero
 composition for design review and beats `?v=`.
 
-Note that the gate auto-opens 30s after load in cell A (`Landing.tsx`), which competes with the
-waitlist CTA. Cell B is exempt — it is a single-CTA test, so nothing may cover its button.
+Note that the gate auto-opens 30s after load in **both** cells (`Landing.tsx`), which competes with
+the waitlist CTA. Cell B used to be exempt on the grounds that a single-CTA test may not have its
+button covered; that exemption was dropped when B became the shipped page, so the timed invitation
+follows the site rather than the letter.
 
 ## The waitlist gate
 

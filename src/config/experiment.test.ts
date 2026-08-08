@@ -12,23 +12,26 @@ describe('landing variant assignment', () => {
     window.history.replaceState({}, '', '/');
   });
 
-  it('defaults an untagged visit to the control cell', () => {
+  it('defaults an untagged visit to the shipped cell', () => {
     expect(resolveLandingVariant()).toBe(DEFAULT_LANDING_VARIANT);
-    expect(DEFAULT_LANDING_VARIANT).toBe('a');
+    expect(DEFAULT_LANDING_VARIANT).toBe('b');
   });
 
   it.each(['a', 'b'] as const)('assigns the cell named by ?v=%s', (variant) => {
     expect(resolveLandingVariant(`?v=${variant}`)).toBe(variant);
   });
 
+  // These pin `a`, the opt-in cell, on purpose: `b` is the default, so a test
+  // that asked for `b` and got it would pass just as happily with the URL and
+  // the store both ignored.
   it('reads the cell from the live URL when no search is passed', () => {
-    window.history.replaceState({}, '', '/?v=b');
-    expect(resolveLandingVariant()).toBe('b');
+    window.history.replaceState({}, '', '/?v=a');
+    expect(resolveLandingVariant()).toBe('a');
   });
 
   it('keeps the assigned cell after navigating away from the tagged URL', () => {
-    resolveLandingVariant('?v=b');
-    expect(resolveLandingVariant('')).toBe('b');
+    resolveLandingVariant('?v=a');
+    expect(resolveLandingVariant('')).toBe('a');
   });
 
   it('lets a later tagged URL move the visitor to a new cell', () => {
@@ -37,7 +40,7 @@ describe('landing variant assignment', () => {
     expect(resolveLandingVariant('')).toBe('a');
   });
 
-  it.each(['?v=d', '?v=', '?variant=b', '?v=A'])('falls back to the control for %s', (search) => {
+  it.each(['?v=d', '?v=', '?variant=a', '?v=A'])('falls back to the default for %s', (search) => {
     expect(resolveLandingVariant(search)).toBe(DEFAULT_LANDING_VARIANT);
   });
 
@@ -54,7 +57,7 @@ describe('landing variant assignment', () => {
       throw new Error('denied');
     });
 
-    expect(resolveLandingVariant('?v=b')).toBe('b');
+    expect(resolveLandingVariant('?v=a')).toBe('a');
     expect(resolveLandingVariant('')).toBe(DEFAULT_LANDING_VARIANT);
 
     getItem.mockRestore();
@@ -69,14 +72,14 @@ describe('landing variant assignment', () => {
   /**
    * `c` is in the rejected list on purpose. It was a real cell until the letters
    * were reassigned, so a live ad URL may still carry it — and it has to fall
-   * through to the control rather than resolving to something.
+   * through to the default rather than resolving to something.
    */
   it('recognises only the two defined cells', () => {
     expect(['a', 'b'].every(isLandingVariant)).toBe(true);
     expect([undefined, null, '', 'c', 'd', 'A', 1].some(isLandingVariant)).toBe(false);
   });
 
-  it('sends a stale ?v=c ad URL to the control rather than nowhere', () => {
+  it('sends a stale ?v=c ad URL to the default rather than nowhere', () => {
     expect(resolveLandingVariant('?v=c')).toBe(DEFAULT_LANDING_VARIANT);
   });
 });

@@ -1,5 +1,6 @@
 import { recordQualifiedAction, resetQualifiedActions } from './conversionEvents';
 import { sendConversion } from './conversionBeacon';
+import { DEFAULT_LANDING_VARIANT } from '../config/experiment';
 
 jest.mock('./conversionBeacon', () => ({ sendConversion: jest.fn() }));
 
@@ -11,11 +12,13 @@ describe('recordQualifiedAction', () => {
     resetQualifiedActions();
   });
 
+  // Nothing here sets `?v=`, so the cell is whichever one ships. Asserting the
+  // constant rather than the letter keeps this about the attachment.
   it('reports the trigger with the experiment cell attached', () => {
     expect(recordQualifiedAction('email_submitted')).toBe(true);
 
     expect(send).toHaveBeenCalledWith(
-      expect.objectContaining({ trigger: 'email_submitted', variant: 'a' }),
+      expect.objectContaining({ trigger: 'email_submitted', variant: DEFAULT_LANDING_VARIANT }),
     );
   });
 

@@ -215,7 +215,7 @@ describe('Landing journey', () => {
       expect(header.queryByRole('button', { name: /waitlist/i })).not.toBeInTheDocument();
       expect(within(document.querySelector('.d3-hero') as HTMLElement)
         .getByRole('button', { name: 'JOIN THE WAITLIST' })).toBeInTheDocument();
-      expect(document.querySelector('.d3-page')).toHaveAttribute('data-landing-variant', 'a');
+      expect(document.querySelector('.d3-page')).toHaveAttribute('data-landing-variant', 'b');
     });
 
     it('keeps the hidden header button off the keyboard too', () => {
@@ -229,24 +229,35 @@ describe('Landing journey', () => {
       expect(cta).toHaveAttribute('tabindex', '-1');
     });
 
-    it('renders the centred waitlist hero in cell B without touching the page below', () => {
-      window.history.replaceState({}, '', '/?v=b');
+    /** Untagged rather than `?v=b`: serving this hero by default is the point. */
+    it('gives an untagged visit the centred waitlist hero, without touching the page below', () => {
       render(<MemoryRouter><Landing /></MemoryRouter>);
 
-      expect(document.querySelector('.d3-page')).toHaveAttribute('data-landing-variant', 'b');
+      expect(document.querySelector('.d3-hero--focus')).toBeInTheDocument();
       expect(screen.getByRole('heading', { name: /get fit and stay fit without the planning/i })).toBeInTheDocument();
       expect(document.getElementById('how-it-works')).toBeInTheDocument();
       expect(document.getElementById('pricing')).toBeInTheDocument();
       expect(document.getElementById('faq')).toBeInTheDocument();
     });
 
-    it('never covers cell B with the gate on a timer', () => {
-      jest.useFakeTimers();
-      window.history.replaceState({}, '', '/?v=b');
+    it('keeps the standard hero reachable as the opt-in cell', () => {
+      window.history.replaceState({}, '', '/?v=a');
       render(<MemoryRouter><Landing /></MemoryRouter>);
 
-      act(() => jest.advanceTimersByTime(120000));
+      expect(document.querySelector('.d3-page')).toHaveAttribute('data-landing-variant', 'a');
+      expect(document.querySelector('.d3-hero--v3')).toBeInTheDocument();
+      expect(document.querySelector('.d3-hero--focus')).not.toBeInTheDocument();
+    });
+
+    /** Cell B was exempt from this while it was a test cell; it ships now. */
+    it.each(['a', 'b'] as const)('invites cell %s to the gate on the same timer', (variant) => {
+      jest.useFakeTimers();
+      window.history.replaceState({}, '', `/?v=${variant}`);
+      render(<MemoryRouter><Landing /></MemoryRouter>);
+
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+      act(() => jest.advanceTimersByTime(30000));
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
       jest.useRealTimers();
     });
 
@@ -284,17 +295,19 @@ describe('Landing journey', () => {
       Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 });
     });
 
+    // `?v=a`, not the default, or the assertion would pass without the URL ever
+    // being read.
     it('publishes the assigned cell for ad tracking', () => {
-      window.history.replaceState({}, '', '/?v=b');
+      window.history.replaceState({}, '', '/?v=a');
       render(<MemoryRouter><Landing /></MemoryRouter>);
-      expect(window.delirioLandingVariant).toBe('b');
+      expect(window.delirioLandingVariant).toBe('a');
     });
 
     /** A live ad may still carry the retired letter; it must land somewhere sane. */
-    it('sends a stale ?v=c ad URL to the control cell', () => {
+    it('sends a stale ?v=c ad URL to the default cell', () => {
       window.history.replaceState({}, '', '/?v=c');
       render(<MemoryRouter><Landing /></MemoryRouter>);
-      expect(document.querySelector('.d3-page')).toHaveAttribute('data-landing-variant', 'a');
+      expect(document.querySelector('.d3-page')).toHaveAttribute('data-landing-variant', 'b');
     });
   });
 });

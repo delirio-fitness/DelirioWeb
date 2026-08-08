@@ -7,6 +7,10 @@
  *
  * - `a` — `HeroV3`: the standard hero, with one arrow-led `JOIN THE WAITLIST`.
  * - `b` — `HeroFocus`: a centred hero built around a single oversized button.
+ *   **This is what an untagged visit gets**, so it is the page `delirio.fit`
+ *   serves; `a` is opt-in. The letters did not move when that was decided — `?v=b`
+ *   still means what it meant, and every fallback path here resolves through
+ *   `DEFAULT_LANDING_VARIANT` rather than a literal `'a'`, so they followed it.
  *
  * **Nothing has run yet.** No ad has pointed here and no `landing_*` figure
  * exists in Events Manager, so both cells start from zero and the letters carry
@@ -16,9 +20,9 @@
  * the button drawn two ways, a test of arrow placement rather than of anything
  * worth spending on; the clearer treatment survived and took the letter A, and
  * the old C became B. The `label-first` rendering was deleted with the cell it
- * served — see `HeroV3`. A stale `?v=c` falls through to cell A rather than
- * resolving to nothing, which matters only for a pasted link now, but keeps the
- * failure a known landing instead of a blank.
+ * served — see `HeroV3`. A stale `?v=c` falls through to the default cell rather
+ * than resolving to nothing, which matters only for a pasted link now, but keeps
+ * the failure a known landing instead of a blank.
  *
  * The resolved cell is published on `window.delirioLandingVariant` and mirrored
  * onto `data-landing-variant` on the page root, so ad tracking can segment
@@ -28,8 +32,12 @@ export const LANDING_VARIANTS = ['a', 'b'] as const;
 
 export type LandingVariant = (typeof LANDING_VARIANTS)[number];
 
-/** Cell A is the standard hero, so an untagged visit is the control. */
-export const DEFAULT_LANDING_VARIANT: LandingVariant = 'a';
+/**
+ * Cell B — the centred single-button hero — is what ships, so an untagged visit
+ * gets it and every unrecognised `?v=` lands on it too. Nothing had run when that
+ * was chosen, so it was a decision about which page to show rather than a result.
+ */
+export const DEFAULT_LANDING_VARIANT: LandingVariant = 'b';
 
 export const LANDING_VARIANT_QUERY_PARAM = 'v';
 
@@ -60,7 +68,7 @@ function persistVariant(variant: LandingVariant): void {
 /**
  * Resolves the cell for this visit. An explicit `?v=` wins and is remembered for
  * the tab, so a visitor who reads the privacy policy and comes back to `/` stays
- * in the cell the ad sent them to instead of falling back to the control.
+ * in the cell the ad sent them to instead of falling back to the default.
  */
 export function resolveLandingVariant(search: string = window.location.search): LandingVariant {
   const requested = new URLSearchParams(search).get(LANDING_VARIANT_QUERY_PARAM);

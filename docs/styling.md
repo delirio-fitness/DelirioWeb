@@ -6,16 +6,20 @@ The production landing is dark-first. `src/styles/design3.css` owns its page tok
 
 ## Saved hero experiments
 
-The landing currently defaults to `HeroV3`. Alternative compositions remain
+The landing defaults to `HeroFocus` (`.d3-hero--focus`), the centred single-button
+hero — see **Landing experiment** in `CLAUDE.md`. `HeroV3` is still the standard
+explanatory hero and is what `/?v=a` serves. Alternative compositions remain
 isolated and can be reviewed locally without changing their source:
 
 - `/?hero=v1` — original conversion-first left stack.
 - `/?hero=v2.3` — saved minimal tactical statistics strip.
 - `/?hero=v2` — alias for the current V2 experiment (V2.3).
-- `/?hero=v3` — current default; live workout scoreboard staged as a broadcast lower-third.
+- `/?hero=v3` — the standard hero; live workout scoreboard staged as a broadcast lower-third.
 
-Unknown or missing `hero` values resolve to V3. Keep shared visual tokens under
-the `.d3-hero` selectors and variant geometry under `.d3-hero--v*` selectors.
+A `?hero=` value beats `?v=`, so a reviewer can pin a composition from either
+cell. Unknown or missing `hero` values leave the cell to decide, which means the
+default landing is `HeroFocus`. Keep shared visual tokens under the `.d3-hero`
+selectors and variant geometry under `.d3-hero--*` selectors.
 
 ## Rules
 

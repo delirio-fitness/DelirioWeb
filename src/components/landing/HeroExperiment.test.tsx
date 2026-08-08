@@ -7,7 +7,8 @@ describe('HeroExperiment', () => {
   afterEach(() => window.history.replaceState({}, '', '/'));
 
   it.each([
-    ['', 'hero-v3-title'],
+    // No search and no `variant` prop is the shipped page: cell B, `HeroFocus`.
+    ['', 'hero-focus-title'],
     ['?hero=v1', 'hero-title'],
     ['?hero=v2', 'hero-v23-title'],
     ['?hero=v2.3', 'hero-v23-title'],
@@ -39,7 +40,7 @@ describe('HeroExperiment', () => {
     },
   );
 
-  it('uses a static background image for the default Hero V3', () => {
+  it('uses a static background image for the default hero', () => {
     const { container } = render(<HeroExperiment />);
     expect(container.querySelector('.d3-hero-image')).toBeInstanceOf(HTMLImageElement);
     expect(container.querySelector('video')).not.toBeInTheDocument();
@@ -51,7 +52,7 @@ describe('HeroExperiment', () => {
     expect(screen.getByRole('complementary', { name: /live workout tactical strip/i })).toHaveTextContent(/form quality.*calories burned.*rest/i);
   });
 
-  it('keeps the default Hero V3 focused and free of the workout scoreboard', () => {
+  it('keeps the pinned Hero V3 focused and free of the workout scoreboard', () => {
     window.history.replaceState({}, '', '/?hero=v3');
     render(<HeroExperiment />);
     expect(screen.queryByRole('complementary', { name: /live workout scoreboard/i })).not.toBeInTheDocument();

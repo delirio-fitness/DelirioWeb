@@ -4,10 +4,11 @@ import heroText from '../../content/heroText.json';
 const content = heroText.heroTextFocus;
 
 /**
- * Cell C of the acquisition experiment: one centred column, short copy, and a
- * single oversized waitlist button. Nothing competes with the signup — no quiz,
- * no typewriter, no product screenshot — so the hero tests whether a plainer,
- * louder ask converts ad traffic better than the explanatory default.
+ * The shipped hero — cell B, and what an untagged visit gets: one centred column,
+ * short copy, and a single oversized waitlist button. Nothing competes with the
+ * signup — no quiz, no typewriter, no product screenshot. It was cell C of the
+ * acquisition experiment, then cell B, and is now simply the page; `HeroV3`, the
+ * explanatory hero it was drawn against, is the opt-in cell at `?v=a`.
  */
 export function HeroFocus({ onJoinWaitlist }: { onJoinWaitlist?: () => void }) {
   return (
