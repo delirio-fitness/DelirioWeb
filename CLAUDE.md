@@ -578,6 +578,24 @@ in the reported-actions list, in the wishlist section, and in "Do Not Sell or Sh
 policy that is false in a checkable way is the FTC Section 5 hook the GoodRx and BetterHelp orders
 turned on. Changing what goes in `user_data` means changing that copy in the same PR.
 
+##### The address is trusted, not verified — a known, accepted risk
+
+`/.netlify/functions/conversion` is public and guarded only by an `Origin` check, which a `curl`
+forges in one line. So **any caller can post `email_submitted` with an arbitrary address** and have
+that person's matchable hash sent to Meta under a signup they never made. The three gates above
+constrain our own code; none of them binds the request to a real signup.
+
+This was raised in review (PR #6, 2026-08-09) and **accepted deliberately** on the grounds that the
+site is pre-launch, has no traffic, and the attack requires someone to choose to target it. It is
+recorded here so a later reader finds a decision rather than an oversight — and so the second half
+is not lost: the risk scales with how well-known the site becomes, and the privacy policy's promise
+that the hash is sent "when you submit your email" is not true for an injected address.
+
+Closing it properly means the function verifying the address against `wishlist2` instead of
+trusting it, which needs Firestore admin credentials in the Netlify environment and a way to handle
+the race with the client's own write, since the beacon fires immediately after it. Revisit when the
+site has traffic worth forging, not before.
+
 Attribution (`src/utils/attribution.ts`) is captured in `main.tsx` before render and held for the
 tab: react-router drops the query string on internal navigation, and the campaign is unrecoverable
 after that. First touch wins — a later visit with different parameters never overwrites it.
