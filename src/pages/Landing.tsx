@@ -9,7 +9,7 @@ import { ProductMomentsSection } from '../components/landing/ProductMomentsSecti
 import { WaitlistModal } from '../components/landing/WaitlistModal';
 import { Logo } from '../components/logo';
 import { useLandingVariant } from '../hooks/useLandingVariant';
-import { recordQualifiedAction } from '../services/conversionEvents';
+import { recordPageView, recordQualifiedAction } from '../services/conversionEvents';
 
 const frictionMoments = [
   {
@@ -140,6 +140,14 @@ export default function Landing() {
     showQuestionnaire(startAtFirstQuestion);
   }, [showQuestionnaire]);
   const closeQuestionnaire = useCallback(() => setQuestionnaireOpen(false), []);
+
+  // The landing was reached. Not a conversion and not a CTA — it is what tells
+  // Meta the visitors who *didn't* convert exist, which is the bulk of what its
+  // optimizer runs on. Fires once per visit, from here rather than `main.tsx`,
+  // so the legal pages stay silent.
+  useEffect(() => {
+    recordPageView();
+  }, []);
 
   // A hash that arrives with the document — `#coaches` from a legal page's nav,
   // say — is resolved by the browser before React has rendered anything, so the

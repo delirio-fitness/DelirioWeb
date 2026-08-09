@@ -1,4 +1,4 @@
-import { recordQualifiedAction, resetQualifiedActions } from './conversionEvents';
+import { recordPageView, recordQualifiedAction, resetPageView, resetQualifiedActions } from './conversionEvents';
 import { sendConversion } from './conversionBeacon';
 import { DEFAULT_LANDING_VARIANT } from '../config/experiment';
 
@@ -10,6 +10,7 @@ describe('recordQualifiedAction', () => {
   beforeEach(() => {
     window.sessionStorage.clear();
     resetQualifiedActions();
+    resetPageView();
   });
 
   // Nothing here sets `?v=`, so the cell is whichever one ships. Asserting the
@@ -82,5 +83,70 @@ describe('recordQualifiedAction', () => {
   it('no longer accepts the store click, now that nothing links to the App Store', () => {
     // @ts-expect-error every download CTA was replaced by the waitlist.
     expect(() => recordQualifiedAction('store_click')).not.toThrow();
+  });
+
+  /**
+   * A page load is not a qualified action, so the trigger union must keep
+   * refusing it — the separate `recordPageView` below is the only way in.
+   */
+  it('does not accept the page view, which costs the visitor nothing', () => {
+    // @ts-expect-error arriving on the page is model input, not a conversion.
+    expect(() => recordQualifiedAction('page_view')).not.toThrow();
+  });
+});
+
+describe('recordPageView', () => {
+  beforeEach(() => {
+    window.sessionStorage.clear();
+    resetQualifiedActions();
+    resetPageView();
+  });
+
+  it('reports the landing with the experiment cell and campaign attached', () => {
+    window.sessionStorage.setItem(
+      'delirio:attribution',
+      JSON.stringify({ campaign: 'glp1_v3', source: 'meta' }),
+    );
+
+    expect(recordPageView()).toBe(true);
+
+    expect(send).toHaveBeenCalledWith(
+      expect.objectContaining({
+        trigger: 'page_view',
+        variant: DEFAULT_LANDING_VARIANT,
+        attribution: expect.objectContaining({ campaign: 'glp1_v3', source: 'meta' }),
+      }),
+    );
+  });
+
+  it('reports once per visit', () => {
+    expect(recordPageView()).toBe(true);
+    expect(recordPageView()).toBe(false);
+
+    expect(send).toHaveBeenCalledTimes(1);
+  });
+
+  /**
+   * The regression this whole split exists to prevent.
+   *
+   * `firstOfVisit` is what licenses the server to send the standard `Lead`, and a
+   * page view precedes every CTA by definition. If it were recorded as a
+   * qualified action, `waitlist_started` would arrive flagged `false` and `Lead`
+   * would stop being reported entirely — visibly only as a number that never
+   * moves in Events Manager, which is the kind of failure nobody catches.
+   */
+  it('never consumes the visit\'s first qualified action, so Lead still fires', () => {
+    recordPageView();
+    recordQualifiedAction('waitlist_started');
+
+    expect(send.mock.calls[0][0]).toMatchObject({ trigger: 'page_view', firstOfVisit: false });
+    expect(send.mock.calls[1][0]).toMatchObject({ trigger: 'waitlist_started', firstOfVisit: true });
+  });
+
+  it('keeps its own record, so clearing one path does not clear the other', () => {
+    recordPageView();
+    resetQualifiedActions();
+
+    expect(recordPageView()).toBe(false);
   });
 });

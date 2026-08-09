@@ -253,10 +253,11 @@ export default function PrivacyPolicy() {
           say, or what you type into them.
         </p>
         <p className="mb-4">
-          Instead, two actions are reported from our own servers: choosing to open the waitlist, and submitting your
-          email in the waitlist section of the home page. What we send is the name of that action, the campaign
-          parameters in the link you arrived from, which version of the page you saw, your IP address, and your browser&rsquo;s
-          user-agent string. That is the complete list.
+          Instead, three actions are reported from our own servers: arriving on the home page, choosing to open the
+          waitlist, and submitting your email in the waitlist section of the home page. What we send is the name of that
+          action, the campaign parameters in the link you arrived from, which version of the page you saw, your IP
+          address, and your browser&rsquo;s user-agent string. That is the complete list. Only the home page is reported
+          this way &mdash; visiting this policy, or any other page here, sends nothing.
         </p>
         <p className="mb-4">
           <strong>We never report anything you tell the waitlist questions.</strong> Your answers about age, gender,
