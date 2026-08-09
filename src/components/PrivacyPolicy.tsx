@@ -248,9 +248,9 @@ export default function PrivacyPolicy() {
         </p>
         <p className="mb-4">
           <strong>This website.</strong> Separately from the app, we measure how our ads perform on delirio.fit.{' '}
-          <strong>There is no Meta pixel or other third-party advertising script on this site.</strong> No advertising
-          company&rsquo;s code runs in your browser here, and none of them can see the pages you visit, what those pages
-          say, or what you type into them.
+          <strong>There is no Meta pixel or other advertising script on this site.</strong> No advertising
+          company&rsquo;s code runs in your browser here, and no advertising company can see the pages you visit, what
+          those pages say, or what you type into them.
         </p>
         <p className="mb-4">
           Instead, three actions are reported from our own servers: arriving on the home page, choosing to open the
@@ -267,6 +267,19 @@ export default function PrivacyPolicy() {
           No conversion is reported at any point after those questions begin, so nothing we send can indicate whether
           you started them, finished them, or what you said. We also never send your email address, in any form,
           including hashed or encrypted forms.
+        </p>
+        <p className="mb-4">
+          <strong>Analytics on this website.</strong> We use Microsoft Clarity to understand how people use delirio.fit
+          &mdash; which parts of a page are read, where people get stuck, and where they leave. Clarity records how you
+          move through the page, and Microsoft processes that recording for us and may use it in accordance with its own
+          policies. This is separate from advertising: Clarity data is not sent to Meta and is not used to target ads to
+          you. <strong>The waitlist form is excluded from this recording entirely</strong> &mdash; the questions, the
+          options you choose, your email, and anything you type there are not captured. You can read Microsoft&rsquo;s
+          privacy statement at{' '}
+          <a href="https://privacy.microsoft.com/privacystatement" className="text-blue-600 underline">
+            https://privacy.microsoft.com/privacystatement
+          </a>
+          .
         </p>
         <p className="mb-4">
           Your browser tells our own server that the action happened, and our server is what contacts Meta. Because that

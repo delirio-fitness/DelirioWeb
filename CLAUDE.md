@@ -435,6 +435,27 @@ The browser posts a trigger slug to `/.netlify/functions/conversion`; the functi
 everything else and builds the payload. Meta learns a conversion happened on a given ad click and
 nothing else about the site or the visitor.
 
+### Microsoft Clarity runs here, and the gate is masked from it
+
+`src/modules/clarity` loads Clarity from `main.tsx` for every visitor — session replay and
+heatmaps. It is **not** an advertising script and sends nothing to Meta, but it is third-party code
+with full DOM access, so two facts have to stay true together:
+
+- **`WaitlistModal`'s backdrop carries `data-clarity-mask="True"`, and it must keep it.** Clarity's
+  default masking covers the *contents of input boxes*, which sounds like it already covers the
+  answers. It does not. An option is
+  `<label><input type="radio" name="age" value="18_24"><span>18–24</span></label>` — the radio holds
+  no text, and the `name`, the `value`, and the sibling span are ordinary DOM that session replay
+  reconstructs. Without the attribute, a recording shows which question was asked and which answer
+  was picked. A test in `WaitlistModal.test.tsx` pins it, because nothing else would notice its
+  removal: Clarity would simply start recording again, silently.
+- **The privacy policy has an "Analytics on this website" paragraph** naming Microsoft, saying the
+  recording exists, and saying the waitlist form is excluded. Removing the mask makes that false.
+
+Masked subtrees are never uploaded and the attribute beats the dashboard setting, so this does not
+depend on anyone keeping a Clarity portal toggle correct. Note the project ID is committed in
+`config.ts` rather than read from `VITE_CLARITY_PROJECT_ID`, so turning Clarity off needs a deploy.
+
 | Trigger | Standard event | `value` | `Delirio*` twin | Fired from |
 |---|---|---|---|---|
 | `page_view` | `PageView` | — | **no** | `Landing.tsx`, on mount. `/` only |
