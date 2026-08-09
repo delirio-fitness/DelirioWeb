@@ -10,7 +10,7 @@ export default function PrivacyPolicy() {
     <LandingLegalShell>
       <div className="max-w-3xl mx-auto px-6 py-10 md:py-16 min-h-screen bg-white text-black">
         <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
-        <p className="mb-2 text-sm text-gray-500">Last updated: August 6, 2026</p>
+        <p className="mb-2 text-sm text-gray-500">Last updated: August 9, 2026</p>
         <p className="mb-4">
           Delirio (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) provides an AI-powered fitness coaching
           mobile application. This Privacy Policy explains what information we collect, how we use and share it, and the
