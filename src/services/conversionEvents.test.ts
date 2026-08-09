@@ -93,6 +93,33 @@ describe('recordQualifiedAction', () => {
     // @ts-expect-error arriving on the page is model input, not a conversion.
     expect(() => recordQualifiedAction('page_view')).not.toThrow();
   });
+
+  describe('the address', () => {
+    it('rides along with the signup, which is the only trigger that may carry one', () => {
+      recordQualifiedAction('email_submitted', 'Person@Example.COM');
+
+      expect(send.mock.calls[0][0].email).toBe('Person@Example.COM');
+    });
+
+    it('is absent when none is given', () => {
+      recordQualifiedAction('email_submitted');
+
+      expect(send.mock.calls[0][0].email).toBeUndefined();
+    });
+
+    /**
+     * The overloads make this a type error, but types are gone at runtime and
+     * this is the line that decides whether an address leaves the browser — so
+     * the guard is re-checked there and asserted here.
+     */
+    it('never rides along with the gate opening, whatever the caller passes', () => {
+      // @ts-expect-error opening the gate is not a signup and carries no address.
+      recordQualifiedAction('waitlist_started', 'person@example.com');
+
+      expect(send.mock.calls[0][0].trigger).toBe('waitlist_started');
+      expect(send.mock.calls[0][0].email).toBeUndefined();
+    });
+  });
 });
 
 describe('recordPageView', () => {

@@ -14,13 +14,33 @@
  * built entirely on this side. Meta learns that a conversion happened on a given
  * ad click. It learns nothing else about the site or the visitor.
  *
- * Deliberately absent from every payload: email (hashed or otherwise), name,
- * phone, external ID, questionnaire answers, page path, page title, referrer.
- * `user_data` carries IP, user-agent, and `fbc` — the ad click ID — and nothing
- * more. Do not add identifiers here without re-reading the privacy policy first;
- * the "Advertising, Attribution, and Tracking" section makes promises about
- * exactly this payload.
+ * Deliberately absent from every payload: name, phone, external ID,
+ * questionnaire answers, page path, page title, referrer. `user_data` carries
+ * IP, user-agent, `fbc` — the ad click ID — and, on one trigger only, a hashed
+ * email. Nothing else. Do not add identifiers here without re-reading the
+ * privacy policy first; the "Advertising, Attribution, and Tracking" section
+ * makes promises about exactly this payload.
+ *
+ * ## The hashed email, and why only one trigger may carry it
+ *
+ * `fbc` already matches exactly, so an address adds nothing for a visitor whose
+ * click ID survived. What it reaches is the remainder: `fbclid` stripped by the
+ * browser, a conversion on a different device than the click, someone who saw
+ * the ad and came back later without clicking. Meta holds a SHA-256 of every
+ * account's address, so ours joins against it directly — no cookie, no click.
+ *
+ * Which means the benefit and the disclosure are the same population. The people
+ * this tells Meta about are exactly the people Meta could not already see. What
+ * it discloses about them is that they signed up for a fitness product — never
+ * an answer, never a question, and never that they reached one.
+ *
+ * `acceptsEmail` gates it in the table below rather than at the call site, so a
+ * trigger has to opt in by name. That is the right default for the mistake worth
+ * fearing: a new flow reporting an address it should not is silent, and making
+ * the permission explicit means the wrong answer has to be typed on purpose.
  */
+
+import { createHash } from 'node:crypto';
 
 const GRAPH_API_VERSION = 'v21.0';
 
@@ -101,18 +121,21 @@ const TRIGGERS = {
     standard: 'Lead',
     requiresFirstOfVisit: true,
     value: 3,
+    acceptsEmail: false,
   },
   email_submitted: {
     custom: 'DelirioEmailSubmitted',
     standard: 'CompleteRegistration',
     requiresFirstOfVisit: false,
     value: 4,
+    acceptsEmail: true,
   },
   page_view: {
     custom: null,
     standard: 'PageView',
     requiresFirstOfVisit: false,
     value: null,
+    acceptsEmail: false,
   },
 } as const;
 
@@ -132,6 +155,8 @@ type IncomingEvent = {
   fbclid?: unknown;
   fbclidAt?: unknown;
   attribution?: unknown;
+  /** Raw address. Hashed below, never stored, logged, or echoed back. */
+  email?: unknown;
 };
 
 function isTrigger(value: unknown): value is Trigger {
@@ -157,6 +182,27 @@ function buildFbc(fbclid: string, fbclidAt: unknown): string {
     ? Math.floor(fbclidAt)
     : Date.now();
   return `fb.1.${clickedAt}.${fbclid}`;
+}
+
+/**
+ * Meta's `em`: SHA-256 of the address, lowercase hex.
+ *
+ * Trim and lowercase is the *entire* normalisation Meta specifies. Do not strip
+ * Gmail dots or `+suffixes` — Meta stores addresses as given, so canonicalising
+ * them "helpfully" produces a hash that matches nothing while looking perfectly
+ * correct from this side. That failure is invisible: the event still posts, the
+ * function still answers `reported: true`, and only the match rate moves.
+ *
+ * Hashed here rather than in the browser so the rule lives in one place. The raw
+ * address reaches this function over same-origin HTTPS — the same trip it already
+ * makes to Firestore, so no new exposure — and never leaves it unhashed.
+ */
+function hashEmail(value: unknown): string | undefined {
+  const email = cleanString(value)?.toLowerCase();
+  // A floor, not validation: a value with no `@` cannot match anything, and
+  // hashing it would spend the request telling Meta about a string.
+  if (!email || !email.includes('@')) return undefined;
+  return createHash('sha256').update(email).digest('hex');
 }
 
 /** The visitor's IP, as Netlify presents it. Meta needs it to match at all. */
@@ -217,7 +263,7 @@ export default async function handler(request: Request): Promise<Response> {
   const eventId = cleanString(body.eventId);
   if (!eventId) return new Response(null, { status: 400 });
 
-  const { custom, standard, requiresFirstOfVisit, value } = TRIGGERS[trigger];
+  const { custom, standard, requiresFirstOfVisit, value, acceptsEmail } = TRIGGERS[trigger];
   const variant = cleanString(body.variant);
 
   const userData: Record<string, string> = {};
@@ -227,6 +273,12 @@ export default async function handler(request: Request): Promise<Response> {
   if (userAgent) userData.client_user_agent = userAgent.slice(0, 512);
   const fbclid = cleanString(body.fbclid);
   if (fbclid) userData.fbc = buildFbc(fbclid, body.fbclidAt);
+  // Dropped, not honoured, for any trigger that has not opted in — so an address
+  // arriving on the wrong one is inert here rather than a disclosure.
+  if (acceptsEmail) {
+    const hashed = hashEmail(body.email);
+    if (hashed) userData.em = hashed;
+  }
 
   const customData: Record<string, string | number> = { content_name: trigger };
   // A trigger with no intent score sends neither it nor a currency — see the

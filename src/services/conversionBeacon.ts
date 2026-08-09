@@ -38,6 +38,16 @@ export type ConversionBeacon = {
    */
   firstOfVisit: boolean;
   attribution: Attribution;
+  /**
+   * Raw address, for the one trigger permitted to carry one.
+   *
+   * Unhashed because the destination is our own function over same-origin
+   * HTTPS — the trip this address already makes to Firestore. Hashing happens
+   * there so Meta's normalisation rule lives in exactly one place and cannot
+   * drift. The server drops it for any trigger without `acceptsEmail`, so
+   * passing it wrongly is inert rather than a leak.
+   */
+  email?: string;
 };
 
 /**
@@ -53,6 +63,7 @@ export function sendConversion({
   variant,
   firstOfVisit,
   attribution,
+  email,
 }: ConversionBeacon): void {
   const { fbclid, capturedAt, ...campaign } = attribution;
 
@@ -64,12 +75,15 @@ export function sendConversion({
     fbclid,
     fbclidAt: capturedAt,
     attribution: campaign,
+    ...(email ? { email } : {}),
   };
 
   if (IS_DEV) {
     // No function runs under `npm run dev`, so this console line is the only way
-    // to see what production would have sent.
-    console.info(`[delirio-ads] ${trigger}`, body);
+    // to see what production would have sent. The address is redacted even here:
+    // dev consoles get screenshotted into issues and pasted into chats, and
+    // whether one was attached is the only part worth reading.
+    console.info(`[delirio-ads] ${trigger}`, email ? { ...body, email: '[redacted]' } : body);
     return;
   }
 
