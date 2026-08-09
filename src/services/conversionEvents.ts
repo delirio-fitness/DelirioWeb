@@ -36,6 +36,13 @@
  *    not how sensitive this month's wording happens to be — which is the whole
  *    reason it survives rewrites of the question bank.
  *
+ * `recordPageView` at the bottom is the exception that proves rule 1: a page load
+ * costs the visitor nothing, so it is deliberately *not* a qualified action and
+ * does not go through `recordQualifiedAction` or its storage. It exists to give
+ * Meta the visitors who never convert, which is most of what the optimizer needs
+ * and all of what it currently lacks. Read its comment before touching the
+ * bookkeeping — the two paths are separate for a reason that is easy to undo.
+ *
  * The transport is `conversionBeacon` → `netlify/functions/conversion.mts`. There
  * is no Meta pixel in the page; what a trigger is worth and what Meta calls it
  * both live on the server.
@@ -131,6 +138,63 @@ export function recordQualifiedAction(trigger: QualifyingTrigger): boolean {
 export function resetQualifiedActions(): void {
   try {
     window.sessionStorage.removeItem(FIRED_STORAGE_KEY);
+  } catch {
+    // Nothing to clear if storage is unavailable.
+  }
+}
+
+/**
+ * Kept apart from `FIRED_STORAGE_KEY` on purpose — see `recordPageView`.
+ */
+const PAGE_VIEW_STORAGE_KEY = 'delirio:page-view';
+
+/**
+ * The landing was seen. Reported to Meta as `PageView`.
+ *
+ * **This is not a qualified action, and it must never be recorded as one.** Rule
+ * 1 above is that a reportable action costs the visitor something; a page load
+ * costs nothing. It is here as model input rather than as something an ad set
+ * could be pointed at — see the trigger table in `netlify/functions/conversion`.
+ *
+ * ## Why it keeps its own key
+ *
+ * `FIRED_STORAGE_KEY` is not just a dedup record — its *length* is what decides
+ * `firstOfVisit`, and the server sends the standard `Lead` only when that is
+ * true. A page view lands before every CTA by definition, so putting it in that
+ * array would make `fired.length === 0` false at the moment `waitlist_started`
+ * fires, and **`Lead` would silently never be reported again**: Events Manager
+ * would show the custom twin climbing and the optimizable event flat at zero,
+ * with nothing anywhere saying why. Hence a separate key, and hence
+ * `firstOfVisit: false` below — a page view never claims the visit's first
+ * effortful action, because it is not one.
+ *
+ * Fires on `/` only. The legal pages are not ad destinations and report nothing.
+ */
+export function recordPageView(): boolean {
+  try {
+    if (window.sessionStorage.getItem(PAGE_VIEW_STORAGE_KEY)) return false;
+    window.sessionStorage.setItem(PAGE_VIEW_STORAGE_KEY, '1');
+  } catch {
+    // Same trade as persistFired: an unavailable store may report a second page
+    // view, which overstates a campaign far less than dropping it understates one.
+  }
+
+  sendConversion({
+    trigger: 'page_view',
+    eventId: createClientId(),
+    variant: resolveLandingVariant(),
+    // Never true. See above — this is the whole reason for the separate key.
+    firstOfVisit: false,
+    attribution: resolveAttribution(),
+  });
+
+  return true;
+}
+
+/** Test seam: clears the per-visit page-view record. */
+export function resetPageView(): void {
+  try {
+    window.sessionStorage.removeItem(PAGE_VIEW_STORAGE_KEY);
   } catch {
     // Nothing to clear if storage is unavailable.
   }

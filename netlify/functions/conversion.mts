@@ -71,6 +71,29 @@ const GRAPH_API_VERSION = 'v21.0';
  * browser already fires `email_submitted` at most once per visit, and gating it
  * would drop the signup whenever the CTA click came first, which is nearly
  * always.
+ *
+ * ## `page_view` is input, not a target
+ *
+ * The other two are things an ad set can be pointed at. `PageView` is not — every
+ * visitor does it, so optimizing toward it buys traffic and nothing else. It is
+ * here as *model input*: without it Meta sees only the ~3% of visitors who open
+ * the gate and has no idea the rest existed, which is most of what it needs to
+ * predict who is worth showing the ad to. It is also the one signal that survives
+ * Meta's health-and-wellness restrictions, which cut mid- and lower-funnel events
+ * and leave upper-funnel ones alone.
+ *
+ * Two things make it the odd one out, and both are deliberate:
+ *
+ * - **No `Delirio*` twin.** The custom names exist to make Events Manager
+ *   readable where a standard name is ambiguous. `PageView` is not ambiguous, and
+ *   this is by far the highest-volume trigger — a twin would double the noisiest
+ *   event in the dataset to restate its own name.
+ * - **No `value`.** `value` is an intent score and a page load carries none.
+ *   Giving it one would corrupt the only number in the payload that means
+ *   anything.
+ *
+ * It stays upstream of the questions like everything else here — it fires on the
+ * landing itself, before the gate exists, which is as upstream as it gets.
  */
 const TRIGGERS = {
   waitlist_started: {
@@ -84,6 +107,12 @@ const TRIGGERS = {
     standard: 'CompleteRegistration',
     requiresFirstOfVisit: false,
     value: 4,
+  },
+  page_view: {
+    custom: null,
+    standard: 'PageView',
+    requiresFirstOfVisit: false,
+    value: null,
   },
 } as const;
 
@@ -199,11 +228,13 @@ export default async function handler(request: Request): Promise<Response> {
   const fbclid = cleanString(body.fbclid);
   if (fbclid) userData.fbc = buildFbc(fbclid, body.fbclidAt);
 
-  const customData: Record<string, string | number> = {
-    content_name: trigger,
-    value,
-    currency: 'USD',
-  };
+  const customData: Record<string, string | number> = { content_name: trigger };
+  // A trigger with no intent score sends neither it nor a currency — see the
+  // trigger table on why `page_view` has none.
+  if (value !== null) {
+    customData.value = value;
+    customData.currency = 'USD';
+  }
   if (variant) customData.content_category = `landing_${variant}`;
 
   const attribution = body.attribution;
@@ -229,14 +260,22 @@ export default async function handler(request: Request): Promise<Response> {
     custom_data: customData,
   };
 
-  // The `Delirio*` name always goes: it is what makes Events Manager readable,
-  // and it is weak to optimize on because Meta has no cross-advertiser priors
-  // for a name we invented. The standard name beside it is the optimizable one,
-  // and whether it rides along depends on the trigger — see the table above.
-  const data: (typeof base & { event_name: string })[] = [{ ...base, event_name: custom }];
+  // The standard name is the optimizable one — Meta has cross-advertiser priors
+  // for it and none for a name we invented — and whether it rides along depends
+  // on the trigger. The `Delirio*` name beside it is what makes Events Manager
+  // readable; `page_view` has none, for the reason in the table above.
+  const data: (typeof base & { event_name: string })[] = [];
   if (!requiresFirstOfVisit || body.firstOfVisit === true) {
-    data.unshift({ ...base, event_name: standard });
+    data.push({ ...base, event_name: standard });
   }
+  if (custom) data.push({ ...base, event_name: custom });
+
+  // No trigger in the table can empty this — every one either has a custom name
+  // or sends its standard unconditionally. Guarded anyway because an empty
+  // `data` is rejected by Meta as a malformed batch, and adding a trigger with
+  // both a guard and no twin is the one edit that would produce it.
+  if (data.length === 0) return Response.json({ reported: false, reason: 'nothing-to-send' });
+
   const payload = { data };
 
   // Routes this event to the Test Events panel in Events Manager, which is the

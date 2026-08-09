@@ -435,13 +435,35 @@ The browser posts a trigger slug to `/.netlify/functions/conversion`; the functi
 everything else and builds the payload. Meta learns a conversion happened on a given ad click and
 nothing else about the site or the visitor.
 
-| Trigger | Standard event | `value` | Fired from |
-|---|---|---|---|
-| `waitlist_started` | `Lead` | 3 | `Landing.tsx`, from a CTA or an arriving `/#wishlist` |
-| `email_submitted` | `CompleteRegistration` | 4 | `WishlistSignup.tsx`, **only where it renders ahead of every question** — the email-first arm's opening screen, or the (consumerless) landing band |
+| Trigger | Standard event | `value` | `Delirio*` twin | Fired from |
+|---|---|---|---|---|
+| `page_view` | `PageView` | — | **no** | `Landing.tsx`, on mount. `/` only |
+| `waitlist_started` | `Lead` | 3 | yes | `Landing.tsx`, from a CTA or an arriving `/#wishlist` |
+| `email_submitted` | `CompleteRegistration` | 4 | yes | `WishlistSignup.tsx`, **only where it renders ahead of every question** — the email-first arm's opening screen, or the (consumerless) landing band |
 
-Each also sends a `Delirio*` custom event alongside. A normal visit sends both triggers, in that
-order.
+A normal visit sends all three, in that order.
+
+**`page_view` is the exception to two things that hold for the others**, and both exceptions are
+deliberate rather than oversights — see the trigger table in `netlify/functions/conversion.mts`:
+
+- **No `Delirio*` twin.** The custom names exist to make Events Manager readable where a standard
+  name is ambiguous; `PageView` is not, and this is by far the highest-volume trigger, so a twin
+  would double the noisiest row in the dataset to restate its own name.
+- **No `value`.** `value` is an intent score and a page load carries none. The function omits
+  `currency` with it, so a trigger with a null `value` sends neither.
+
+It is also the only trigger that is **input rather than a target**: every visitor does it, so
+pointing an ad set at it buys traffic and nothing else. It exists because Meta otherwise hears only
+from the ~3% who open the gate and has no picture of the rest. It is additionally the one signal
+that survives Meta's health-and-wellness restrictions, which cut mid- and lower-funnel events and
+leave upper-funnel ones alone.
+
+**`page_view` must never be routed through `recordQualifiedAction`.** That function's
+`delirio:qualified-actions` storage decides `firstOfVisit` by its *length*, and the server sends the
+standard `Lead` only when that is true. A page view precedes every CTA by definition, so sharing the
+key would flag `waitlist_started` as `false` and `Lead` would silently stop reporting — the twin
+climbing in Events Manager while the optimizable event sits at zero. Hence the separate
+`delirio:page-view` key and the hard-coded `firstOfVisit: false`, both pinned by tests.
 
 ### The rule that shapes the table
 
@@ -487,11 +509,15 @@ Consequences that look like bugs but are not:
 - **`CompleteRegistration` is the only place a finished signup is attributable to a creative.**
   Firestore knows a record exists but not which ad produced it, so without this event you can see
   which creative drives clicks and never which drives people who finish.
-- **Each trigger fires at most once per visit**, tracked in `sessionStorage`.
+- **Each trigger fires at most once per visit**, tracked in `sessionStorage` — under two separate
+  keys, and they must stay separate. See the `page_view` note above for what merging them breaks.
 - `value` is an intent score, not revenue. Do not compute ROAS from it. The table lives **on the
   server** so the public endpoint cannot be told what a conversion is worth.
-- Both events share one `event_id` as the dedup key.
+- Where a trigger sends both a standard and a `Delirio*` event, the two share one `event_id` as the
+  dedup key. `page_view` sends one event, so its ID is its own.
 - Cheap actions (scroll depth, section views, the auto-open) are deliberately not tracked.
+  `page_view` is not a counterexample — it is not reported as an *action*, and it is never
+  something an ad set optimizes toward.
 
 ### What is in the payload
 
