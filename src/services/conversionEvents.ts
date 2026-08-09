@@ -114,7 +114,23 @@ function persistFired(fired: string[]): void {
  *
  * Returns whether anything was reported, so callers can avoid duplicate work.
  */
-export function recordQualifiedAction(trigger: QualifyingTrigger): boolean {
+export function recordQualifiedAction(trigger: 'waitlist_started'): boolean;
+/**
+ * The address is optional and may be given **only here**.
+ *
+ * It raises Meta's match quality for the visitors `fbc` cannot reach — a
+ * stripped `fbclid`, a conversion on a different device than the click, a
+ * view-through. Meta joins it against its own hash of the same address, so it
+ * works with no cookie and no click.
+ *
+ * Passing it is not the same as it being sent: the caller must also be upstream
+ * of every question, which is what `WishlistSignup`'s `upstreamOfQuestions`
+ * decides, and the server drops it for any trigger without `acceptsEmail`.
+ * Three gates, because the failure is silent in a way nothing else here is —
+ * a leaked address does not break a page or fail a build.
+ */
+export function recordQualifiedAction(trigger: 'email_submitted', email?: string): boolean;
+export function recordQualifiedAction(trigger: QualifyingTrigger, email?: string): boolean {
   const fired = readFired();
   if (fired.includes(trigger)) return false;
 
@@ -129,6 +145,10 @@ export function recordQualifiedAction(trigger: QualifyingTrigger): boolean {
     variant: resolveLandingVariant(),
     firstOfVisit: isFirstOfVisit,
     attribution: resolveAttribution(),
+    // Re-checked at runtime rather than trusted from the overloads: types are
+    // gone by the time this ships, and this is the line that decides whether an
+    // address leaves the browser.
+    ...(trigger === 'email_submitted' && email ? { email } : {}),
   });
 
   return true;

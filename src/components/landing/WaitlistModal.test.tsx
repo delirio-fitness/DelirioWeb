@@ -47,6 +47,24 @@ describe('WaitlistModal', () => {
 
   afterEach(() => window.history.replaceState({}, '', '/'));
 
+  /**
+   * Microsoft Clarity records session replays site-wide, and masks only input
+   * boxes and dropdowns by default. The questions are buttons, so without this
+   * attribute the question text and the chosen option are uploaded and
+   * replayable — the exact disclosure the reporting rules exist to prevent.
+   *
+   * Asserted on the outermost node so the whole gate is covered, and asserted
+   * at all because nothing else would notice its removal: Clarity would simply
+   * start recording, and only a session replay would ever show it.
+   */
+  it('keeps the whole gate masked from session recording', () => {
+    const { baseElement } = render(<WaitlistModal open order="questions" startAtFirstQuestion />);
+
+    const masked = baseElement.querySelector('[data-clarity-mask]');
+    expect(masked).not.toBeNull();
+    expect(masked).toContainElement(screen.getByRole('dialog'));
+  });
+
   it('holds the email back until every question is answered', async () => {
     const user = userEvent.setup();
     render(<WaitlistModal open order="questions" startAtFirstQuestion />);

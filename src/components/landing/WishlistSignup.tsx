@@ -94,7 +94,13 @@ export function WishlistSignup({
       // box is unlocked by all six answers, so a conversion there would tell
       // Meta who gave them through timing alone, whatever the event is named.
       // See `services/conversionEvents`.
-      if (upstreamOfQuestions) recordQualifiedAction('email_submitted');
+      //
+      // The address rides along for match quality, and the same flag licenses
+      // both. That is deliberate: the position that makes the *event* reportable
+      // is exactly the position that makes the *address* reportable, so there is
+      // no arrangement where one is allowed and the other is not. Already
+      // trimmed and lowercased above, which is Meta's normalisation exactly.
+      if (upstreamOfQuestions) recordQualifiedAction('email_submitted', normalizedEmail);
     } catch {
       setStatus('idle');
       setError('Unable to join right now. Please try again.');

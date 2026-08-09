@@ -334,9 +334,40 @@ export function WaitlistModal({
     />
   );
 
+  // `data-clarity-mask` keeps Microsoft Clarity out of the gate.
+  //
+  // Clarity records session replays for every visitor from `main.tsx`, and its
+  // default masking covers the *contents of input boxes* and dropdowns. That
+  // sounds like it would cover these questions. It does not, and the reason is
+  // worth stating precisely, because "the answers are radio inputs, so Clarity
+  // masks them" is the plausible-sounding conclusion that would get this
+  // attribute deleted.
+  //
+  // An option renders as:
+  //
+  //     <label><input type="radio" name="age" value="18_24"><span>18–24</span></label>
+  //
+  // The radio holds no text to mask. What identifies the answer is the `name`
+  // and `value` attributes and the sibling `<span>` — all ordinary DOM, all
+  // reconstructed by session replay. So without this attribute, a recording
+  // shows which question was asked and which answer was chosen, in the clear.
+  // That is the one disclosure the whole reporting design exists to prevent,
+  // and a replayable recording of it is worse than the pixel this site refuses
+  // to load: a pixel with autoConfig off reports a URL.
+  //
+  // Masked subtrees are never uploaded at all, and the attribute overrides the
+  // project's dashboard setting, so this holds without anyone keeping a portal
+  // toggle right. It sits on the backdrop rather than the dialog so every part
+  // of the gate — questions, email box, and free-text answer — is inside it.
+  //
+  // The casing is Microsoft's: their docs specify `data-clarity-mask="True"`
+  // for masking and lowercase only for `data-clarity-unmask`. Whether the value
+  // is compared case-sensitively is undocumented, so match the documented form
+  // rather than tidy it.
   return createPortal(
     <div
       className="d3-questionnaire-backdrop"
+      data-clarity-mask="True"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) closeQuestionnaire();
       }}

@@ -435,6 +435,27 @@ The browser posts a trigger slug to `/.netlify/functions/conversion`; the functi
 everything else and builds the payload. Meta learns a conversion happened on a given ad click and
 nothing else about the site or the visitor.
 
+### Microsoft Clarity runs here, and the gate is masked from it
+
+`src/modules/clarity` loads Clarity from `main.tsx` for every visitor — session replay and
+heatmaps. It is **not** an advertising script and sends nothing to Meta, but it is third-party code
+with full DOM access, so the two facts to keep straight are:
+
+- **`WaitlistModal`'s backdrop carries `data-clarity-mask="True"`, and it must keep it.** Clarity's
+  default masking covers the *contents of input boxes*, which sounds like it already covers the
+  answers. It does not. An option is
+  `<label><input type="radio" name="age" value="18_24"><span>18–24</span></label>` — the radio holds
+  no text, and the `name`, the `value`, and the sibling span are ordinary DOM that session replay
+  reconstructs. Without the attribute, a recording shows which question was asked and which answer
+  was picked. A test in `WaitlistModal.test.tsx` pins it, because nothing else would notice its
+  removal: Clarity would simply start recording again.
+- **The privacy policy has an "Analytics on this website" paragraph** naming Microsoft, saying the
+  recording exists, and saying the waitlist form is excluded. Removing the mask makes that false.
+
+Masked subtrees are never uploaded and the attribute beats the dashboard setting, so this does not
+depend on anyone keeping a Clarity portal toggle correct. Note the project ID is committed in
+`config.ts` rather than read from `VITE_CLARITY_PROJECT_ID`, so turning Clarity off needs a deploy.
+
 | Trigger | Standard event | `value` | `Delirio*` twin | Fired from |
 |---|---|---|---|---|
 | `page_view` | `PageView` | — | **no** | `Landing.tsx`, on mount. `/` only |
@@ -521,14 +542,59 @@ Consequences that look like bugs but are not:
 
 ### What is in the payload
 
-`user_data` carries IP, user-agent, and `fbc` — the ad click ID, rebuilt server-side as
+`user_data` carries IP, user-agent, `fbc` — the ad click ID, rebuilt server-side as
 `fb.1.<clickTime>.<fbclid>` from the `fbclid` and `capturedAt` that `attribution.ts` stored on the
-landing URL. **No email, hashed or otherwise**, no name, no phone, no external ID, no page path, no
-title, no referrer. `event_source_url` is the bare origin, identical for every visitor.
+landing URL — and, on `email_submitted` only, `em`: SHA-256 of the address, lowercase hex. **No
+name, no phone, no external ID, no page path, no title, no referrer.** `event_source_url` is the
+bare origin, identical for every visitor.
 
-Sending hashed email would improve match quality and is the obvious thing to reach for. Do not:
-the privacy policy's "Advertising, Attribution, and Tracking" section promises in as many words
-that it never happens, and the whole design rests on that being true.
+#### The hashed email
+
+`fbc` already matches exactly, so the address adds nothing for a visitor whose click ID survived.
+It reaches the remainder: a stripped `fbclid`, a conversion on a different device than the click, a
+view-through. **The benefit and the disclosure are therefore the same population** — the people it
+tells Meta about are exactly the people Meta could not already see. What it discloses is that they
+signed up for a fitness product; never an answer, never a question, never that they reached one.
+
+Three independent gates, because a leaked address breaks no page and fails no build:
+
+1. `acceptsEmail` in the server trigger table — a trigger opts in **by name**, and an address on any
+   other trigger is dropped rather than honoured.
+2. `recordQualifiedAction` overloads — only `email_submitted` accepts one, and the runtime re-checks
+   rather than trusting the types, which are gone by the time this ships.
+3. `upstreamOfQuestions` in `WishlistSignup` — the same flag licenses the event and the address,
+   deliberately: the position that makes one reportable is the position that makes the other
+   reportable, so there is no arrangement where a screen may send one but not the other.
+
+Normalisation is **trim and lowercase, nothing else**. Do not strip Gmail dots or `+suffixes` —
+Meta stores addresses as given, so canonicalising them produces a hash that matches nothing while
+looking correct from here. That failure is silent: the event posts, the function answers
+`reported: true`, and only the match rate moves. Hashing lives on the server so the rule has one
+home; the raw address reaches it over same-origin HTTPS, the same trip it already makes to
+Firestore, and never leaves unhashed. The dev console redacts it.
+
+**The privacy policy is part of this feature, not paperwork around it.** It names the hashed email
+in the reported-actions list, in the wishlist section, and in "Do Not Sell or Share" — a published
+policy that is false in a checkable way is the FTC Section 5 hook the GoodRx and BetterHelp orders
+turned on. Changing what goes in `user_data` means changing that copy in the same PR.
+
+##### The address is trusted, not verified — a known, accepted risk
+
+`/.netlify/functions/conversion` is public and guarded only by an `Origin` check, which a `curl`
+forges in one line. So **any caller can post `email_submitted` with an arbitrary address** and have
+that person's matchable hash sent to Meta under a signup they never made. The three gates above
+constrain our own code; none of them binds the request to a real signup.
+
+This was raised in review (PR #6, 2026-08-09) and **accepted deliberately** on the grounds that the
+site is pre-launch, has no traffic, and the attack requires someone to choose to target it. It is
+recorded here so a later reader finds a decision rather than an oversight — and so the second half
+is not lost: the risk scales with how well-known the site becomes, and the privacy policy's promise
+that the hash is sent "when you submit your email" is not true for an injected address.
+
+Closing it properly means the function verifying the address against `wishlist2` instead of
+trusting it, which needs Firestore admin credentials in the Netlify environment and a way to handle
+the race with the client's own write, since the beacon fires immediately after it. Revisit when the
+site has traffic worth forging, not before.
 
 Attribution (`src/utils/attribution.ts`) is captured in `main.tsx` before render and held for the
 tab: react-router drops the query string on internal navigation, and the campaign is unrecoverable

@@ -37,13 +37,19 @@ describe('WishlistSignup', () => {
 
     await joinWith(user);
 
-    await waitFor(() => expect(recordMock).toHaveBeenCalledWith('email_submitted'));
+    await waitFor(() => expect(recordMock).toHaveBeenCalledWith('email_submitted', 'person@example.com'));
   });
 
   /**
    * The questions-first closing screen is unlocked by all six waitlist answers,
    * so a conversion fired there would tell Meta who gave them through timing
    * alone. This form reports nothing — see `conversionEvents`.
+   *
+   * Now guarding two things rather than one: not the event, and not the address
+   * that would otherwise ride with it. `not.toHaveBeenCalled` covers both by
+   * construction, and the stakes of the second are higher — a conversion from
+   * here is an anonymous timing signal, whereas an address from here would name
+   * the person who answered.
    */
   it('reports nothing from the copy that sits behind the waitlist questions', async () => {
     const user = userEvent.setup();
@@ -76,7 +82,7 @@ describe('WishlistSignup', () => {
 
     await joinWith(user);
 
-    await waitFor(() => expect(recordMock).toHaveBeenCalledWith('email_submitted'));
+    await waitFor(() => expect(recordMock).toHaveBeenCalledWith('email_submitted', 'person@example.com'));
   });
 
   it('normalizes a valid email and confirms the opt-in', async () => {
