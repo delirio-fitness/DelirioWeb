@@ -105,8 +105,9 @@ export default function TermsServices() {
             the app before you start it. One trial is granted per account.
           </p>
           <p className="mb-4">
-            Delirio Plus subscriptions do not include an introductory free trial. When you subscribe, the price shown is
-            charged immediately and the subscription renews as described below.
+            The free trial above is separate from any App Store introductory offer. Where an introductory offer applies
+            to a subscription, its terms are set by the App Store and shown at the point of purchase, subject to Apple's
+            eligibility rules. Where none applies, the price shown is charged immediately when you subscribe.
           </p>
 
           <h3 className="text-xl font-semibold mb-3 mt-6">Auto-Renewal</h3>
