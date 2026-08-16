@@ -11,7 +11,7 @@ export default function TermsServices() {
     <LandingLegalShell>
       <div id="terms-of-service" className="max-w-3xl mx-auto px-6 py-10 md:py-16">
         <h1 className="text-4xl font-bold mb-8">Terms of Service</h1>
-          <p className="mb-2 text-sm text-gray-500">Last updated: July 22, 2026</p>
+          <p className="mb-2 text-sm text-gray-500">Last updated: August 16, 2026</p>
 
           <h2 className="text-2xl font-semibold mb-4 mt-8">Agreement to Terms</h2>
           <p className="mb-4">
@@ -98,9 +98,15 @@ export default function TermsServices() {
 
           <h3 className="text-xl font-semibold mb-3 mt-6">Free Trial</h3>
           <p className="mb-4">
-            New subscribers may be offered a 7-day free trial. Unless you cancel at least 24 hours before the trial
-            ends, the trial automatically converts to a paid subscription at the price displayed at sign-up. Trial
-            eligibility is limited to one per Apple Account.
+            New accounts receive a free trial, currently seven days, granted by Delirio once you finish setting up your
+            account. It is not an App Store introductory offer: no payment method is required, nothing is charged, and
+            there is nothing to cancel. The trial simply ends, and continued access requires a paid subscription. The
+            trial is tied to your Delirio account rather than your Apple Account, and the length in effect is shown in
+            the app before you start it. One trial is granted per account.
+          </p>
+          <p className="mb-4">
+            Delirio Plus subscriptions do not include an introductory free trial. When you subscribe, the price shown is
+            charged immediately and the subscription renews as described below.
           </p>
 
           <h3 className="text-xl font-semibold mb-3 mt-6">Auto-Renewal</h3>
