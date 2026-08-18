@@ -1,19 +1,20 @@
-import { act, render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 
 import Landing from './Landing';
+import { recordPageView, recordQualifiedAction } from '../services/conversionEvents';
 
-/** Derived, so rewriting the questions does not break unrelated assertions. */
-/**
- * The gate's opening screen in the shipping arm. Email-first is the default
- * (`config/waitlistOrder`), so every path into the gate lands on the address and
- * no question is shown until it is given — which is also what makes the
- * `email_submitted` conversion legal. A change of default fails these.
- */
-const gateOpening = /your spot is reserved/i;
+jest.mock('../services/conversionEvents', () => ({
+  recordPageView: jest.fn(),
+  recordQualifiedAction: jest.fn(),
+}));
 
 describe('Landing journey', () => {
+  beforeEach(() => {
+    jest.mocked(recordPageView).mockClear();
+    jest.mocked(recordQualifiedAction).mockClear();
+  });
   afterEach(() => jest.useRealTimers());
 
   it('introduces both coaches without asking the visitor to pick one', () => {
@@ -30,16 +31,29 @@ describe('Landing journey', () => {
     expect(within(coaches).queryAllByRole('link')).toHaveLength(0);
   });
 
-  it('offers no route to the App Store anywhere on the page', () => {
+  /**
+   * The app is back on the App Store, so `/app` is the whole acquisition path.
+   * Every route to it must carry `data-cta` — that is what proves it went
+   * through `AppStoreLink` and therefore reports `store_click`. A bare `<a>`
+   * added anywhere would hand a visitor to Apple and convert silently.
+   */
+  it('routes every download CTA through the tracked interstitial link', () => {
     render(<MemoryRouter><Landing /></MemoryRouter>);
 
-    // Ads point here while the app update is in review, so a download link
-    // would both leak traffic to the store and undercut the waitlist premise.
+    const storeLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>('[href="/app"]'));
+    expect(storeLinks.length).toBeGreaterThan(0);
+    for (const link of storeLinks) expect(link).toHaveAttribute('data-cta', 'store');
+    expect(document.querySelectorAll('[data-cta]')).toHaveLength(storeLinks.length);
+    // The Apple URL lives in public/app.html and nowhere in the React tree.
     expect(document.querySelector('[href*="apps.apple.com"]')).toBeNull();
-    expect(document.querySelector('[href="/app"]')).toBeNull();
-    expect(document.querySelector('[data-cta]')).toBeNull();
-    expect(screen.queryByText(/download on the app store/i)).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /1 week free/i })).not.toBeInTheDocument();
+  });
+
+  it('leaves no waitlist anywhere on the page', () => {
+    render(<MemoryRouter><Landing /></MemoryRouter>);
+
+    expect(screen.queryByText(/waitlist/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(document.querySelectorAll('.d3-questionnaire-backdrop')).toHaveLength(0);
   });
 
   it('keeps both plan cards intact but sells neither', () => {
@@ -54,25 +68,32 @@ describe('Landing journey', () => {
     }
   });
 
-  it('asks for no email anywhere on the page itself', () => {
+  it('asks for no email anywhere, now that nothing collects one', () => {
     render(<MemoryRouter><Landing /></MemoryRouter>);
 
-    // The only email box lives behind the gate, after the questions. A second
-    // one out here would let a visitor skip the filter the gate exists for.
     expect(document.querySelectorAll('.d3-wishlist')).toHaveLength(0);
     expect(screen.queryByRole('textbox', { name: /email address/i })).not.toBeInTheDocument();
   });
 
-  it('opens the gate for an off-page waitlist link instead of hunting for a section', async () => {
+  /**
+   * `/#wishlist` used to open the gate. Links carrying it may still exist, so it
+   * has to land somewhere sane rather than throwing or scrolling nowhere useful:
+   * the top of the page, which is where a download CTA is anyway.
+   */
+  it('renders normally for a stale off-page waitlist link', async () => {
     window.history.replaceState({}, '', '/#wishlist');
     render(<MemoryRouter><Landing /></MemoryRouter>);
 
-    expect(await screen.findByRole('dialog')).toBeInTheDocument();
-    // Straight to the email box: following that link was already the decision,
-    // and the address is what the person who followed it came to give.
-    expect(screen.getByRole('heading', { name: gateOpening })).toBeInTheDocument();
-    // Cleared, so a reload does not reopen it.
-    await waitFor(() => expect(window.location.hash).toBe(''));
+    await waitFor(() => expect(document.querySelector('.d3-hero')).toBeInTheDocument());
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    window.history.replaceState({}, '', '/');
+  });
+
+  it('reports the page view once, and nothing else without a click', () => {
+    render(<MemoryRouter><Landing /></MemoryRouter>);
+
+    expect(recordPageView).toHaveBeenCalledTimes(1);
+    expect(recordQualifiedAction).not.toHaveBeenCalled();
   });
 
   it('leaves no way to start a coaching session from the website', () => {
@@ -155,8 +176,8 @@ describe('Landing journey', () => {
   it('offers a direct pricing contact option', () => {
     render(<MemoryRouter><Landing /></MemoryRouter>);
 
-    // Scoped to the pricing block: the footer carries a second link to the same
-    // address for waitlist opt-out, so a page-wide query matches both.
+    // Scoped to the pricing block: the FAQ carries a second link to the same
+    // address, so a page-wide query matches both.
     const pricingContact = document.querySelector('.d3-pricing-contact a');
     expect(pricingContact).toHaveAttribute('href', 'mailto:contact@delirio.fit');
     expect(pricingContact).toHaveTextContent('contact@delirio.fit');
@@ -176,15 +197,13 @@ describe('Landing journey', () => {
     expect(document.querySelector('.d3-wheel-transition')).not.toBeInTheDocument();
   });
 
-  it('opens the email box from the default hero, ahead of any question', async () => {
+  it('reports the store click from the default hero', async () => {
     const user = userEvent.setup();
     render(<MemoryRouter><Landing /></MemoryRouter>);
 
     await user.click(within(document.querySelector('.d3-hero') as HTMLElement)
-      .getByRole('button', { name: 'JOIN THE WAITLIST' }));
-    expect(screen.getByRole('heading', { name: gateOpening })).toBeInTheDocument();
-    // Nothing is asked before the address, so there is no intro to skip past.
-    expect(screen.queryByRole('button', { name: /start — takes a minute/i })).not.toBeInTheDocument();
+      .getByRole('link', { name: 'DOWNLOAD THE APP' }));
+    expect(recordQualifiedAction).toHaveBeenCalledWith('store_click');
   });
 
   it('offers nothing called a quiz', () => {
@@ -192,15 +211,16 @@ describe('Landing journey', () => {
     expect(screen.queryByText(/quiz/i)).not.toBeInTheDocument();
   });
 
-  it('opens the waitlist invitation after thirty seconds', async () => {
+  /**
+   * The gate used to invite itself after 30 seconds. It is gone, and so is the
+   * timer — the page interrupts nobody now.
+   */
+  it('interrupts the visitor with nothing on a timer', () => {
     jest.useFakeTimers();
     render(<MemoryRouter><Landing /></MemoryRouter>);
 
-    act(() => jest.advanceTimersByTime(29000));
-    expect(screen.queryByText(gateOpening)).not.toBeInTheDocument();
-
-    act(() => jest.advanceTimersByTime(1000));
-    expect(await screen.findByText(gateOpening)).toBeInTheDocument();
+    jest.advanceTimersByTime(60000);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     jest.useRealTimers();
   });
 
@@ -211,10 +231,11 @@ describe('Landing journey', () => {
     it('leaves the hero to make the ask on its own at the top of the page', () => {
       render(<MemoryRouter><Landing /></MemoryRouter>);
 
-      const header = within(document.querySelector('.d3-header') as HTMLElement);
-      expect(header.queryByRole('button', { name: /waitlist/i })).not.toBeInTheDocument();
+      // Mounted but hidden — see the keyboard test below for why it cannot be
+      // unmounted, and why a class alone is not enough.
+      expect(document.querySelector('.d3-header-cta')).toHaveClass('is-hidden');
       expect(within(document.querySelector('.d3-hero') as HTMLElement)
-        .getByRole('button', { name: 'JOIN THE WAITLIST' })).toBeInTheDocument();
+        .getByRole('link', { name: 'DOWNLOAD THE APP' })).toBeInTheDocument();
       expect(document.querySelector('.d3-page')).toHaveAttribute('data-landing-variant', 'b');
     });
 
@@ -230,7 +251,7 @@ describe('Landing journey', () => {
     });
 
     /** Untagged rather than `?v=b`: serving this hero by default is the point. */
-    it('gives an untagged visit the centred waitlist hero, without touching the page below', () => {
+    it('gives an untagged visit the centred download hero, without touching the page below', () => {
       render(<MemoryRouter><Landing /></MemoryRouter>);
 
       expect(document.querySelector('.d3-hero--focus')).toBeInTheDocument();
@@ -249,39 +270,29 @@ describe('Landing journey', () => {
       expect(document.querySelector('.d3-hero--focus')).not.toBeInTheDocument();
     });
 
-    /** Cell B was exempt from this while it was a test cell; it ships now. */
-    it.each(['a', 'b'] as const)('invites cell %s to the gate on the same timer', (variant) => {
-      jest.useFakeTimers();
-      window.history.replaceState({}, '', `/?v=${variant}`);
-      render(<MemoryRouter><Landing /></MemoryRouter>);
-
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-      act(() => jest.advanceTimersByTime(30000));
-      expect(screen.getByRole('dialog')).toBeInTheDocument();
-      jest.useRealTimers();
-    });
-
     it.each(['a', 'b'] as const)(
       'hands cell %s over to the header once the hero CTA scrolls away',
       async (variant) => {
         window.history.replaceState({}, '', `/?v=${variant}`);
         render(<MemoryRouter><Landing /></MemoryRouter>);
 
-        // Scoped to the header: every hero carries its own waitlist button, so
-        // an unscoped query would pass before the handover ever happens.
-        const header = () => within(document.querySelector('.d3-header') as HTMLElement);
-        expect(header().queryByRole('button', { name: /waitlist/i })).not.toBeInTheDocument();
+        // Scoped to the header: every hero carries its own download link, so an
+        // unscoped query would pass before the handover ever happens.
+        const headerCta = () => document.querySelector('.d3-header-cta') as HTMLElement;
+        expect(headerCta()).toHaveClass('is-hidden');
 
         Object.defineProperty(window, 'scrollY', { configurable: true, value: window.innerHeight });
         window.dispatchEvent(new Event('scroll'));
 
-        await waitFor(() => expect(header().getByRole('button', { name: 'JOIN THE WAITLIST' })).toBeInTheDocument());
+        await waitFor(() => expect(headerCta()).not.toHaveClass('is-hidden'));
+        expect(within(document.querySelector('.d3-header') as HTMLElement)
+          .getByRole('link', { name: 'DOWNLOAD' })).toBeInTheDocument();
 
         Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 });
       },
     );
 
-    it('opens the gate from the header once it has taken over', async () => {
+    it('reports the store click from the header once it has taken over', async () => {
       const user = userEvent.setup();
       render(<MemoryRouter><Landing /></MemoryRouter>);
 
@@ -289,8 +300,8 @@ describe('Landing journey', () => {
       window.dispatchEvent(new Event('scroll'));
 
       const header = () => within(document.querySelector('.d3-header') as HTMLElement);
-      await user.click(await waitFor(() => header().getByRole('button', { name: 'JOIN THE WAITLIST' })));
-      expect(screen.getByRole('heading', { name: gateOpening })).toBeInTheDocument();
+      await user.click(await waitFor(() => header().getByRole('link', { name: 'DOWNLOAD' })));
+      expect(recordQualifiedAction).toHaveBeenCalledWith('store_click');
 
       Object.defineProperty(window, 'scrollY', { configurable: true, value: 0 });
     });

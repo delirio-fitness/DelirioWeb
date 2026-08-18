@@ -2,8 +2,12 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { HeroExperiment } from './HeroExperiment';
 import { HeroWorkoutScoreboard } from './unused/HeroWorkoutScoreboard';
+import { recordQualifiedAction } from '../../services/conversionEvents';
+
+jest.mock('../../services/conversionEvents', () => ({ recordQualifiedAction: jest.fn() }));
 
 describe('HeroExperiment', () => {
+  beforeEach(() => jest.mocked(recordQualifiedAction).mockClear());
   afterEach(() => window.history.replaceState({}, '', '/'));
 
   it.each([
@@ -63,13 +67,14 @@ describe('HeroExperiment', () => {
     expect(screen.getByLabelText(/context updated.*next step ready/i)).toBeInTheDocument();
   });
 
-  it('opens the waitlist gate from the default hero', async () => {
+  it('sends the default hero to the App Store', async () => {
     const user = userEvent.setup();
-    const onJoinWaitlist = jest.fn();
-    render(<HeroExperiment onJoinWaitlist={onJoinWaitlist} />);
+    render(<HeroExperiment />);
 
-    await user.click(screen.getByRole('button', { name: 'JOIN THE WAITLIST' }));
-    expect(onJoinWaitlist).toHaveBeenCalledTimes(1);
+    const cta = screen.getByRole('link', { name: 'DOWNLOAD THE APP' });
+    expect(cta).toHaveAttribute('href', '/app');
+    await user.click(cta);
+    expect(recordQualifiedAction).toHaveBeenCalledWith('store_click');
   });
 
   it('offers nothing called a quiz anywhere', () => {
@@ -81,16 +86,15 @@ describe('HeroExperiment', () => {
   });
 
   describe('acquisition experiment cells', () => {
-    it('gives cell A the standard hero and one arrow-led button', async () => {
+    it('gives cell A the standard hero and one arrow-led download', async () => {
       const user = userEvent.setup();
-      const onJoinWaitlist = jest.fn();
-      const { container } = render(<HeroExperiment variant="a" onJoinWaitlist={onJoinWaitlist} />);
+      const { container } = render(<HeroExperiment variant="a" />);
       expect(screen.getByRole('heading')).toHaveAttribute('id', 'hero-v3-title');
       expect(container.querySelector('.d3-hero-action')).toBeInTheDocument();
-      expect(screen.queryByRole('link')).not.toBeInTheDocument();
+      expect(screen.queryByRole('button')).not.toBeInTheDocument();
 
-      await user.click(screen.getByRole('button', { name: 'JOIN THE WAITLIST' }));
-      expect(onJoinWaitlist).toHaveBeenCalledTimes(1);
+      await user.click(screen.getByRole('link', { name: 'DOWNLOAD THE APP' }));
+      expect(recordQualifiedAction).toHaveBeenCalledWith('store_click');
     });
 
     /**
@@ -106,26 +110,32 @@ describe('HeroExperiment', () => {
       }
     });
 
-    it('replaces the hero with the centred waitlist layout in cell B', async () => {
+    it('replaces the hero with the centred download layout in cell B', async () => {
       const user = userEvent.setup();
-      const onJoinWaitlist = jest.fn();
-      const { container } = render(<HeroExperiment variant="b" onJoinWaitlist={onJoinWaitlist} />);
+      const { container } = render(<HeroExperiment variant="b" />);
       expect(screen.getByRole('heading')).toHaveAttribute('id', 'hero-focus-title');
       expect(screen.getByRole('heading', { name: /get fit and stay fit without the planning/i })).toBeInTheDocument();
-      expect(screen.getByText(/free to join/i)).toBeInTheDocument();
+      expect(screen.getByText(/on iphone/i)).toBeInTheDocument();
 
-      await user.click(screen.getByRole('button', { name: 'JOIN THE WAITLIST' }));
-      expect(onJoinWaitlist).toHaveBeenCalledTimes(1);
+      await user.click(screen.getByRole('link', { name: 'DOWNLOAD THE APP' }));
+      expect(recordQualifiedAction).toHaveBeenCalledWith('store_click');
       expect(screen.getByText('ADAPTIVE PLANS / LIVE GUIDANCE / CHECK-INS / CONTINUITY')).toBeInTheDocument();
       // Copy and CTA only: a product screenshot would pull attention off the button.
       expect(container.querySelector('.d3-iphone-frame')).not.toBeInTheDocument();
     });
 
-    it('leaves no route to the App Store in any cell', () => {
+    /**
+     * Every route to the store goes through `AppStoreLink`, which is what
+     * attaches `data-cta` and the conversion. A hero CTA with the right href and
+     * no `data-cta` would be a link that converts silently.
+     */
+    it('routes every cell to the branded interstitial, tracked', () => {
       for (const variant of ['a', 'b'] as const) {
         const { container, unmount } = render(<HeroExperiment variant={variant} />);
-        expect(container.querySelector('[href*="apps.apple.com"], [href="/app"]')).toBeNull();
-        expect(container.querySelector('[data-cta]')).toBeNull();
+        const cta = container.querySelector('[href="/app"]');
+        expect(cta).toHaveAttribute('data-cta', 'store');
+        // Never the raw Apple URL: that lives only in public/app.html.
+        expect(container.querySelector('[href*="apps.apple.com"]')).toBeNull();
         unmount();
       }
     });
@@ -133,9 +143,9 @@ describe('HeroExperiment', () => {
     it('keeps every cell down to a single call to action', () => {
       for (const variant of ['a', 'b'] as const) {
         const { unmount } = render(<HeroExperiment variant={variant} />);
-        // Every hero CTA is a button: it opens the gate rather than navigating.
-        expect(screen.getAllByRole('button')).toHaveLength(1);
-        expect(screen.queryByRole('link')).not.toBeInTheDocument();
+        // Every hero CTA is a link: it hands off to the App Store.
+        expect(screen.getAllByRole('link')).toHaveLength(1);
+        expect(screen.queryByRole('button')).not.toBeInTheDocument();
         unmount();
       }
     });

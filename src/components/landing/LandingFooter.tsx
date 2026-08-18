@@ -1,48 +1,30 @@
 import { Link } from 'react-router-dom';
+import { AppStoreBadge } from './AppStoreBadge';
 import { Logo } from '../logo';
 
 /**
- * `onJoinWaitlist` is supplied on the landing page, where the gate can simply be
- * opened. The legal pages have no gate mounted, so they fall back to `/#wishlist`
- * — a hash `Landing` treats as "open the gate" rather than a scroll target.
+ * `sectionPrefix` is `/` on the legal pages, where a bare `#pricing` would go
+ * nowhere, and `''` on the landing page itself. The download slot needs no such
+ * handling — it leaves the site entirely.
  */
-export function LandingFooter({
-  sectionPrefix = '/',
-  onJoinWaitlist,
-}: {
-  sectionPrefix?: '' | '/';
-  onJoinWaitlist?: () => void;
-}) {
+export function LandingFooter({ sectionPrefix = '/' }: { sectionPrefix?: '' | '/' }) {
   return (
     <footer className="d3-footer">
       <div className="d3-footer-feature">
         <div className="d3-footer-copy">
           <h2>YOUR COACH.<br />READY WHEN YOU ARE.</h2>
-          <p>Delirio is opening in stages so every new coach gets the attention they signed up for. Join the waitlist and we will email you when your spot is ready.</p>
-          {/* The only way off the list, so it cannot live behind the gate — a
-              visitor who wants out will not reopen the form that put them on it.
-              Says "and your answers" on purpose: the email and the six answers
-              are one Firestore record, and someone opting out means both. */}
-          <p className="d3-footer-optout">
-            Already joined? Email{' '}
-            <a href="mailto:contact@delirio.fit?subject=Waitlist%20Opt-Out">contact@delirio.fit</a>{' '}
-            to leave the waitlist and have your answers deleted.
-          </p>
+          <p>Download Delirio on iPhone to plan, train, and follow up wherever your week takes you.</p>
         </div>
-        {/* The form itself lives behind the gate; a second one out here would
-            split the signup between two records and skip the questions. */}
         <div className="d3-app-card">
           <div className="d3-app-copy">
             <small>iPhone</small>
-            <b>EARLY ACCESS, ONE GROUP AT A TIME</b>
+            <b>DOWNLOAD NOW ON THE APP STORE</b>
           </div>
           <div className="d3-app-download">
             <div className="d3-app-icon" aria-hidden="true">
               <Logo color="white" width="72" height="100" />
             </div>
-            {onJoinWaitlist
-              ? <button className="d3-footer-waitlist-cta" type="button" onClick={onJoinWaitlist}>JOIN THE WAITLIST</button>
-              : <a className="d3-footer-waitlist-cta" href={`${sectionPrefix}#wishlist`}>JOIN THE WAITLIST</a>}
+            <AppStoreBadge className="d3-footer-app-badge" />
           </div>
         </div>
       </div>

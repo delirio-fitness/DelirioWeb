@@ -2,7 +2,7 @@
 
 Production marketing landing page for Delirio, an AI fitness coaching iOS app. The site describes
 the coaching experience, introduces the two AI coaches, hosts legal pages, presents subscription
-pricing, and routes acquisition to the waitlist.
+pricing, and routes acquisition to the App Store.
 
 ## Stack
 
@@ -12,8 +12,10 @@ pricing, and routes acquisition to the waitlist.
 - `react-router-dom` v7 for client-side routing
 - Netlify hosting (build dir `build/`)
 
-The site has **no backend of its own** beyond Firestore (quiz answers and waitlist emails). It
-used to run live voice and text coaching from the browser — see **No coaching from the website**.
+The site has **no backend of its own** and stores nothing about a visitor. Its one server-side
+piece is `netlify/functions/conversion.mts`, which reports ad conversions to Meta. It used to run
+live voice and text coaching from the browser (see **No coaching from the website**) and, later, a
+Firestore-backed waitlist (see **The waitlist is gone**); neither remains.
 
 ## Entry chain
 
@@ -30,12 +32,11 @@ Design 3 navigation and footer around the page body.
 - `/terms-of-service` — Terms (legal shell)
 - `/privacy-policy` — Privacy policy (legal shell)
 - `/terms` and `/privacy` 301-redirect to the new paths.
-- `/app` is the branded download link — use `https://delirio.fit/app` anywhere the App Store URL
-  would otherwise be pasted. It is a static interstitial (`public/app.html`), not a React route:
-  it paints, hands off to the App Store, then sends the tab to `/` when the user returns. The
-  App Store URL itself lives in that file. **The site itself no longer links to it** — see
-  **Waitlist, not download**. It is still live for links pasted elsewhere, so a visitor who
-  kept the URL can still install; it is off the acquisition path, not disabled.
+- `/app` is the branded download link, and **the whole acquisition path** — every CTA on the site
+  points here, and so should anything pasted off-site. It is a static interstitial
+  (`public/app.html`), not a React route: it paints, hands off to the App Store, then sends the
+  tab to `/` when the user returns. The App Store URL itself lives in that file, nowhere else.
+  In the React tree, reach it only through `AppStoreLink` — see **Download, not waitlist**.
 
 Redirects are defined in `public/_redirects` (first match wins, SPA catch-all `/*` stays last),
 **not** `netlify.toml` — see **Non-obvious things** and `docs/deployment.md`. None of them run
@@ -47,7 +48,7 @@ under `npm run dev`; only a Netlify-served build applies them.
 
 - `?v=b` (**or no param — this is what `delirio.fit` serves**) — `HeroFocus`, a centred hero
   built around a single oversized button.
-- `?v=a` — `HeroV3`, the standard hero, with one arrow-led `JOIN THE WAITLIST`. Opt-in now.
+- `?v=a` — `HeroV3`, the standard hero, with one arrow-led `DOWNLOAD THE APP`. Opt-in now.
 
 Hero only; everything below it is identical in both cells. The letters did **not** move when B
 became the default — `?v=b` still means what it always meant, and every fallback resolves through
@@ -81,213 +82,80 @@ publishes it as `window.delirioLandingVariant` and `data-landing-variant` on `.d
 where ad tracking reads the assignment from. `?hero=v1|v2|v2.3|v3` still pins a saved hero
 composition for design review and beats `?v=`.
 
-Note that the gate auto-opens 30s after load in **both** cells (`Landing.tsx`), which competes with
-the waitlist CTA. Cell B used to be exempt on the grounds that a single-CTA test may not have its
-button covered; that exemption was dropped when B became the shipped page, so the timed invitation
-follows the site rather than the letter.
+The cells now differ only in hero layout, since both carry the same single `DOWNLOAD THE APP` and
+`store_click` is what either would be read on. A 30-second timer used to auto-open the waitlist
+gate in both cells; it went with the gate, and the page now interrupts nobody.
 
-## The waitlist gate
+## Download, not waitlist
 
-The email box is not on the page — it lives inside a modal, behind a CTA, alongside six questions
-that segment what comes back. **Which side of those questions it sits on is the one thing `?wo=`
-varies, and email-first is what ships**; see **Which comes first** below before assuming either
-shape. The gate originally existed to filter curiosity from intent before an address was worth
-collecting, and the shipping arm has given that up on purpose: the address is taken first and the
-questions are asked afterwards, with a standing offer to skip them.
+The app is back on the App Store, so the site's job is a handoff: explain the product, then send
+people to `/app`. **Every acquisition surface links to the App Store, and nothing collects
+anything from a visitor.**
 
-A seventh question — *What would make this feel like a win 90 days from now?* — is free text and
-sits **beside** the email box rather than in front of it. It does not gate anything and it is
-labelled optional. A mandatory free-text field in front of a signup is where signups go to die,
-and this is the most expensive answer in the set to give.
-
-It carries its own `SEND ANSWER` button, which reports `Saved — thank you.` or, if the write
-failed, says so beside the button. The button is **not** the write path — blur still commits, and
-must keep doing so, or text typed and abandoned is lost. It exists because a field that saves
-invisibly reads as a field that is going nowhere, and on the email-first closing screen there is no
-other button on the screen to imply otherwise. It is styled quieter than `JOIN` on purpose: on the
-questions-first closing screen the two sit one above the other, and the email has to stay primary.
-
-**One question per screen, always.** `WaitlistSteps` auto-advances on selection and `WaitlistModal`
-owns the shell and the answer state. A second design once rendered all six on a single scrolling
-card behind a locked email box, chosen with `?wl=`; it was scrapped, and `WaitlistSinglePage`,
-`config/waitlistDesign.ts`, the `design` prop, the `design` field on new records, and ~30
-`d3-questionnaire-single*` CSS rules went with it. `?wl=` is now inert. Records written before the
-scrap still carry `design: 'steps' | 'single'`, so that field's presence is what dates a document.
-
-### Which comes first: the questions or the email
-
-`?wo=` (`src/config/waitlistOrder.ts`, remembered per tab like `?v=`) picks the sequence:
-
-- `?wo=email` (**the default, and what ships**) — the email box first, then the same six questions
-  with a `Skip for now →` on every screen. The record is created *from the email*, and each answer
-  is patched on as it arrives, so someone who answers two and skips still leaves those two behind.
-- `?wo=questions` — intro, six questions, then the email box. The questions gate the address, so
-  answering is the price of joining. This was the original control; it is now opt-in.
-
-The order comparison is **over**, decided on the shape of the flow rather than on data — no campaign
-had ever run, so neither arm had a figure to compare. Records still carry `order`, so the historical
-ones still read correctly, and the retired arm is still reachable for walking through.
-
-Two consequences of email-first shipping:
-
-- **`email_submitted` now reports**, and only from the email-first opening screen, where the address
-  arrives before a single question renders. See **Ad conversion tracking**.
-- **Do not buy traffic against `?wo=questions`.** That arm cannot report `email_submitted` — its
-  email box sits behind six answers — so Meta would see it produce gate openings and no
-  registrations, and optimize it away on a difference in instrumentation rather than in the funnel.
-  Walking it by hand is fine; a handful of manual visits will not move delivery.
-
-Read the funnel in Firestore either way, counting records that carry an `email` over
-`waitlist_started` openings. Meta only ever sees an ad-attributed slice, since blockers can refuse
-the beacon.
-
-Every `?wo=email` record has an email, so none of them hit the "we cannot find your entry to
-delete it" case the privacy policy has to describe for the control.
-
-The questions themselves are `src/content/waitlistQuestions.ts` and nothing else. Neither the
-component nor the tests need touching to add, remove, or reword one — the counts in the copy ("6 QUESTIONS,
-THEN YOUR SPOT", "2 questions left to unlock") are derived, as are the tests. A question may
-carry a `note` for small print; `weightProgress` uses it, because that answer is sensitive and ends
-up attached to an email address.
-
-**No question or option here may read as a statement about the visitor's body or mind.** Apply that
-test to anything new: if the answer could be read as describing someone's physical or mental state,
-rewrite it to be about the plan, the schedule, or the goal. Two questions have already been through
-this:
-
-- `weightProgress` replaced one asking where the visitor was with GLP-1s, down to titration stage.
-  Prescription medication status is named outright as consumer health data by Washington's My
-  Health My Data Act and Nevada SB 370, neither of which has a revenue threshold.
-- `activityBarrier`'s first option was "Some days my body just can't" (`body_capacity`); it now
-  reads "Most plans ask more than I can give". Same product signal, no self-report about a body.
-
-The header comment in that file carries the full reasoning, including why building the consent-and-
-policy apparatus was the more expensive alternative. Older Firestore records still carry the
-retired `glp1Stage` and `body_capacity` values — `responses` entries are self-describing, so a
-reader can tell the vintages apart without a schema version.
-
-Writes in **questions-first** (`?wo=questions`, now the opt-in arm) go in this order, and the order
-is the point:
-
-1. Answers land in `wishlist2` (`schemaVersion: 3`, flat `responses` array of
-   `{id, kind, question, answer, value?}`, plus the `order` that produced them) the moment the last
-   *choice* question is answered — *before* the email is asked for. Someone who fills in the
-   questions and then declines to leave an address still counts as a read on demand, which is the
-   whole reason the questions are there.
-2. The free text is patched on **blur**, not per keystroke. Clicking `JOIN` blurs the textarea
-   first, so that write is already in flight when the email submits, and `resolveSubmissionId`
-   awaits whichever write is latest — the two cannot land out of order. Typing and then
-   abandoning still keeps the text, which is the case worth protecting. `SEND ANSWER` blurs the
-   field the same way, so it usually finds its own text already in flight: `commitOpenResponse`
-   then reports on *that* write rather than on `savedOpenResponseRef`, which is set when a write
-   starts and is therefore no evidence one succeeded. Confirming a save that did not happen is the
-   one thing that button must never do.
-3. The email is patched onto that same document, so one visitor is one record.
-
-The email step awaits the answer write (`onResolveSubmissionId`) rather than reading a piece of
-state, so a fast typist cannot submit before the document exists and fork a second record. If
-the answer write fails outright the email still goes in — as a standalone record carrying
-`source: 'delirio-website-wishlist'` instead of `delirio-website-waitlist`, so the cohort that hit
-that path stays countable — and the failure is logged as `[delirio-waitlist]`. **Do not make that
-catch silent**: a demand-measurement feature that stops recording without saying so is the worst
-case here, and it is exactly how the collection below went unnoticed for a week.
-
-**`?wo=email`, the shipping default, inverts step 1 and 3**: `submitWaitlistEmailToFirestore`
-creates the record from the address, then `updateWaitlistAnswersInFirestore` patches each answer
-onto it as it is given. That writer is the email-first arm's workhorse; the other arm reaches it
-only for the free text. Since the record is created before any question, that arm's failure mode is
-the mirror image — a record with an email and no answers, rather than answers and no email.
-
-### The collection is `wishlist2`, and `firestore.rules` does not ship with the site
-
-Everything the gate collects goes to **`wishlist2`**. Two collections came before it and both are
-now historical — nothing writes to either:
-
-| Collection | What it holds |
+| Surface | Now |
 |---|---|
-| `wishlist2` | the live waitlist: answers, emails, and email-only opt-ins |
-| `warmNetwork` | the **warm** list — people the team already knows. Never mix cold ad signups in |
-| `webQuestionaire` | the v2 GLP-1 questionnaire. Do not expect v3 answers here — see below |
+| Landing header | `DOWNLOAD` → `/app`, **only past the hero** (below) |
+| Legal-page header (`LandingHeader`) | `DOWNLOAD` → `/app`, no `sectionPrefix` — it leaves the site |
+| Hero, both cells | one `DOWNLOAD THE APP` → `/app` |
+| Plan journey, chapter 02 | `DOWNLOAD THE APP` → `/app` |
+| Both plan cards (`PlanCard`) | no CTA — cards otherwise unchanged |
+| Footer feature slot | `AppStoreBadge` — Apple's artwork → `/app` |
 
-A `wishlist2` document may carry answers with no email, an email with no answers, or both — which
-one depends on `order` and how far the visitor got. `source` separates the two ways in:
-`delirio-website-waitlist` came through the gate, `delirio-website-wishlist` arrived as an address
-alone (the ungated band, or the gate's fallback after a failed answer write).
+### `AppStoreLink` is the only way to the store, and that is the point
 
-**Netlify deploys the site; it does not deploy `firestore.rules`.** They are two separate
-publishes against two separate services, and the site does not fail loudly when they disagree —
-it renders perfectly and every write returns `permission-denied`. This is the same shape as the
-`netlify.toml` trap in **Non-obvious things**: the thing that looks deployed isn't.
+Every link above renders through `src/components/landing/AppStoreLink.tsx`, which sets the href,
+`target="_blank"`, `data-cta="store"`, and fires `recordQualifiedAction('store_click')` on click.
+`AppStoreBadge` wraps it rather than building its own anchor.
 
-That is not hypothetical, and it went further than a stale rule. The live ruleset had **no match
-block for `webQuestionaire` or `warmNetwork` at all** — the repo's versions of those blocks were
-written but never deployed — so both collections were default-deny and every write the gate made
-was rejected, answers *and* the email fallback, while the page looked perfectly fine. Changing a
-field name, adding a field, or renaming a collection here is a **two-part deploy**:
+**Do not paste `APP_STORE_URL` into a bare `<a>`.** A store link with no conversion attached hands
+the visitor to Apple and reports nothing, which is indistinguishable in Events Manager from a link
+nobody clicked — the exact failure that got the previous `useStoreClickTracking` deleted rather
+than left half-wired. `Landing.test.tsx` pins it: every `[href="/app"]` on the page must carry
+`data-cta`, and no other element may carry `data-cta` at all.
 
-```
-npx firebase-tools deploy --only firestore:rules --project delirio-480110
-```
+Both hero CTAs and the plan-journey CTA became `<a>` elements where they used to be `<button>`.
+Their CSS already carried `inline-flex` and `text-decoration: none`, so only `.d3-plan-live-quiz a`
+needed those added — an `<a>` will not centre its label or honour `min-height` without them.
 
-The rules are compiled server-side, so a syntax error fails the deploy loudly rather than
-publishing something broken.
+### The waitlist is gone, and it is not coming back behind a flag
 
-**`firestore.rules` governs the whole project, not just this site** — `users`, `workouts`,
-entitlements, the messaging-number locks. It had drifted badly from production once already: it
-was missing `lockedMessagingFields()`, so deploying it would have silently unlocked
-`messagingEligibleAt` and let any account forge number-pool eligibility. It has since been
-reconciled against the live ruleset, and the website block was added on top without touching a
-line of the rest. Keep it that way: **diff against the live rules in the console before every
-deploy**, and if they have diverged again, reconcile rather than overwrite.
+While the app was in App Store review, every download CTA pointed at a six-question waitlist gate
+that collected an email. **All of it is deleted, not disabled**: `WaitlistModal`, `WaitlistSteps`,
+`WaitlistClaim`, `WishlistSignup`, `waitlistQuestions.ts`, `waitlistOrder.ts` (`?wo=`),
+`wishlistSubmission.ts`, `feedbackSubmission.ts`, `browserFeedbackId.ts`, the 30-second auto-open
+timer, and ~120 `d3-questionnaire-*` / `d3-wishlist-*` CSS rules. All recoverable from git.
+
+Consequences worth knowing:
+
+- **The site writes to Firestore from nowhere.** `wishlist2` still exists and may hold records
+  from the period the gate ran — the privacy policy and `/data-deletion` say so rather than
+  claiming otherwise, because nothing here has deleted them. `firestore.rules` was left untouched:
+  it governs the whole Delirio project (`users`, `workouts`, entitlements, messaging locks), not
+  just this site, so pruning the website block is a separate, deliberate deploy.
+- **`src/services/firebaseClient.ts` now has no importer.** Kept as the project-level bootstrap
+  along with the `vite.config.ts` defines and `secrets/firebase.js` loading. It is dead weight
+  today; deleting it means unwiring the build and the MSW credential test too, which is a decision
+  rather than a tidy-up.
+- `?wo=` and `?wl=` are inert. `?v=` still works and still selects the hero.
+- `id="wishlist"` does not exist and `Landing.tsx` no longer special-cases `/#wishlist`. A stale
+  link carrying that hash finds no target, so the visitor lands at the top of the page — which is
+  where a download CTA is anyway. `Landing.test.tsx` pins that it renders normally rather than
+  throwing.
+- The word "quiz" is still absent from every user-facing string, and tests still assert it.
+  `d3-plan-live-quiz` and `d3-hero-questionnaire-action` keep their class names — pure churn.
 
 ### The header CTA is hidden until the hero's is gone
 
 There is no header button at the top of the page. It appears once `pastHeroCta` trips — half a
 viewport, roughly where the hero's own button leaves the screen — so the page shows exactly one
-`JOIN THE WAITLIST` at any scroll position, never two and never none.
+download CTA at any scroll position, never two and never none.
 
 It stays **mounted** the whole time and hides with `visibility`, because `.d3-header` is
 `justify-content: space-between`: unmounting it slides the nav and the hamburger sideways every
 time it appears. For the same reason the hiding cannot be left to the stylesheet alone — it also
 carries `aria-hidden` and `tabIndex={-1}`, so a keyboard or screen-reader user cannot reach a
-button nobody can see. Changing any one of those three needs the other two changed with it.
+control nobody can see. Changing any one of those three needs the other two changed with it.
 
-### Nothing links to a waitlist section, because there isn't one
-
-`id="wishlist"` no longer exists in the DOM. Every off-page `JOIN THE WAITLIST` link still
-points at `/#wishlist`, and `Landing.tsx` treats that hash as *open the gate*, then clears it —
-read at mount rather than in an effect, so the modal is up on the first paint and a reload does
-not reopen it. On the landing page itself the CTAs are buttons that call `openQuestionnaire`
-directly; `LandingFooter` renders a button when given `onJoinWaitlist` and falls back to the
-hash link on the legal pages, which have no gate mounted.
-
-## Waitlist, not download
-
-The app is live, but ads cannot point at it until an update clears review, and the team wants a
-read on demand before committing to infrastructure. So every download CTA was replaced by the
-waitlist, and **nothing on the site links to the App Store**:
-
-| Surface | Now |
-|---|---|
-| Landing header | `JOIN THE WAITLIST` button → opens the gate, **only past the hero** (below) |
-| Legal-page header (`LandingHeader`) | `JOIN THE WAITLIST` → `/#wishlist` → opens the gate |
-| Hero, every cell | one `JOIN THE WAITLIST` button → opens the gate |
-| Both plan cards (`PlanCard`) | no CTA — cards otherwise unchanged |
-| Footer feature slot | `JOIN THE WAITLIST` → gate on `/`, `/#wishlist` on legal pages |
-
-The word "quiz" is gone from every user-facing string, and `onTakeQuiz` was renamed
-`onJoinWaitlist` to match. `d3-hero-questionnaire-action` keeps its name — pure churn to rename.
-
-`WishlistSignup` is now only ever the email form at the end of the gate
-(`placement="questionnaire"`, which renders the form alone — the gate supplies the heading). Its
-`landing` placement and the ungated `.d3-wishlist` base styles are kept but have no consumer; an
-ungated form anywhere would let a visitor skip the filter the gate exists for, so re-adding one
-is a decision, not a tidy-up.
-
-`AppStoreBadge` and `useStoreClickTracking` were deleted, not disabled. `/app` and
-`APP_STORE_URL` still exist for links pasted outside this site (bio, email); nothing in the
-React tree points at them. **If downloads come back, restore both from git rather than adding a
-bare link** — a store link with no `data-cta` converts silently.
 
 ## No coaching from the website
 
@@ -391,7 +259,9 @@ Never write playwright artifacts to the repo root or anywhere else under version
 
 ```
 VITE_APP_STORE_URL         # Where download CTAs point (default: /app, the branded interstitial).
-                           # Nothing in the React tree reads this today — see Waitlist, not download.
+                           # Read by config/product.ts, whose only consumer is AppStoreLink.
+VITE_CLARITY_PROJECT_ID    # Optional override for the Clarity project ID committed in
+                           # src/modules/clarity/config.ts. Unset in the Netlify build.
 ```
 
 Ad reporting is configured **server-side only**, and the names are deliberately not `VITE_`-prefixed:
@@ -422,47 +292,50 @@ Product pricing and acquisition configuration live in `src/config/product.ts`.
 
 ## Ad conversion tracking
 
-**There is no Meta pixel on this site, and one must not be added back.** The waitlist asks how a
-visitor's weight loss is going and what they want from a training plan
-(`src/content/waitlistQuestions.ts`). `fbevents.js` is closed-source, runs with full DOM access,
-reports the URL and title of every page it loads on, collects the text of what visitors click, and
-— with one checkbox in Events Manager, *Automatic Advanced Matching* — scrapes the email field and
-sends it hashed. None of that is controllable from this repo, and Meta can change it server-side
-without us deploying anything.
+**There is no Meta pixel on this site, and one must not be added back.** `fbevents.js` is
+closed-source, runs with full DOM access, reports the URL and title of every page it loads on,
+collects the text of what visitors click, and — with one checkbox in Events Manager, *Automatic
+Advanced Matching* — scrapes form fields and sends them hashed. None of that is controllable from
+this repo, and Meta can change it server-side without us deploying anything. The waitlist that
+originally made this urgent is gone; the reasoning is not conditional on it.
 
 Conversions are reported from `netlify/functions/conversion.mts` over the Conversions API instead.
 The browser posts a trigger slug to `/.netlify/functions/conversion`; the function looks up
 everything else and builds the payload. Meta learns a conversion happened on a given ad click and
 nothing else about the site or the visitor.
 
-### Microsoft Clarity runs here, and the gate is masked from it
+### Microsoft Clarity runs here
 
 `src/modules/clarity` loads Clarity from `main.tsx` for every visitor — session replay and
 heatmaps. It is **not** an advertising script and sends nothing to Meta, but it is third-party code
-with full DOM access, so the two facts to keep straight are:
+with full DOM access, so two things stay true:
 
-- **`WaitlistModal`'s backdrop carries `data-clarity-mask="True"`, and it must keep it.** Clarity's
-  default masking covers the *contents of input boxes*, which sounds like it already covers the
-  answers. It does not. An option is
-  `<label><input type="radio" name="age" value="18_24"><span>18–24</span></label>` — the radio holds
-  no text, and the `name`, the `value`, and the sibling span are ordinary DOM that session replay
-  reconstructs. Without the attribute, a recording shows which question was asked and which answer
-  was picked. A test in `WaitlistModal.test.tsx` pins it, because nothing else would notice its
-  removal: Clarity would simply start recording again.
-- **The privacy policy has an "Analytics on this website" paragraph** naming Microsoft, saying the
-  recording exists, and saying the waitlist form is excluded. Removing the mask makes that false.
+- **The site has no form, no text box, and no radio group, so there is nothing here for replay to
+  capture that a visitor typed or chose.** That is what retired the `data-clarity-mask="True"` on
+  the old `WaitlistModal` backdrop — the mask existed because Clarity's default masking covers
+  input *contents* only, while an option's `name`, `value`, and sibling `<span>` are ordinary DOM
+  that replay reconstructs perfectly. **Anything added here that asks the visitor a question needs
+  that mask back, on the subtree root, plus a test pinning it** — nothing else would notice its
+  absence, because Clarity would simply start recording.
+- **The privacy policy has an "Analytics on this website" paragraph** naming Microsoft and saying
+  the recording exists. It now says there is nothing typeable to record; adding an input makes that
+  false in a checkable way.
 
-Masked subtrees are never uploaded and the attribute beats the dashboard setting, so this does not
-depend on anyone keeping a Clarity portal toggle correct. Note the project ID is committed in
-`config.ts` rather than read from `VITE_CLARITY_PROJECT_ID`, so turning Clarity off needs a deploy.
+Note the project ID is committed in `config.ts` rather than read from `VITE_CLARITY_PROJECT_ID`, so
+turning Clarity off needs a deploy.
 
 | Trigger | Standard event | `value` | `Delirio*` twin | Fired from |
 |---|---|---|---|---|
 | `page_view` | `PageView` | — | **no** | `Landing.tsx`, on mount. `/` only |
-| `waitlist_started` | `Lead` | 3 | yes | `Landing.tsx`, from a CTA or an arriving `/#wishlist` |
-| `email_submitted` | `CompleteRegistration` | 4 | yes | `WishlistSignup.tsx`, **only where it renders ahead of every question** — the email-first arm's opening screen, or the (consumerless) landing band |
+| `store_click` | `Lead` | 4 | yes | `AppStoreLink.tsx`, from every download CTA on the site |
 
-A normal visit sends all three, in that order.
+A normal visit sends both, in that order.
+
+**`store_click` is where this site's funnel ends.** The install, the trial, and the subscription
+are reported by the Meta SDK inside the iOS app, against the same dataset — do not try to
+reconstruct any of them from the website. `Lead` rather than an install-shaped event because that
+is what this honestly is: an intent signal from a web page, not a confirmed install. Point install
+campaigns at the app's own events.
 
 **`page_view` is the exception to two things that hold for the others**, and both exceptions are
 deliberate rather than oversights — see the trigger table in `netlify/functions/conversion.mts`:
@@ -475,126 +348,96 @@ deliberate rather than oversights — see the trigger table in `netlify/function
 
 It is also the only trigger that is **input rather than a target**: every visitor does it, so
 pointing an ad set at it buys traffic and nothing else. It exists because Meta otherwise hears only
-from the ~3% who open the gate and has no picture of the rest. It is additionally the one signal
-that survives Meta's health-and-wellness restrictions, which cut mid- and lower-funnel events and
-leave upper-funnel ones alone.
+from the few percent who click through to the store and has no picture of the rest. It is
+additionally the one signal that survives Meta's health-and-wellness restrictions, which cut mid-
+and lower-funnel events and leave upper-funnel ones alone.
 
 **`page_view` must never be routed through `recordQualifiedAction`.** That function's
 `delirio:qualified-actions` storage decides `firstOfVisit` by its *length*, and the server sends the
 standard `Lead` only when that is true. A page view precedes every CTA by definition, so sharing the
-key would flag `waitlist_started` as `false` and `Lead` would silently stop reporting — the twin
-climbing in Events Manager while the optimizable event sits at zero. Hence the separate
-`delirio:page-view` key and the hard-coded `firstOfVisit: false`, both pinned by tests.
+key would flag `store_click` as `false` and `Lead` would silently stop reporting — the twin climbing
+in Events Manager while the optimizable event sits at zero. Hence the separate `delirio:page-view`
+key and the hard-coded `firstOfVisit: false`, both pinned by tests.
 
-### The rule that shapes the table
+### The rule that still shapes the table
 
-**No conversion may fire at or after the first waitlist question.** An event that only fires for
-people who answered those questions discloses health through its *timing* — the payload does not
+**No conversion may fire at or after a question about the visitor.** An event that only fires for
+people who answered such a question discloses health through its *timing* — the payload does not
 have to carry the answer, and renaming the event changes nothing, because the correlation is the
 disclosure. This is the GoodRx/BetterHelp fact pattern, and Washington's My Health My Data Act
 carries a private right of action.
 
-The rule predates the current question set: it was written when question three asked about GLP-1
-medication. Softening the questions did not retire it, and softening them further would not either
-— it governs *where* an event fires, not how sensitive this month's wording happens to be.
+Nothing on the site asks a question today, so nothing currently tests this. **It is written down
+because it is not a fact about the questions that are gone.** It was written when the waitlist's
+third question asked about GLP-1 titration stage, survived that question being softened, and
+survives the whole gate being deleted — it governs *where* an event may fire, not how sensitive
+this month's wording happens to be. Anything that asks the visitor about themselves again inherits
+it from the moment it is added, and `conversionEvents.test.ts` pins `quiz_completed` and
+`questionnaire_email_submitted` as names the trigger union must keep refusing.
 
 Consequences that look like bugs but are not:
 
-- `WaitlistModal.tsx` reports **nothing**. It used to fire `quiz_completed` when the answers saved.
-- **The same `WishlistSignup` both reports and does not, depending on where it renders.** It takes
-  an `upstreamOfQuestions` prop rather than deciding from the placement or reading `?wo=`, because
-  what licenses the event is its *position*, not which arm is running. Email-first's opening screen
-  passes it; the questions-first closing screen does not, and must never — its box is unlocked by
-  six answers. A new flow that moves the email box gets the answer wrong by default and has to say
-  otherwise deliberately, which is the safe direction for this particular mistake.
-- The 30-second auto-open does not report. `Landing.tsx` splits `openQuestionnaire` (CTA, reports)
-  from `showQuestionnaire` (timer, silent) for exactly this — being shown a modal is not an action.
-- `voice_demo_started` and `text_demo_engaged` went with the coaching demo; `store_click` went when
-  the last App Store link did.
+- The trigger union has exactly one member. That is the shape to keep: a second trigger needs a
+  reason beyond "we could measure it", and this rule is the first thing it has to clear.
+- `voice_demo_started` and `text_demo_engaged` went with the coaching demo; `waitlist_started` and
+  `email_submitted` went with the gate. All four are pinned as refused.
 
 ### Reading the numbers
 
 - **`Lead` counts qualified visitors, not actions.** The browser flags the visit's first qualifying
-  action as `firstOfVisit`, and only that one gets `Lead`. Every trigger also sends its own
-  `Delirio*` custom event — good for reporting, weak to optimize on, since Meta has cross-advertiser
-  priors for `Lead` and none for a name we invented. `CompleteRegistration` carries no such guard:
-  `email_submitted` is already once-per-visit, and gating it on `firstOfVisit` would drop the signup
-  whenever the CTA click came first, which is nearly always.
-- **Sending two standard events does not make the learning phase end sooner.** An ad set counts only
-  the one event it optimizes on — roughly 50 a week to leave learning — so the second name buys
-  reporting, never velocity. `Lead` (gate openings) is the plentiful one and the right early target;
-  `CompleteRegistration` (real addresses) is the honest one, and pointing an ad set at it before the
-  weekly count supports it makes learning *harder* to clear, not easier. It accrues history in the
-  meantime, which is what makes the switch possible at all — Meta cannot optimize toward an event
-  with no track record.
-- **`CompleteRegistration` is the only place a finished signup is attributable to a creative.**
-  Firestore knows a record exists but not which ad produced it, so without this event you can see
-  which creative drives clicks and never which drives people who finish.
+  action as `firstOfVisit`, and only that one gets `Lead`. With one trigger in the union that flag
+  is always true, so the guard is currently a no-op — it is kept because it is what makes adding a
+  second trigger safe rather than something that quietly doubles the `Lead` count.
+- `store_click` also sends `DelirioStoreClick` — good for reporting, weak to optimize on, since
+  Meta has cross-advertiser priors for `Lead` and none for a name we invented. **Sending both does
+  not make the learning phase end sooner.** An ad set counts only the one event it optimizes on —
+  roughly 50 a week to leave learning — so the second name buys reporting, never velocity.
+- **`store_click` is the only place a download intent is attributable to a creative.** The App
+  Store console knows installs happened but not which ad produced them; the Meta SDK in the app
+  covers the install itself. This event is what connects a creative to someone choosing to go.
 - **Each trigger fires at most once per visit**, tracked in `sessionStorage` — under two separate
   keys, and they must stay separate. See the `page_view` note above for what merging them breaks.
+  Once-per-visit is also why a visitor who clicks the hero button and then the footer badge is one
+  `Lead`, not two.
 - `value` is an intent score, not revenue. Do not compute ROAS from it. The table lives **on the
   server** so the public endpoint cannot be told what a conversion is worth.
 - Where a trigger sends both a standard and a `Delirio*` event, the two share one `event_id` as the
   dedup key. `page_view` sends one event, so its ID is its own.
-- Cheap actions (scroll depth, section views, the auto-open) are deliberately not tracked.
-  `page_view` is not a counterexample — it is not reported as an *action*, and it is never
-  something an ad set optimizes toward.
+- Cheap actions (scroll depth, section views) are deliberately not tracked. `page_view` is not a
+  counterexample — it is not reported as an *action*, and it is never something an ad set optimizes
+  toward.
 
 ### What is in the payload
 
-`user_data` carries IP, user-agent, `fbc` — the ad click ID, rebuilt server-side as
+`user_data` carries IP, user-agent, and `fbc` — the ad click ID, rebuilt server-side as
 `fb.1.<clickTime>.<fbclid>` from the `fbclid` and `capturedAt` that `attribution.ts` stored on the
-landing URL — and, on `email_submitted` only, `em`: SHA-256 of the address, lowercase hex. **No
-name, no phone, no external ID, no page path, no title, no referrer.** `event_source_url` is the
-bare origin, identical for every visitor.
+landing URL. **No email, no name, no phone, no external ID, no page path, no title, no referrer.**
+`event_source_url` is the bare origin, identical for every visitor.
 
-#### The hashed email
+#### The hashed email is gone, and re-adding one is a decision
 
-`fbc` already matches exactly, so the address adds nothing for a visitor whose click ID survived.
-It reaches the remainder: a stripped `fbclid`, a conversion on a different device than the click, a
-view-through. **The benefit and the disclosure are therefore the same population** — the people it
-tells Meta about are exactly the people Meta could not already see. What it discloses is that they
-signed up for a fitness product; never an answer, never a question, never that they reached one.
+`email_submitted` once carried `em`: SHA-256 of the waitlist address, lowercase hex. The site
+collects no address now, so the field, its `acceptsEmail` gate in the server trigger table, the
+`recordQualifiedAction` email overloads, the `ConversionBeacon.email` field, and the SHA-256 helper
+were all deleted rather than left inert. Recoverable from git.
 
-Three independent gates, because a leaked address breaks no page and fails no build:
+What went with it, and what a future re-add would have to re-solve:
 
-1. `acceptsEmail` in the server trigger table — a trigger opts in **by name**, and an address on any
-   other trigger is dropped rather than honoured.
-2. `recordQualifiedAction` overloads — only `email_submitted` accepts one, and the runtime re-checks
-   rather than trusting the types, which are gone by the time this ships.
-3. `upstreamOfQuestions` in `WishlistSignup` — the same flag licenses the event and the address,
-   deliberately: the position that makes one reportable is the position that makes the other
-   reportable, so there is no arrangement where a screen may send one but not the other.
+- **Normalisation is trim and lowercase, nothing else.** Stripping Gmail dots or `+suffixes`
+  produces a hash that matches nothing while looking correct from here, and the failure is silent —
+  the event posts, the function answers `reported: true`, and only the match rate moves.
+- **The endpoint is public and guarded only by an `Origin` check**, which a `curl` forges in one
+  line. Any caller could post an arbitrary address and have that person's matchable hash sent to
+  Meta under a signup they never made. This was raised in review (PR #6, 2026-08-09) and accepted
+  as a known risk on the grounds that the site was pre-launch; that acceptance expires with the
+  premise. Closing it means the function verifying the address against a real record, which needs
+  admin credentials in the Netlify environment.
+- **The privacy policy is part of the feature, not paperwork around it.** The hashed email had to
+  be named in the reported-actions list, in the collection section, and in "Do Not Sell or Share" —
+  and now the policy says plainly that no address is sent in any form. A published policy that is
+  false in a checkable way is the FTC Section 5 hook the GoodRx and BetterHelp orders turned on.
+  **Changing what goes in `user_data` means changing that copy in the same PR.**
 
-Normalisation is **trim and lowercase, nothing else**. Do not strip Gmail dots or `+suffixes` —
-Meta stores addresses as given, so canonicalising them produces a hash that matches nothing while
-looking correct from here. That failure is silent: the event posts, the function answers
-`reported: true`, and only the match rate moves. Hashing lives on the server so the rule has one
-home; the raw address reaches it over same-origin HTTPS, the same trip it already makes to
-Firestore, and never leaves unhashed. The dev console redacts it.
-
-**The privacy policy is part of this feature, not paperwork around it.** It names the hashed email
-in the reported-actions list, in the wishlist section, and in "Do Not Sell or Share" — a published
-policy that is false in a checkable way is the FTC Section 5 hook the GoodRx and BetterHelp orders
-turned on. Changing what goes in `user_data` means changing that copy in the same PR.
-
-##### The address is trusted, not verified — a known, accepted risk
-
-`/.netlify/functions/conversion` is public and guarded only by an `Origin` check, which a `curl`
-forges in one line. So **any caller can post `email_submitted` with an arbitrary address** and have
-that person's matchable hash sent to Meta under a signup they never made. The three gates above
-constrain our own code; none of them binds the request to a real signup.
-
-This was raised in review (PR #6, 2026-08-09) and **accepted deliberately** on the grounds that the
-site is pre-launch, has no traffic, and the attack requires someone to choose to target it. It is
-recorded here so a later reader finds a decision rather than an oversight — and so the second half
-is not lost: the risk scales with how well-known the site becomes, and the privacy policy's promise
-that the hash is sent "when you submit your email" is not true for an injected address.
-
-Closing it properly means the function verifying the address against `wishlist2` instead of
-trusting it, which needs Firestore admin credentials in the Netlify environment and a way to handle
-the race with the client's own write, since the beacon fires immediately after it. Revisit when the
-site has traffic worth forging, not before.
 
 Attribution (`src/utils/attribution.ts`) is captured in `main.tsx` before render and held for the
 tab: react-router drops the query string on internal navigation, and the campaign is unrecoverable
@@ -617,15 +460,21 @@ function runs under Vite.
   the deployed site. Full write-up and suspected cause in `docs/deployment.md`.
 - The App Store listing URL is not in the TypeScript source. `APP_STORE_URL` is `/app`; the real
   Apple URL lives in `public/app.html` (twice — the `<a id="store">` href and the `STORE`
-  constant). `APP_STORE_URL` currently has no importers — it is kept for the interstitial and
-  for whenever downloads come back, not because anything renders it.
-- **Firestore rules are a separate deploy from the site**, and a mismatch is silent — see
-  **The collection is `wishlist2`**. Netlify never publishes `firestore.rules`.
-- **App Check is wired but inert.** `firebaseClient.ts` calls `initializeAppCheck` only when
-  `FIREBASE_APPCHECK_SITE_KEY` is set, and it is not set in the Netlify build — no reCAPTCHA key
-  appears in the deployed bundle. So the client sends no App Check token, and turning
-  *enforcement* on for Firestore in the console would deny every write from the site instantly.
-  If App Check is ever wanted, set the site key and redeploy **before** enabling enforcement.
+  constant). Its only importer is `AppStoreLink`, which is deliberate — see **Download, not
+  waitlist**.
+- **Firestore rules are a separate deploy from the site**, and a mismatch is silent: the page
+  renders perfectly while every write returns `permission-denied`. Netlify never publishes
+  `firestore.rules`; that is `npx firebase-tools deploy --only firestore:rules --project
+  delirio-480110`, and the file governs the whole Delirio project (`users`, `workouts`,
+  entitlements, messaging locks), not just this site. **Diff against the live rules in the console
+  before every deploy** and reconcile rather than overwrite — it has drifted badly once already,
+  missing `lockedMessagingFields()`. Nothing on the website writes to Firestore any more, so this
+  matters for the app's sake now, not the site's.
+- **App Check is wired but inert, and unreachable.** `firebaseClient.ts` calls `initializeAppCheck`
+  only when `FIREBASE_APPCHECK_SITE_KEY` is set, and it is not set in the Netlify build. It also
+  has no importer at all now that the waitlist writers are gone. If App Check is ever wanted, set
+  the site key and redeploy **before** enabling enforcement in the console — enabling it first
+  denies every write instantly.
 - The current landing and legal shell use the `d3-*` namespace in `src/styles/design3.css`.
 - **Brand and coach art comes from the shared asset catalog, not from this repo.** Every such
   file is recorded in `.delirio-assets.lock`, and `delirio-assets check` reports when the
@@ -642,10 +491,16 @@ function runs under Vite.
 
 ## Lint and test state
 
-`npm run lint` reports **4 warnings, 0 errors**: three unused price imports in `TermsServices.tsx`
-and one `set-state-in-effect` in `AnimatedNumber.tsx`. Don't add to that count without reason.
+`npm run lint` reports **5 warnings, 0 errors**: three unused price imports in `TermsServices.tsx`,
+one `set-state-in-effect` in `AnimatedNumber.tsx`, and one unused eslint-disable directive in
+`modules/clarity/clarity.ts`. Don't add to that count without reason.
 
 `npm test` has **one pre-existing failure**, `TermsServices.test.tsx` — it asserts copy
 (`$30 per month, billed monthly.`) that is not in the component. The test and the component
 disagree about production pricing copy; which one is right is a product question, not a
 mechanical fix, so it is left failing rather than papered over. Everything else passes.
+
+`npm run test:layout` is **stale and failing for reasons that predate the waitlist removal** — it
+asserts on `.d3-section-intro` and `.coach-trial__intro`, both deleted with the coaching demo. Its
+waitlist assertions were replaced with App Store badge ones so it no longer references deleted
+markup, but it needs a pass over its remaining selectors before it is worth running again.

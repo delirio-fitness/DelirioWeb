@@ -8,6 +8,7 @@ import postWorkoutText from '../../images/appScreenshots/postWorkoutText.png';
 import startGenerated from '../../assets/images/planJourney/generated/start/v1/image.jpg';
 import repGenerated from '../../assets/images/planJourney/generated/see-the-rep/v2/image.jpg';
 import keepGoingGenerated from '../../assets/images/planJourney/generated/keep-going/v2/image.jpg';
+import { AppStoreLink } from './AppStoreLink';
 import { PhoneScreenshotFrame } from './PhoneScreenshotFrame';
 import { CoachCapabilityCollage } from './CoachCapabilityCollage';
 import { Logo } from '../logo';
@@ -24,7 +25,7 @@ const sequence = [
     number: '02', label: 'PLAN', detail: 'COACH BUILDS THE WEEK', capture: 'YOUR TRAINING PLAN', image: workoutPlan,
     heading: ['A PLAN BUILT FOR', 'THE WEEK YOU HAVE.'],
     body: 'Your coach builds around the time, energy, experience, and equipment you have now—not an ideal week you have to keep chasing.',
-    quizCta: true,
+    downloadCta: true,
   },
   {
     number: '03', label: 'START', detail: 'ENTER THE WORKOUT', capture: 'EXERCISES + SESSION START', image: clickStart,
@@ -48,7 +49,7 @@ const sequence = [
 
 const SEQUENCE_INTERVAL_MS = 6000;
 
-export function PlanToLiveGuidance({ onJoinWaitlist }: { onJoinWaitlist?: () => void }) {
+export function PlanToLiveGuidance() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [progressCycle, setProgressCycle] = useState(0);
   const activeIndexRef = useRef(0);
@@ -144,9 +145,9 @@ export function PlanToLiveGuidance({ onJoinWaitlist }: { onJoinWaitlist?: () => 
               {activeStage.heading.map((line) => <span key={line}>{line}</span>)}
             </h2>
             <p className="d3-plan-live-body">{activeStage.body}</p>
-            {'quizCta' in activeStage && activeStage.quizCta && (
+            {'downloadCta' in activeStage && activeStage.downloadCta && (
               <div className="d3-plan-live-quiz">
-                <button type="button" onClick={onJoinWaitlist}>JOIN THE WAITLIST</button>
+                <AppStoreLink>DOWNLOAD THE APP</AppStoreLink>
                 <small>See how Delirio can help you.</small>
               </div>
             )}

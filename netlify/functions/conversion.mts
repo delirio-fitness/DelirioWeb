@@ -1,46 +1,37 @@
 /**
  * The only thing on this site that talks to Meta.
  *
- * There is no Meta pixel in the browser — see `docs/ad-tracking.md`. `fbevents.js`
- * is a closed-source third-party script with full DOM access: it reports the page
- * URL and title on every event, scrapes form fields when Automatic Advanced
- * Matching is enabled in Events Manager, and collects the text of what visitors
- * click. None of that is configurable from here, and the waitlist asks about
- * weight-loss progress and training history, so a script we cannot audit is not
- * allowed in the page.
+ * There is no Meta pixel in the browser. `fbevents.js` is a closed-source
+ * third-party script with full DOM access: it reports the page URL and title on
+ * every event, scrapes form fields when Automatic Advanced Matching is enabled
+ * in Events Manager, and collects the text of what visitors click. None of that
+ * is configurable from here and Meta can change it server-side without us
+ * deploying anything, so a script we cannot audit is not allowed in the page.
  *
  * This function is the replacement. It receives a trigger slug from the browser,
  * looks up everything else in the table below, and posts a Conversions API event
  * built entirely on this side. Meta learns that a conversion happened on a given
  * ad click. It learns nothing else about the site or the visitor.
  *
- * Deliberately absent from every payload: name, phone, external ID,
- * questionnaire answers, page path, page title, referrer. `user_data` carries
- * IP, user-agent, `fbc` — the ad click ID — and, on one trigger only, a hashed
- * email. Nothing else. Do not add identifiers here without re-reading the
- * privacy policy first; the "Advertising, Attribution, and Tracking" section
- * makes promises about exactly this payload.
+ * Deliberately absent from every payload: email, name, phone, external ID, page
+ * path, page title, referrer. `user_data` carries IP, user-agent, and `fbc` —
+ * the ad click ID. Nothing else. Do not add identifiers here without re-reading
+ * the privacy policy first; the "Advertising, Attribution, and Tracking" section
+ * makes promises about exactly this payload, and a published policy that is
+ * false in a checkable way is the FTC Section 5 hook the GoodRx and BetterHelp
+ * orders turned on.
  *
- * ## The hashed email, and why only one trigger may carry it
+ * ## There is no hashed email here any more, and adding one back is a decision
  *
- * `fbc` already matches exactly, so an address adds nothing for a visitor whose
- * click ID survived. What it reaches is the remainder: `fbclid` stripped by the
- * browser, a conversion on a different device than the click, someone who saw
- * the ad and came back later without clicking. Meta holds a SHA-256 of every
- * account's address, so ours joins against it directly — no cookie, no click.
- *
- * Which means the benefit and the disclosure are the same population. The people
- * this tells Meta about are exactly the people Meta could not already see. What
- * it discloses about them is that they signed up for a fitness product — never
- * an answer, never a question, and never that they reached one.
- *
- * `acceptsEmail` gates it in the table below rather than at the call site, so a
- * trigger has to opt in by name. That is the right default for the mistake worth
- * fearing: a new flow reporting an address it should not is silent, and making
- * the permission explicit means the wrong answer has to be typed on purpose.
+ * A `store_click` carries no address, because the site no longer asks anyone for
+ * one — the waitlist that did was scrapped when the app returned to the App
+ * Store. The `em` field, its `acceptsEmail` gate, and the SHA-256 helper were
+ * deleted with it rather than left inert. Recoverable from git if an email is
+ * ever collected here again, but note what came with it: Meta's normalisation is
+ * trim-and-lowercase and nothing else, the endpoint below is public so a `curl`
+ * could post any address it liked, and the privacy policy had to name the
+ * practice in three separate places to stay true.
  */
-
-import { createHash } from 'node:crypto';
 
 const GRAPH_API_VERSION = 'v21.0';
 
@@ -54,53 +45,37 @@ const GRAPH_API_VERSION = 'v21.0';
  * makes the "nothing on the page knows about Meta" claim true rather than
  * aspirational.
  *
- * `value` is relative intent, not revenue — do not compute ROAS from it. Both
- * triggers sit upstream of the waitlist questions on purpose. Nothing downstream
- * of them may be added here: an event that fires only for people who answered
- * those questions discloses health status through its timing, whatever it is
- * named and whatever its payload omits.
+ * `value` is relative intent, not revenue — do not compute ROAS from it.
  *
- * ## Why each trigger carries a distinct standard event
+ * ## `store_click` is where this site's funnel ends
  *
- * `standard` is the name an ad set can optimize on — Meta has cross-advertiser
- * priors for these and none for the `Delirio*` names, which exist to make Events
- * Manager readable and are weak optimization targets.
+ * The site explains the product and hands off to the App Store, so the download
+ * click is the deepest thing it can observe. Everything past it — the install,
+ * the trial, the subscription — is reported by the Meta SDK inside the iOS app,
+ * against the same dataset. Do not try to reconstruct any of that from here.
  *
- * The two are deliberately different names rather than both reporting `Lead`,
- * because they measure different things and the gap between them is the number
- * worth knowing:
+ * `standard` is the name an ad set can optimize on: Meta has cross-advertiser
+ * priors for `Lead` and none for `DelirioStoreClick`, which exists to make
+ * Events Manager readable and is a weak optimization target. `Lead` rather than
+ * something install-shaped because that is what this event honestly is — an
+ * intent signal from a web page, not a confirmed install. Point install
+ * campaigns at the app's own events.
  *
- * - `Lead` — the visitor opened the gate. Plentiful, and what an ad set should
- *   optimize on early, because roughly 50 conversions a week are needed to leave
- *   the learning phase and no deeper action here clears that bar at low spend.
- * - `CompleteRegistration` — an address actually arrived. This is the real
- *   outcome, and reporting it is what lets Ads Manager say which creative brings
- *   people who finish rather than people who click. Switch the ad set onto it
- *   once the weekly count supports it; until then it accrues the history that
- *   makes such a switch possible, since Meta cannot optimize toward an event
- *   with no track record.
- *
- * **Sending both does not make the learning phase end sooner.** An ad set counts
- * only the one event it optimizes on, so a second name adds reporting, never
- * velocity — and pointing the set at the rarer of the two makes learning harder
- * to clear, not easier.
- *
- * `requiresFirstOfVisit` keeps `Lead` counting qualified *visitors*: it rides
- * only on the visit's first qualifying action, so one person doing two effortful
- * things stays one `Lead`. `CompleteRegistration` does not need the guard — the
- * browser already fires `email_submitted` at most once per visit, and gating it
- * would drop the signup whenever the CTA click came first, which is nearly
- * always.
+ * `requiresFirstOfVisit` keeps `Lead` counting qualified *visitors* rather than
+ * actions: it rides only on the visit's first qualifying action. With one
+ * trigger in the table that is always true, so it is currently a no-op — kept
+ * because it is what makes adding a second trigger safe rather than something
+ * that quietly doubles the `Lead` count.
  *
  * ## `page_view` is input, not a target
  *
- * The other two are things an ad set can be pointed at. `PageView` is not — every
- * visitor does it, so optimizing toward it buys traffic and nothing else. It is
- * here as *model input*: without it Meta sees only the ~3% of visitors who open
- * the gate and has no idea the rest existed, which is most of what it needs to
- * predict who is worth showing the ad to. It is also the one signal that survives
- * Meta's health-and-wellness restrictions, which cut mid- and lower-funnel events
- * and leave upper-funnel ones alone.
+ * `store_click` is something an ad set can be pointed at. `PageView` is not —
+ * every visitor does it, so optimizing toward it buys traffic and nothing else.
+ * It is here as *model input*: without it Meta sees only the few percent of
+ * visitors who click through to the store and has no idea the rest existed,
+ * which is most of what it needs to predict who is worth showing the ad to. It
+ * is also the one signal that survives Meta's health-and-wellness restrictions,
+ * which cut mid- and lower-funnel events and leave upper-funnel ones alone.
  *
  * Two things make it the odd one out, and both are deliberate:
  *
@@ -111,31 +86,19 @@ const GRAPH_API_VERSION = 'v21.0';
  * - **No `value`.** `value` is an intent score and a page load carries none.
  *   Giving it one would corrupt the only number in the payload that means
  *   anything.
- *
- * It stays upstream of the questions like everything else here — it fires on the
- * landing itself, before the gate exists, which is as upstream as it gets.
  */
 const TRIGGERS = {
-  waitlist_started: {
-    custom: 'DelirioWaitlistStarted',
+  store_click: {
+    custom: 'DelirioStoreClick',
     standard: 'Lead',
     requiresFirstOfVisit: true,
-    value: 3,
-    acceptsEmail: false,
-  },
-  email_submitted: {
-    custom: 'DelirioEmailSubmitted',
-    standard: 'CompleteRegistration',
-    requiresFirstOfVisit: false,
     value: 4,
-    acceptsEmail: true,
   },
   page_view: {
     custom: null,
     standard: 'PageView',
     requiresFirstOfVisit: false,
     value: null,
-    acceptsEmail: false,
   },
 } as const;
 
@@ -155,8 +118,6 @@ type IncomingEvent = {
   fbclid?: unknown;
   fbclidAt?: unknown;
   attribution?: unknown;
-  /** Raw address. Hashed below, never stored, logged, or echoed back. */
-  email?: unknown;
 };
 
 function isTrigger(value: unknown): value is Trigger {
@@ -182,27 +143,6 @@ function buildFbc(fbclid: string, fbclidAt: unknown): string {
     ? Math.floor(fbclidAt)
     : Date.now();
   return `fb.1.${clickedAt}.${fbclid}`;
-}
-
-/**
- * Meta's `em`: SHA-256 of the address, lowercase hex.
- *
- * Trim and lowercase is the *entire* normalisation Meta specifies. Do not strip
- * Gmail dots or `+suffixes` — Meta stores addresses as given, so canonicalising
- * them "helpfully" produces a hash that matches nothing while looking perfectly
- * correct from this side. That failure is invisible: the event still posts, the
- * function still answers `reported: true`, and only the match rate moves.
- *
- * Hashed here rather than in the browser so the rule lives in one place. The raw
- * address reaches this function over same-origin HTTPS — the same trip it already
- * makes to Firestore, so no new exposure — and never leaves it unhashed.
- */
-function hashEmail(value: unknown): string | undefined {
-  const email = cleanString(value)?.toLowerCase();
-  // A floor, not validation: a value with no `@` cannot match anything, and
-  // hashing it would spend the request telling Meta about a string.
-  if (!email || !email.includes('@')) return undefined;
-  return createHash('sha256').update(email).digest('hex');
 }
 
 /** The visitor's IP, as Netlify presents it. Meta needs it to match at all. */
@@ -263,7 +203,7 @@ export default async function handler(request: Request): Promise<Response> {
   const eventId = cleanString(body.eventId);
   if (!eventId) return new Response(null, { status: 400 });
 
-  const { custom, standard, requiresFirstOfVisit, value, acceptsEmail } = TRIGGERS[trigger];
+  const { custom, standard, requiresFirstOfVisit, value } = TRIGGERS[trigger];
   const variant = cleanString(body.variant);
 
   const userData: Record<string, string> = {};
@@ -273,12 +213,6 @@ export default async function handler(request: Request): Promise<Response> {
   if (userAgent) userData.client_user_agent = userAgent.slice(0, 512);
   const fbclid = cleanString(body.fbclid);
   if (fbclid) userData.fbc = buildFbc(fbclid, body.fbclidAt);
-  // Dropped, not honoured, for any trigger that has not opted in — so an address
-  // arriving on the wrong one is inert here rather than a disclosure.
-  if (acceptsEmail) {
-    const hashed = hashEmail(body.email);
-    if (hashed) userData.em = hashed;
-  }
 
   const customData: Record<string, string | number> = { content_name: trigger };
   // A trigger with no intent score sends neither it nor a currency — see the
@@ -299,8 +233,8 @@ export default async function handler(request: Request): Promise<Response> {
 
   const eventTime = Math.floor(Date.now() / 1000);
   // The origin only. Meta uses this for reporting context and it is the same
-  // string for every visitor — the questions live in a modal, so no path or
-  // query has ever distinguished one waitlist visitor from another.
+  // string for every visitor — never the path, the query, or the title, so
+  // nothing here distinguishes one visitor's browsing from another's.
   const eventSourceUrl = siteUrl ? new URL(siteUrl).origin : undefined;
 
   const base = {

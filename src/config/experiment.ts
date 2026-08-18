@@ -3,9 +3,9 @@
  *
  * Ad sets are meant to point at `/?v=a` and `/?v=b`. Both cells render the same
  * page body and differ only in the hero, so the hero treatment is the single
- * variable behind whatever the waitlist signup rate does.
+ * variable behind whatever the `store_click` rate does.
  *
- * - `a` — `HeroV3`: the standard hero, with one arrow-led `JOIN THE WAITLIST`.
+ * - `a` — `HeroV3`: the standard hero, with one arrow-led `DOWNLOAD THE APP`.
  * - `b` — `HeroFocus`: a centred hero built around a single oversized button.
  *   **This is what an untagged visit gets**, so it is the page `delirio.fit`
  *   serves; `a` is opt-in. The letters did not move when that was decided — `?v=b`

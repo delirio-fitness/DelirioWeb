@@ -86,8 +86,8 @@ import { initClarity, getClarity, isClarityInitialized } from '@/modules/clarity
 // Optional: send a custom event or tag
 const clarity = getClarity();
 if (clarity) {
-  clarity('event', 'waitlist_opened');
-  clarity('set', 'user_segment', 'waitlist');
+  clarity('event', 'store_click');
+  clarity('set', 'user_segment', 'download');
 }
 ```
 

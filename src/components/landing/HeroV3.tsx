@@ -1,6 +1,7 @@
 import { ArrowUpRight } from 'lucide-react';
 import heroImage from '../../assets/images/hero/supplied/park-dumbbell-curl/v1/image.jpg';
 import heroText from '../../content/heroText.json';
+import { AppStoreLink } from './AppStoreLink';
 import { HeroTypewriterWord } from './HeroTypewriterWord';
 
 const content = heroText.heroTextV3;
@@ -15,7 +16,7 @@ const content = heroText.heroTextV3;
  * `d3-hero-questionnaire-action` markup and styling went with it. Recoverable
  * from git if the treatment is ever worth revisiting.
  */
-export function HeroV3({ onJoinWaitlist = () => undefined }: { onJoinWaitlist?: () => void }) {
+export function HeroV3() {
   return <section className="d3-hero d3-hero--v3 d3-hero--cta-arrow-first" aria-labelledby="hero-v3-title">
     <img className="d3-hero-image" src={heroImage} alt="" aria-hidden="true" />
     <div className="d3-hero-contrast" aria-hidden="true" />
@@ -43,10 +44,10 @@ export function HeroV3({ onJoinWaitlist = () => undefined }: { onJoinWaitlist?: 
       <div className="d3-hero-action-group">
         <p className="d3-hero-invitation">{content.invitation}</p>
         <div className="d3-hero-actions">
-          <button className="d3-hero-action" type="button" onClick={onJoinWaitlist}>
+          <AppStoreLink className="d3-hero-action">
             <span className="d3-hero-action-arrow" aria-hidden="true"><ArrowUpRight strokeWidth={3} /></span>
-            <b className="d3-hero-action-label">{content.waitlistCta.label}</b>
-          </button>
+            <b className="d3-hero-action-label">{content.downloadCta.label}</b>
+          </AppStoreLink>
         </div>
         <p className="d3-hero-capabilities">{content.capabilities}</p>
       </div>

@@ -69,13 +69,13 @@
     "support": "Delirio adjusts your plan when energy, time, or motivation changes, so rebuilding fitness feels clear instead of overwhelming.",
     "invitation": "SEE HOW DELIRIO CAN HELP YOU",
     "cta": {
-      "label": "JOIN THE WAITLIST",
-      "href": "#questionnaire",
+      "label": "DOWNLOAD THE APP",
+      "href": "/app",
       "icon": "↗"
     },
-    "waitlistCta": {
-      "label": "JOIN THE WAITLIST",
-      "href": "#wishlist"
+    "downloadCta": {
+      "label": "DOWNLOAD THE APP",
+      "href": "/app"
     },
     "capabilities": "ADAPTIVE PLANS / LIVE GUIDANCE / CHECK-INS / CONTINUITY",
     "coachingSignal": {
@@ -92,10 +92,10 @@
     },
     "support": "Your coach builds the plan, guides the session, and adapts when your week changes.",
     "cta": {
-      "label": "JOIN THE WAITLIST",
-      "href": "#wishlist"
+      "label": "DOWNLOAD THE APP",
+      "href": "/app"
     },
-    "reassurance": "Free to join. We’ll email you when your spot opens."
+    "reassurance": "On iPhone. Your coach is ready when you are."
   },
   "heroTextV4": {
     "kicker": "STRUCTURE FOR THE WEEK YOU ACTUALLY HAVE",

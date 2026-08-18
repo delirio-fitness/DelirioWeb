@@ -1,8 +1,12 @@
 import { act, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PlanToLiveGuidance } from './PlanToLiveGuidance';
+import { recordQualifiedAction } from '../../services/conversionEvents';
+
+jest.mock('../../services/conversionEvents', () => ({ recordQualifiedAction: jest.fn() }));
 
 describe('PlanToLiveGuidance', () => {
+  beforeEach(() => jest.mocked(recordQualifiedAction).mockClear());
   afterEach(() => {
     jest.useRealTimers();
   });
@@ -150,15 +154,16 @@ describe('PlanToLiveGuidance', () => {
     expect(screen.queryByText(/talk naturally/i)).not.toBeInTheDocument();
   });
 
-  it('offers the questionnaire from the plan chapter', async () => {
+  it('offers the download from the plan chapter', async () => {
     const user = userEvent.setup();
-    const onJoinWaitlist = jest.fn();
-    render(<PlanToLiveGuidance onJoinWaitlist={onJoinWaitlist} />);
+    render(<PlanToLiveGuidance />);
 
     await user.click(screen.getByRole('button', { name: /plan coach builds the week/i }));
 
     expect(screen.getByText('See how Delirio can help you.')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'JOIN THE WAITLIST' }));
-    expect(onJoinWaitlist).toHaveBeenCalledTimes(1);
+    const cta = screen.getByRole('link', { name: 'DOWNLOAD THE APP' });
+    expect(cta).toHaveAttribute('href', '/app');
+    await user.click(cta);
+    expect(recordQualifiedAction).toHaveBeenCalledWith('store_click');
   });
 });

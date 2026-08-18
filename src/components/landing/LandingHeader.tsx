@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { AppStoreLink } from './AppStoreLink';
 import { Logo } from '../logo';
 
 const navItems = [
@@ -21,7 +22,10 @@ export function LandingHeader({ sectionPrefix = '' }: { sectionPrefix?: '' | '/'
             <a key={id} href={`${sectionPrefix}#${id}`}>{label}</a>
           ))}
         </nav>
-        <a className="d3-header-cta" href={`${sectionPrefix}#wishlist`}>JOIN THE WAITLIST</a>
+        {/* Straight to the store, not back to the landing page first: there is
+            no on-page destination for a download the way there was for the
+            waitlist gate, so `sectionPrefix` has nothing to do here. */}
+        <AppStoreLink className="d3-header-cta">DOWNLOAD</AppStoreLink>
       </header>
     </>
   );

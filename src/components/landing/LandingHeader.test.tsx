@@ -2,6 +2,8 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { LandingHeader } from './LandingHeader';
 
+jest.mock('../../services/conversionEvents', () => ({ recordQualifiedAction: jest.fn() }));
+
 describe('LandingHeader', () => {
   it('provides skip navigation and links to the current landing sections', () => {
     render(<MemoryRouter><LandingHeader /></MemoryRouter>);
@@ -12,18 +14,20 @@ describe('LandingHeader', () => {
     expect(navigation).toHaveTextContent('How it works');
     expect(navigation).toHaveTextContent('Coaches');
     expect(navigation).toHaveTextContent('Pricing');
-    expect(screen.getByRole('link', { name: /join the waitlist/i }))
-      .toHaveAttribute('href', '#wishlist');
-    expect(screen.queryByRole('link', { name: /app store/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /1 week free/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /waitlist/i })).not.toBeInTheDocument();
   });
 
-  it('reaches back to the landing waitlist from a legal page', () => {
-    // LandingLegalShell renders this with '/', because the waitlist band only
-    // exists on the landing page — a bare '#wishlist' would go nowhere there.
-    render(<MemoryRouter><LandingHeader sectionPrefix="/" /></MemoryRouter>);
+  /**
+   * The nav needs `sectionPrefix` because `#pricing` means nothing on a legal
+   * page. The download does not: it leaves the site, so it is the same link from
+   * everywhere the header renders.
+   */
+  it.each(['' as const, '/' as const])('sends the download straight to the store from prefix %p', (sectionPrefix) => {
+    render(<MemoryRouter><LandingHeader sectionPrefix={sectionPrefix} /></MemoryRouter>);
 
-    expect(screen.getByRole('link', { name: /join the waitlist/i }))
-      .toHaveAttribute('href', '/#wishlist');
+    const cta = screen.getByRole('link', { name: 'DOWNLOAD' });
+    expect(cta).toHaveAttribute('href', '/app');
+    expect(cta).toHaveAttribute('data-cta', 'store');
+    expect(cta).toHaveAttribute('target', '_blank');
   });
 });

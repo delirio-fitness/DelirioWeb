@@ -7,11 +7,11 @@
  * which is the only code that talks to Meta.
  *
  * That split is the point. `fbevents.js` used to run in this page with full DOM
- * access, reporting the URL and title of every page it loaded on and, with one
- * checkbox in Events Manager, the contents of the email field. The waitlist asks
- * questions that a visitor would not want an ad network reading over their
- * shoulder, so nothing third-party is allowed to run alongside it. What leaves
- * the browser now is a slug and a click ID.
+ * access, reporting the URL and title of every page it loaded on, collecting the
+ * text of what visitors click, and — with one checkbox in Events Manager —
+ * scraping form fields. None of that is controllable from this repo and Meta can
+ * change it server-side without us deploying anything, so no advertising script
+ * is allowed in the page. What leaves the browser now is a slug and a click ID.
  *
  * The request is same-origin, so tracking protection and content blockers can
  * still refuse it. That is deliberate: routing conversions through our own
@@ -38,16 +38,6 @@ export type ConversionBeacon = {
    */
   firstOfVisit: boolean;
   attribution: Attribution;
-  /**
-   * Raw address, for the one trigger permitted to carry one.
-   *
-   * Unhashed because the destination is our own function over same-origin
-   * HTTPS — the trip this address already makes to Firestore. Hashing happens
-   * there so Meta's normalisation rule lives in exactly one place and cannot
-   * drift. The server drops it for any trigger without `acceptsEmail`, so
-   * passing it wrongly is inert rather than a leak.
-   */
-  email?: string;
 };
 
 /**
@@ -63,7 +53,6 @@ export function sendConversion({
   variant,
   firstOfVisit,
   attribution,
-  email,
 }: ConversionBeacon): void {
   const { fbclid, capturedAt, ...campaign } = attribution;
 
@@ -75,15 +64,12 @@ export function sendConversion({
     fbclid,
     fbclidAt: capturedAt,
     attribution: campaign,
-    ...(email ? { email } : {}),
   };
 
   if (IS_DEV) {
     // No function runs under `npm run dev`, so this console line is the only way
-    // to see what production would have sent. The address is redacted even here:
-    // dev consoles get screenshotted into issues and pasted into chats, and
-    // whether one was attached is the only part worth reading.
-    console.info(`[delirio-ads] ${trigger}`, email ? { ...body, email: '[redacted]' } : body);
+    // to see what production would have sent.
+    console.info(`[delirio-ads] ${trigger}`, body);
     return;
   }
 
