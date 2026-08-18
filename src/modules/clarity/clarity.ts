@@ -163,7 +163,7 @@ export function getClarityProjectId(): string | null {
  *
  * Example:
  *   getClarity()('event', 'my_custom_event');
- *   getClarity()('set', 'user_type', 'waitlist');
+ *   getClarity()('set', 'user_type', 'download');
  *
  * Safe: returns null when Clarity is not loaded yet.
  */

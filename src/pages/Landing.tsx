@@ -1,15 +1,15 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Activity, ChevronDown, ChevronRight, Flame, Headset, Menu, Timer, TrendingUp, X } from 'lucide-react';
 import { MONTHLY_PRICE_USD, YEARLY_MONTHLY_EQUIVALENT_USD, YEARLY_PRICE_USD } from '../config/product';
+import { AppStoreLink } from '../components/landing/AppStoreLink';
 import { CoachIntroSection } from '../components/landing/CoachIntroSection';
 import { HeroExperiment } from '../components/landing/HeroExperiment';
 import { LandingFooter } from '../components/landing/LandingFooter';
 import { ProductMomentsSection } from '../components/landing/ProductMomentsSection';
-import { WaitlistModal } from '../components/landing/WaitlistModal';
 import { Logo } from '../components/logo';
 import { useLandingVariant } from '../hooks/useLandingVariant';
-import { recordPageView, recordQualifiedAction } from '../services/conversionEvents';
+import { recordPageView } from '../services/conversionEvents';
 
 const frictionMoments = [
   {
@@ -53,7 +53,6 @@ const faqCategoryLabels: Record<FaqCategory, string> = {
 const faqCategories: FaqCategory[] = ['AI', 'COACHING', 'PRODUCT', 'PRICE'];
 const INITIAL_FAQ_COUNT = 3;
 const FAQ_BATCH_SIZE = 3;
-const AUTO_QUESTIONNAIRE_DELAY_MS = 30000;
 
 const faqSections: Record<FaqCategory, readonly (readonly [string, string])[]> = {
   AI: [
@@ -96,50 +95,16 @@ const faqSections: Record<FaqCategory, readonly (readonly [string, string])[]> =
   ],
 };
 
-/** Whether this page load was an off-page `JOIN THE WAITLIST` link. */
-function arrivedForWaitlist() {
-  return window.location.hash === '#wishlist';
-}
-
 export default function Landing() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [headerAtTop, setHeaderAtTop] = useState(true);
   const [faqCategory, setFaqCategory] = useState<FaqCategory>('AI');
   const [openFaqs, setOpenFaqs] = useState(() => new Set<number>());
   const [visibleFaqCount, setVisibleFaqCount] = useState(INITIAL_FAQ_COUNT);
-  // Read at mount, not in an effect: arriving on `/#wishlist` should paint with
-  // the gate already open rather than flashing the page behind it first.
-  const [questionnaireOpen, setQuestionnaireOpen] = useState(arrivedForWaitlist);
-  const [questionnaireInvocation, setQuestionnaireInvocation] = useState(0);
-  const [questionnaireStartsAtFirstQuestion, setQuestionnaireStartsAtFirstQuestion] = useState(arrivedForWaitlist);
-  const [autoQuestionnaireReady, setAutoQuestionnaireReady] = useState(false);
   const [pastHeroCta, setPastHeroCta] = useState(false);
   const landingVariant = useLandingVariant();
   const faqPanelRef = useRef<HTMLDivElement>(null);
   const previousFaqHeightRef = useRef<number | null>(null);
-  const hasAutoOpenedQuestionnaireRef = useRef(arrivedForWaitlist());
-
-  const showQuestionnaire = useCallback((startAtFirstQuestion = false) => {
-    hasAutoOpenedQuestionnaireRef.current = true;
-    setQuestionnaireStartsAtFirstQuestion(startAtFirstQuestion);
-    setQuestionnaireInvocation((current) => current + 1);
-    setQuestionnaireOpen(true);
-  }, []);
-
-  /**
-   * The CTA path, and the only one that reports a conversion.
-   *
-   * `waitlist_started` is fired here rather than deeper in the flow because this
-   * is the last moment before the first question renders — see
-   * `services/conversionEvents` for why that boundary is the rule. The auto-open
-   * `showQuestionnaire` instead: being shown a modal on a timer is not an action
-   * a visitor took, and reporting it would make the signal worthless anyway.
-   */
-  const openQuestionnaire = useCallback((startAtFirstQuestion = false) => {
-    recordQualifiedAction('waitlist_started');
-    showQuestionnaire(startAtFirstQuestion);
-  }, [showQuestionnaire]);
-  const closeQuestionnaire = useCallback(() => setQuestionnaireOpen(false), []);
 
   // The landing was reached. Not a conversion and not a CTA — it is what tells
   // Meta the visitors who *didn't* convert exist, which is the bulk of what its
@@ -156,23 +121,12 @@ export default function Landing() {
   // Repeat it once the section is actually in the DOM, and again after `load`,
   // because a late image can move the target out from under the first jump.
   //
-  // `#wishlist` is the exception. There is no waitlist section to scroll to any
-  // more — the form lives behind the gate — so the hash opened the gate above,
-  // and all that is left here is to clear it. Every off-page `JOIN THE WAITLIST`
-  // link relies on that, and clearing stops a reload from reopening the modal.
+  // A hash with no matching section — `#wishlist`, from a link that predates the
+  // waitlist being scrapped — resolves to nothing and leaves the visitor at the
+  // top of the page, which is where a download CTA is anyway.
   useEffect(() => {
     const targetId = window.location.hash.slice(1);
     if (!targetId) return;
-
-    if (targetId === 'wishlist') {
-      // Arriving on `/#wishlist` is a `JOIN THE WAITLIST` link that was clicked
-      // somewhere else, so it is the same deliberate act as the CTAs above and
-      // reports the same conversion. The gate is already open — it was opened by
-      // the initial state, before this effect ran.
-      recordQualifiedAction('waitlist_started');
-      window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search);
-      return;
-    }
 
     let frame = 0;
     let landedAt: number | null = null;
@@ -190,25 +144,6 @@ export default function Landing() {
     };
   }, []);
 
-  // Every cell invites the gate on a timer, but late enough to let the page be
-  // read first. Cell B used to be exempt as a single-CTA test; it is the shipped
-  // page now, so the invitation follows it rather than the letter.
-  useEffect(() => {
-    const timer = window.setTimeout(() => setAutoQuestionnaireReady(true), AUTO_QUESTIONNAIRE_DELAY_MS);
-    return () => window.clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    if (
-      !autoQuestionnaireReady
-      || questionnaireOpen
-      || hasAutoOpenedQuestionnaireRef.current
-    ) return;
-    hasAutoOpenedQuestionnaireRef.current = true;
-    // Not `openQuestionnaire`: the timer opening this is not a conversion.
-    showQuestionnaire();
-  }, [autoQuestionnaireReady, showQuestionnaire, questionnaireOpen]);
-
   useEffect(() => {
     let frame = 0;
     const updateHeader = () => {
@@ -217,7 +152,7 @@ export default function Landing() {
       setHeaderAtTop(atTop);
       if (atTop) setMenuOpen(false);
       // Half a viewport is roughly where the centred hero's own button leaves
-      // the screen, which is when cell C's header has to take the waitlist over.
+      // the screen, which is when the header has to take the download over.
       setPastHeroCta(window.scrollY > window.innerHeight * 0.5);
     };
     const requestUpdate = () => {
@@ -297,20 +232,18 @@ export default function Landing() {
             row's spacing fixed, so the nav and menu do not jump when it
             arrives. `aria-hidden` and `tabIndex` do the same job for screen
             readers and the keyboard, rather than leaving it to a stylesheet. */}
-        <button
+        <AppStoreLink
           className={`d3-header-cta ${pastHeroCta ? '' : 'is-hidden'}`}
-          type="button"
           aria-hidden={!pastHeroCta}
           tabIndex={pastHeroCta ? undefined : -1}
-          onClick={() => openQuestionnaire(true)}
         >
-          JOIN THE WAITLIST
-        </button>
+          DOWNLOAD
+        </AppStoreLink>
         <button className="d3-menu" type="button" aria-label={menuOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X /> : <Menu />}</button>
       </header>
 
       <main id="main-content">
-        <HeroExperiment variant={landingVariant} onJoinWaitlist={() => openQuestionnaire(true)} />
+        <HeroExperiment variant={landingVariant} />
 
         <section id="product" className="d3-system" aria-label="Delirio coaching experience">
           <section className="d3-problem-band" aria-labelledby="problem-band-title">
@@ -329,7 +262,7 @@ export default function Landing() {
               ))}
             </div>
           </section>
-          <ProductMomentsSection onJoinWaitlist={() => openQuestionnaire(true)} />
+          <ProductMomentsSection />
           <CoachIntroSection />
         </section>
 
@@ -344,13 +277,6 @@ export default function Landing() {
             <PlanCard kind="annual" />
           </div>
         </section>
-
-        <WaitlistModal
-          invocationId={questionnaireInvocation}
-          open={questionnaireOpen}
-          onClose={closeQuestionnaire}
-          startAtFirstQuestion={questionnaireStartsAtFirstQuestion}
-        />
 
         <section id="faq" className="d3-faq-wrap" aria-labelledby="faq-title">
           <div ref={faqPanelRef} className="d3-faq">
@@ -392,7 +318,7 @@ export default function Landing() {
         </section>
       </main>
 
-      <LandingFooter sectionPrefix="" onJoinWaitlist={() => openQuestionnaire(true)} />
+      <LandingFooter sectionPrefix="" />
     </div>
   );
 }

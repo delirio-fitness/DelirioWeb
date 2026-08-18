@@ -1,5 +1,12 @@
 # Feedback submission setup
 
+> **Historical.** Nothing on this website writes to Firestore any more. The questionnaire this
+> describes became the waitlist gate, and the waitlist was removed when the app returned to the
+> App Store — see **The waitlist is gone** in `CLAUDE.md`. `firestore.rules` is still live and
+> still governs the rest of the Delirio project, so the deploy note below remains accurate for
+> the app's collections; the website ones are dormant. Kept because it is the only write-up of
+> the anonymous-auth and App Check setup, which a future feature would need again.
+
 The questionnaire writes directly from the Firebase Web SDK to the Firestore
 `webQuestionaire` collection. Before writing, Firebase Authentication creates or
 restores an anonymous user. Firestore creates a unique document ID, and each

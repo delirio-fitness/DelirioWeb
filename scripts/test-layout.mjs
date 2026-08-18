@@ -212,18 +212,13 @@ async function testViewport(browser, viewport) {
     assert.ok(Math.abs(monthlyPlan.y - annualPlan.y) <= 1, `${viewport.name}: monthly and annual pricing card top borders must align`);
   }
 
-  const wishlist = await box(page, '.d3-wishlist');
-  const wishlistForm = await box(page, '.d3-wishlist-entry form');
-  const wishlistEmail = await box(page, '#wishlist-email');
-  const wishlistButton = await box(page, '.d3-wishlist-entry button');
-  assert.ok(wishlistForm.x >= wishlist.x, `${viewport.name}: wishlist form must remain inside its section`);
-  assert.ok(wishlistForm.x + wishlistForm.width <= wishlist.x + wishlist.width + 1, `${viewport.name}: wishlist form must not overflow its section`);
-  if (viewport.name === 'mobile') {
-    assert.ok(wishlistEmail.y + wishlistEmail.height <= wishlistButton.y + 1, `${viewport.name}: wishlist input and action must stack without overlap`);
-  } else {
-    assert.ok(Math.abs(wishlistEmail.y - wishlistButton.y) <= 1, `${viewport.name}: wishlist input and action must align vertically`);
-    assert.ok(Math.abs(wishlistEmail.height - wishlistButton.height) <= 1, `${viewport.name}: wishlist action must match the input height`);
-  }
+  // The site's terminal action. Apple's badge is fixed-ratio artwork, so a
+  // squeezed footer column shows up here as a distorted or clipped badge.
+  const appCard = await box(page, '.d3-app-card');
+  const storeBadge = await box(page, '.d3-footer-app-badge');
+  assert.ok(storeBadge.x >= appCard.x - 1, `${viewport.name}: App Store badge must remain inside the footer card`);
+  assert.ok(storeBadge.x + storeBadge.width <= appCard.x + appCard.width + 1, `${viewport.name}: App Store badge must not overflow the footer card`);
+  assert.ok(storeBadge.height >= 44, `${viewport.name}: App Store badge must stay a 44px-plus tap target`);
 
   const typography = await page.evaluate(() => {
     const size = (selector) => Number.parseFloat(getComputedStyle(document.querySelector(selector)).fontSize);
@@ -233,7 +228,6 @@ async function testViewport(browser, viewport) {
       '.coach-trial__intro h2',
       '.d3-pricing-intro h2',
       '.d3-pricing-intro>p',
-      '.d3-wishlist-copy h2',
     ];
     const clipped = fitSelectors.filter((selector) => {
       const element = document.querySelector(selector);
@@ -247,7 +241,6 @@ async function testViewport(browser, viewport) {
       '.d3-plan-live-body',
       '.d3-pricing-intro h2',
       '.d3-faq-list button b',
-      '.d3-wishlist-copy h2',
     ];
     const fontMismatches = fontSelectors.filter((selector) => !getComputedStyle(document.querySelector(selector)).fontFamily.includes('Exo 2'));
     return {

@@ -25,23 +25,17 @@ export default function DataDeletion() {
           under <strong>Settings → Account &amp; Profile → Delete Account</strong>. You do not need to email us.
         </p>
 
-        <h2 className="text-2xl font-semibold mb-4 mt-8">Website waitlist</h2>
+        <h2 className="text-2xl font-semibold mb-4 mt-8">This website</h2>
         <p className="mb-4">
-          Joining the waitlist on this website creates a single record holding the email address you gave us{" "}
-          <strong>together with the answers you gave the waitlist questions</strong>. Email the address above and we
-          will delete that whole record — the email and the answers go together. You do not need to explain why, and we
-          will confirm when it is done.
+          <strong>The website collects nothing from you.</strong> delirio.fit has no form, no email box, and no
+          questionnaire — it describes the app and links to the App Store, so nothing new is recorded about you here.
+          If you joined the waitlist while it existed, we may still hold the record it created; email the address above
+          and we will delete it, answers and email address together.
         </p>
         <p className="mb-4">
-          This also takes you off the waitlist, so we will not email you when spots open. If you only want to stop the
-          emails and would rather we keep your answers, say so and we will do that instead.
-        </p>
-        <p className="mb-4">
-          <strong>One case we cannot help with.</strong> If you answered the waitlist questions but closed the page
-          before entering your email, the record we kept has no name, email address, or anything else you could
-          identify yourself with — only a random identifier generated in your browser, which we have no way to connect
-          to you. We cannot find that record to delete it, and we would rather say so than promise otherwise. It
-          contains your answers and nothing that points back to you.
+          What the website still reports to our advertising measurement — and how to ask us to stop — is described in
+          the <a href="/privacy-policy" className="text-blue-600 underline">Privacy Policy</a> under{" "}
+          <strong>Advertising, Attribution, and Tracking</strong>.
         </p>
       </div>
     </LandingLegalShell>

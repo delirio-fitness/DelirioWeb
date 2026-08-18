@@ -1,16 +1,17 @@
 import heroImage from '../../assets/images/hero/supplied/park-dumbbell-curl/v1/image.jpg';
 import heroText from '../../content/heroText.json';
+import { AppStoreLink } from './AppStoreLink';
 
 const content = heroText.heroTextFocus;
 
 /**
  * The shipped hero — cell B, and what an untagged visit gets: one centred column,
- * short copy, and a single oversized waitlist button. Nothing competes with the
- * signup — no quiz, no typewriter, no product screenshot. It was cell C of the
- * acquisition experiment, then cell B, and is now simply the page; `HeroV3`, the
- * explanatory hero it was drawn against, is the opt-in cell at `?v=a`.
+ * short copy, and a single oversized download button. Nothing competes with it —
+ * no typewriter, no product screenshot. It was cell C of the acquisition
+ * experiment, then cell B, and is now simply the page; `HeroV3`, the explanatory
+ * hero it was drawn against, is the opt-in cell at `?v=a`.
  */
-export function HeroFocus({ onJoinWaitlist }: { onJoinWaitlist?: () => void }) {
+export function HeroFocus() {
   return (
     <section className="d3-hero d3-hero--focus" aria-labelledby="hero-focus-title">
       <img className="d3-hero-image" src={heroImage} alt="" aria-hidden="true" />
@@ -29,9 +30,9 @@ export function HeroFocus({ onJoinWaitlist }: { onJoinWaitlist?: () => void }) {
           </span>
         </h1>
         <p className="d3-hero-focus-support">{content.support}</p>
-        <button className="d3-hero-focus-action" type="button" onClick={onJoinWaitlist}>
+        <AppStoreLink className="d3-hero-focus-action">
           {content.cta.label}
-        </button>
+        </AppStoreLink>
         <p className="d3-hero-focus-reassurance">{content.reassurance}</p>
       </div>
     </section>
