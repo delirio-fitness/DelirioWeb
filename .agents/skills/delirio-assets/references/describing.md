@@ -65,6 +65,39 @@ before the image existed, you have not written a description.
 > way; two would have landed in a sidecar. If you are about to write "has a soft
 > shadow", count the partially-transparent pixels first.
 
+## `kind: screenshot` has a second reader, and a shelf life
+
+A screenshot's reader is not only choosing between assets — they are deciding
+whether this capture still resembles the product. So two things belong in the
+prose that no other kind needs:
+
+- **Name the screen and the state it is in, in the app's own words.** "The Home
+  screen with a plan in progress", then the controls and copy actually on it:
+  the labels, the section headings, the button text. Whoever reads it next is
+  checking those strings against a running build, and a paraphrase makes that
+  impossible. This is also what stops two captures of the same screen in
+  different states from being interchangeable in a search result.
+- **Say what is accent-tinted and what is not.** The app recolours to the
+  selected coach, so a Reed capture reads blue and the same screen under Iris
+  reads purple. A description that treats the tint as fixed sends someone to a
+  screenshot that will look wrong beside their copy.
+
+Then the pairing, because every screen is catalogued twice:
+
+- **The bare capture** is full-bleed and opaque, with no device frame and no
+  system status bar — the app renders none, so the capture begins at the app's
+  own top edge. Right for App Store uploads and for compositing into a frame of
+  your own.
+- **The `-framed` sibling** is the same pixels in an iPhone 17 Pro body over a
+  transparent ground, and its status bar is **drawn, not captured**. Say so. It
+  is the single most important "wrong for" sentence in the kind: the 9:41 is
+  synthesized, which makes the asset wrong anywhere a real device state or a
+  different device is required.
+
+Each description should point at its counterpart and say which job it is for.
+These two are the case where "what it is wrong for" does the most work, because
+the two files look nearly identical in a listing and are not substitutable.
+
 ## Referring to other assets is good — and it creates an obligation
 
 The most useful sentences in this catalog point somewhere else. "Prefer the
