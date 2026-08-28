@@ -462,6 +462,21 @@ function runs under Vite.
   Apple URL lives in `public/app.html` (twice — the `<a id="store">` href and the `STORE`
   constant). Its only importer is `AppStoreLink`, which is deliberate — see **Download, not
   waitlist**.
+- **`/app` carries per-source campaign attribution for off-site links (Instagram bios and
+  similar) via Apple's own App Store Connect Campaigns, not any tracking in this repo.** Two
+  forms both work: a full App Store Connect link forwarded verbatim
+  (`/app?pt=...&ct=...&mt=8`), or the short form actually handed out,
+  `/app/<campaign token>` (e.g. `/app/iris`), expanded client-side in `app.html` using a
+  hardcoded `PROVIDER_TOKEN` — Apple's provider token is fixed forever per developer account
+  and isn't a secret, so only the campaign token varies per link. `public/_redirects` routes
+  both `/app` and `/app/*` to `app.html`; **the path-token match requires the slash**
+  (`/^\/app\/(.+)$/`) specifically so a direct hit on `/app.html` itself — which Netlify
+  serves as a literal static file, matching neither redirect rule — can't be misparsed into a
+  bogus campaign token. Results live in App Store Connect → Analytics → Campaigns, not
+  anywhere in this codebase; a new campaign needs 5 first-time downloads and up to 24h before
+  it shows data. The `<noscript>` fallback covers neither form (static meta-refresh to the
+  bare Apple URL), so a visitor with JavaScript fully disabled loses attribution — accepted,
+  since that's essentially never true for the browsers these links are shared in.
 - **Firestore rules are a separate deploy from the site**, and a mismatch is silent: the page
   renders perfectly while every write returns `permission-denied`. Netlify never publishes
   `firestore.rules`; that is `npx firebase-tools deploy --only firestore:rules --project

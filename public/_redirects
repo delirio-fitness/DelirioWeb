@@ -10,14 +10,18 @@
 # MUST stay last or it swallows everything below it.
 
 # Branded acquisition link. Anything handed out off-site (bio links, ads, QR
-# codes) should use https://delirio.fit/app.
+# codes) should use https://delirio.fit/app, or https://delirio.fit/app/<token>
+# for a short per-source campaign link (e.g. /app/iris in an Instagram bio).
 #
 # A 200 rewrite to an interstitial rather than a 302 straight to Apple: on iOS
 # the OS intercepts an apps.apple.com navigation to open the App Store app and
 # cancels it in the browser, so a bare 302 leaves behind a tab that never
 # rendered anything — a white page when the user switches back. app.html paints
 # first, then hands off, then sends the tab to the landing page. It also
-# forwards ?src=... to Apple, so campaign tagging still works.
+# forwards ?pt=/?ct=/?mt= (or any other query string) to Apple untouched, and
+# expands /app/<token> into the same shape using a hardcoded provider token —
+# see the PROVIDER_TOKEN comment in app.html.
+/app/*      /app.html    200
 /app        /app.html    200
 
 # Legacy legal paths.

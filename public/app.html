@@ -86,8 +86,33 @@
       (function () {
         var STORE = 'https://apps.apple.com/us/app/delirio-ai-personal-trainer/id6756231078';
 
-        // Forward campaign params so /app?src=tiktok still reaches Apple intact.
-        var target = STORE + window.location.search;
+        // App Store Connect provider token for this developer account. Fixed
+        // forever once minted (Apple has no way to regenerate it), and it is
+        // not a secret — it is meant to travel in public campaign links, the
+        // same as STORE above. Only the campaign token varies per source, so
+        // /app/<token> can expand to a full link with just this constant.
+        var PROVIDER_TOKEN = '128353303';
+
+        var target;
+        if (window.location.search) {
+          // A full query string wins outright and is forwarded untouched, so
+          // an explicit App Store Connect link (?pt=...&ct=...&mt=8, or
+          // anything else, e.g. /app?src=tiktok) always reaches Apple intact.
+          target = STORE + window.location.search;
+        } else {
+          // Short form for bio links: /app/<campaign token>, e.g. /app/iris.
+          // pt and mt are constant, so only ct needs to travel in the URL.
+          //
+          // Requires the slash so this never fires for a direct hit on this
+          // file's own name — Netlify serves /app.html as a literal static
+          // asset (it matches neither the /app nor /app/* redirect rule), and
+          // a looser match here previously turned that into ct=.html.
+          var match = window.location.pathname.match(/^\/app\/(.+)$/);
+          var token = match ? match[1] : '';
+          target = token
+            ? STORE + '?pt=' + PROVIDER_TOKEN + '&ct=' + encodeURIComponent(token) + '&mt=8'
+            : STORE;
+        }
         document.getElementById('store').href = target;
 
         // replace(), not href: /app never enters history, so Back from the App
