@@ -47,7 +47,7 @@ const definitions: Record<string, SeoDefinition> = {
   '/ai-fitness-coach': {
     title: 'AI Fitness Coach | Adaptive Strength Training with Delirio',
     description: 'Learn how Delirio’s AI fitness coach adapts strength training around your schedule, equipment, and workout context.',
-    canonicalPath: '/ai-fitness-coach',
+    canonicalPath: '/ai-fitness-coach/',
     robots: 'index,follow',
     imagePath: DEFAULT_IMAGE_PATH,
     schema: [organizationSchema, softwareApplicationSchema],
@@ -55,7 +55,7 @@ const definitions: Record<string, SeoDefinition> = {
   '/adaptive-workout-planner': {
     title: 'Adaptive Workout Planner | Delirio AI Fitness Coaching',
     description: 'See how an adaptive workout planner can adjust a strength session when your time, equipment, or training week changes.',
-    canonicalPath: '/adaptive-workout-planner',
+    canonicalPath: '/adaptive-workout-planner/',
     robots: 'index,follow',
     imagePath: DEFAULT_IMAGE_PATH,
     schema: [organizationSchema, softwareApplicationSchema],
@@ -63,7 +63,7 @@ const definitions: Record<string, SeoDefinition> = {
   '/voice-workout-coach': {
     title: 'Voice Workout Coach | Live AI Fitness Guidance | Delirio',
     description: 'Explore Delirio’s voice and text workout guidance, designed to help you follow, adjust, and reflect on a strength session.',
-    canonicalPath: '/voice-workout-coach',
+    canonicalPath: '/voice-workout-coach/',
     robots: 'index,follow',
     imagePath: DEFAULT_IMAGE_PATH,
     schema: [organizationSchema, softwareApplicationSchema],
@@ -71,7 +71,7 @@ const definitions: Record<string, SeoDefinition> = {
   '/workout-form-feedback': {
     title: 'Workout Form Feedback | Camera-Based Guidance by Delirio',
     description: 'Understand what camera-based workout form feedback can support, its limits, and how Delirio keeps you in control.',
-    canonicalPath: '/workout-form-feedback',
+    canonicalPath: '/workout-form-feedback/',
     robots: 'index,follow',
     imagePath: DEFAULT_IMAGE_PATH,
     schema: [organizationSchema, softwareApplicationSchema],
@@ -79,7 +79,7 @@ const definitions: Record<string, SeoDefinition> = {
   '/support': {
     title: 'Delirio Support | Subscriptions, Accounts, and Help',
     description: 'Find help with Delirio subscriptions, accounts, data, and support contacts.',
-    canonicalPath: '/support',
+    canonicalPath: '/support/',
     robots: 'index,follow',
     imagePath: DEFAULT_IMAGE_PATH,
     schema: [organizationSchema],
@@ -87,7 +87,7 @@ const definitions: Record<string, SeoDefinition> = {
   '/terms-of-service': {
     title: 'Terms of Service | Delirio',
     description: 'Delirio terms of service.',
-    canonicalPath: '/terms-of-service',
+    canonicalPath: '/terms-of-service/',
     robots: 'noindex,follow',
     imagePath: DEFAULT_IMAGE_PATH,
     schema: [],
@@ -95,7 +95,7 @@ const definitions: Record<string, SeoDefinition> = {
   '/privacy-policy': {
     title: 'Privacy Policy | Delirio',
     description: 'Delirio privacy policy and data practices.',
-    canonicalPath: '/privacy-policy',
+    canonicalPath: '/privacy-policy/',
     robots: 'noindex,follow',
     imagePath: DEFAULT_IMAGE_PATH,
     schema: [],
@@ -103,7 +103,7 @@ const definitions: Record<string, SeoDefinition> = {
   '/data-deletion': {
     title: 'Data Deletion | Delirio',
     description: 'How to request deletion of your Delirio account and data.',
-    canonicalPath: '/data-deletion',
+    canonicalPath: '/data-deletion/',
     robots: 'noindex,follow',
     imagePath: DEFAULT_IMAGE_PATH,
     schema: [],
