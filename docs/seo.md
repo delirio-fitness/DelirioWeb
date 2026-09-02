@@ -37,9 +37,31 @@ been fixed and verified on the deployed site.
 
 1. Verify each sitemap URL and `/robots.txt` directly on `https://delirio.fit`.
 2. In Google Search Console, submit `https://delirio.fit/sitemap.xml`, inspect
-   the homepage and one guide, and confirm rendered HTML and the selected
+   the homepage and support page, and confirm rendered HTML and the selected
    canonical match the URL.
 3. Review Core Web Vitals after field data accumulates: LCP ≤2.5s, INP <200ms,
    and CLS <0.1.
 4. Do not publish health- or GLP-1-specific editorial pages without qualified
    clinical and legal review.
+
+## Organic conversion measurement
+
+Microsoft Clarity receives a coarse `acquisition_channel` session tag on every
+landing visit. An `organic_search_app_store_handoff` event is emitted once per
+visit only when the visitor arrived from a recognized search engine and then
+chooses an App Store CTA. It represents an App Store handoff, not a confirmed
+install.
+
+The implementation intentionally does not use the Meta conversion endpoint or
+modify its payload. Paid UTM and Meta-click (`fbclid`) visits are labelled
+`paid_campaign` and excluded from the organic handoff event. Clarity receives
+only the coarse channel and, for organic search, the search-engine name; it
+does not receive the URL, query, campaign values, or referrer through this
+feature.
+
+In Clarity, filter recordings/heatmaps by `acquisition_channel =
+organic_search`, then review the `organic_search_app_store_handoff` custom
+event. Compare it with the count of organic-search sessions to calculate the
+on-site search-to-App-Store handoff rate. Do not call this install conversion:
+join it to app-side attribution/analytics only after that data source is
+available.

@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { APP_STORE_URL } from '../../config/product';
 import { recordQualifiedAction } from '../../services/conversionEvents';
+import { recordOrganicSearchStoreHandoff } from '../../services/organicMeasurement';
 
 /**
  * Every route to the App Store on this site, and the only one there should be.
@@ -43,7 +44,12 @@ export function AppStoreLink({
       className={className || undefined}
       data-cta="store"
       href={APP_STORE_URL}
-      onClick={() => recordQualifiedAction('store_click')}
+      onClick={() => {
+        // This is a separate Clarity-only organic measurement. It never flows
+        // into the Meta conversion request fired immediately below.
+        recordOrganicSearchStoreHandoff();
+        recordQualifiedAction('store_click');
+      }}
       rel="noopener noreferrer"
       tabIndex={tabIndex}
       target="_blank"
