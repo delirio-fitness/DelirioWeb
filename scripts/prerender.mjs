@@ -7,10 +7,6 @@ const clientBuild = resolve(root, 'build');
 const serverBuild = resolve(root, 'build-ssr');
 const routes = [
   '/',
-  '/ai-fitness-coach',
-  '/adaptive-workout-planner',
-  '/voice-workout-coach',
-  '/workout-form-feedback',
   '/support',
   '/terms-of-service',
   '/privacy-policy',

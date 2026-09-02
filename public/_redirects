@@ -28,6 +28,17 @@
 /terms      /terms-of-service     301!
 /privacy    /privacy-policy       301!
 
+# Legacy SEO-guide links now take visitors into the corresponding part of the
+# single landing page. These remain redirects, not competing standalone pages.
+/ai-fitness-coach       /#coaches        301!
+/ai-fitness-coach/      /#coaches        301!
+/adaptive-workout-planner   /#how-it-works  301!
+/adaptive-workout-planner/  /#how-it-works  301!
+/voice-workout-coach        /#faq           301!
+/voice-workout-coach/       /#faq           301!
+/workout-form-feedback      /#product       301!
+/workout-form-feedback/     /#product       301!
+
 # Public React routes are pre-rendered during the build, so no SPA catch-all is
 # needed. Netlify serves a genuine 404 (and this repository's 404.html) for an
 # unknown URL instead of returning the home-page shell with a 200 status.

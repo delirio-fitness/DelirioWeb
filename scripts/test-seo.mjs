@@ -4,10 +4,6 @@ import { resolve } from 'node:path';
 const root = process.cwd();
 const routes = [
   '/',
-  '/ai-fitness-coach',
-  '/adaptive-workout-planner',
-  '/voice-workout-coach',
-  '/workout-form-feedback',
   '/support',
   '/terms-of-service',
   '/privacy-policy',
@@ -27,7 +23,7 @@ for (const route of routes) {
 const robots = await readFile(resolve(root, 'build/robots.txt'), 'utf8');
 const sitemap = await readFile(resolve(root, 'build/sitemap.xml'), 'utf8');
 if (!robots.includes('Sitemap: https://delirio.fit/sitemap.xml')) throw new Error('robots.txt does not name the sitemap');
-if (!sitemap.includes('https://delirio.fit/ai-fitness-coach')) throw new Error('sitemap is missing an indexable content page');
-if (sitemap.includes('terms-of-service') || sitemap.includes('/app')) throw new Error('sitemap contains a noindex page');
+if (!sitemap.includes('https://delirio.fit/support/')) throw new Error('sitemap is missing an indexable support page');
+if (sitemap.includes('terms-of-service') || sitemap.includes('/app') || sitemap.includes('ai-fitness-coach')) throw new Error('sitemap contains a noindex or redirect page');
 
 console.log(`SEO build checks passed for ${routes.length} rendered routes.`);

@@ -5,7 +5,6 @@ import PrivacyPolicy from './components/PrivacyPolicy';
 import TermsServices from './components/TermsServices';
 import DataDeletion from './components/DataDeletion';
 import Support from './components/Support';
-import SeoContentPage from './pages/SeoContentPage';
 
 export function AppRoutes() {
   return (
@@ -17,10 +16,6 @@ export function AppRoutes() {
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/data-deletion" element={<DataDeletion />} />
         <Route path="/support" element={<Support />} />
-        <Route path="/ai-fitness-coach" element={<SeoContentPage />} />
-        <Route path="/adaptive-workout-planner" element={<SeoContentPage />} />
-        <Route path="/voice-workout-coach" element={<SeoContentPage />} />
-        <Route path="/workout-form-feedback" element={<SeoContentPage />} />
       </Routes>
     </>
   );

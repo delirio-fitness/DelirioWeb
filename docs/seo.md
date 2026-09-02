@@ -2,8 +2,8 @@
 
 ## What ships in the static build
 
-`npm run build` produces pre-rendered HTML for the homepage, support page,
-legal pages, and four product guides. Route metadata is defined in
+`npm run build` produces pre-rendered HTML for the homepage, support page, and
+legal pages. Route metadata is defined in
 `src/config/seo.ts`; the build emits the title, description, robots directive,
 canonical URL, social tags, and applicable JSON-LD.
 

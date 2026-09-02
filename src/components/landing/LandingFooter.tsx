@@ -32,7 +32,6 @@ export function LandingFooter({ sectionPrefix = '/' }: { sectionPrefix?: '' | '/
         <FooterColumn sectionPrefix={sectionPrefix} title="Product" links={[['Plans', '#pricing'], ['Exercises', '#how-it-works'], ['Live coaching', '#coaches']]} />
         <FooterColumn sectionPrefix={sectionPrefix} title="Coaches" links={[['Iris', '#coaches'], ['Reed', '#coaches'], ['Voice / Chat / SMS', '#coaches']]} />
         <FooterColumn sectionPrefix={sectionPrefix} title="Info" links={[['About', '#product'], ['FAQ', '#faq'], ['Contact', 'mailto:contact@delirio.fit']]} />
-        <FooterColumn sectionPrefix={sectionPrefix} title="Guides" links={[['AI fitness coach', '/ai-fitness-coach'], ['Adaptive planning', '/adaptive-workout-planner'], ['Workout form feedback', '/workout-form-feedback']]} />
         <FooterColumn sectionPrefix={sectionPrefix} title="Follow" links={[['Instagram', 'https://www.instagram.com/delirio__official/'], ['YouTube', '#'], ['TikTok', 'https://www.tiktok.com/@delirio__official']]} />
       </div>
       <div className="d3-footer-bottom"><span>© 2026 DELIRIO</span><div><Link to="/support">Support</Link><Link to="/privacy-policy">Privacy</Link><Link to="/terms-of-service">Terms</Link><Link to="/data-deletion">Data deletion</Link></div></div>
