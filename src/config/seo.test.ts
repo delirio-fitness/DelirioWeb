@@ -15,6 +15,7 @@ describe('SEO route definitions', () => {
 
   it('keeps campaign variants on the homepage canonical and legal pages out of the index', () => {
     expect(getSeoDefinition('/').canonicalPath).toBe('/');
+    expect(getSeoDefinition('/ai-fitness-coach/').canonicalPath).toBe('/ai-fitness-coach/');
     expect(getSeoDefinition('/terms-of-service').robots).toBe('noindex,follow');
     expect(absoluteUrl(getSeoDefinition('/').imagePath)).toBe('https://delirio.fit/logo.png');
   });

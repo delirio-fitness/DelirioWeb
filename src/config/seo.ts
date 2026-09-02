@@ -113,7 +113,8 @@ const definitions: Record<string, SeoDefinition> = {
 export const seoPaths = Object.keys(definitions);
 
 export function getSeoDefinition(pathname: string): SeoDefinition {
-  return definitions[pathname] ?? definitions['/'];
+  const normalizedPath = pathname === '/' ? '/' : pathname.replace(/\/+$/, '');
+  return definitions[normalizedPath] ?? definitions['/'];
 }
 
 export function absoluteUrl(path: string): string {

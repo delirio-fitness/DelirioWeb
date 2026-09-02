@@ -50,5 +50,6 @@ export const seoPages: SeoPage[] = [
 ];
 
 export function getSeoPage(pathname: string): SeoPage | undefined {
-  return seoPages.find((page) => page.path === pathname);
+  const normalizedPath = pathname === '/' ? '/' : pathname.replace(/\/+$/, '');
+  return seoPages.find((page) => page.path === normalizedPath);
 }
