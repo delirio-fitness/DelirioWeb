@@ -28,17 +28,6 @@
 /terms      /terms-of-service     301!
 /privacy    /privacy-policy       301!
 
-# The sitemap and canonical tags use no trailing slash. Keep the alternate
-# directory form from becoming a second indexable URL for pre-rendered pages.
-/ai-fitness-coach/          /ai-fitness-coach          301!
-/adaptive-workout-planner/  /adaptive-workout-planner  301!
-/voice-workout-coach/       /voice-workout-coach       301!
-/workout-form-feedback/     /workout-form-feedback     301!
-/support/                   /support                   301!
-/terms-of-service/          /terms-of-service          301!
-/privacy-policy/            /privacy-policy            301!
-/data-deletion/             /data-deletion             301!
-
 # Public React routes are pre-rendered during the build, so no SPA catch-all is
 # needed. Netlify serves a genuine 404 (and this repository's 404.html) for an
 # unknown URL instead of returning the home-page shell with a 200 status.

@@ -25,6 +25,10 @@ Public routes are static files after the build, so `public/_redirects` contains
 only redirects. It intentionally has no SPA fallback: serving every unknown
 URL with `index.html` would create a soft 404 for search engines.
 
+Do not add trailing-slash redirects for pre-rendered directory routes. Netlify
+normalizes these paths itself, and an explicit slash-to-no-slash redirect loops
+on the deployed site. Canonical tags and sitemap entries remain no-slash.
+
 Do not depend on `netlify.toml` until the production base-directory issue has
 been fixed and verified on the deployed site.
 
