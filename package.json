@@ -39,13 +39,14 @@
       },
       "scripts": {
             "dev": "vite",
-            "build": "vite build",
+            "build": "vite build && vite build --ssr src/entry-server.tsx --outDir build-ssr && node scripts/prerender.mjs",
             "preview": "vite preview",
             "typecheck": "tsc --noEmit",
             "lint": "eslint src",
             "format": "prettier --write src",
             "test": "jest --runInBand",
             "test:layout": "node scripts/test-layout.mjs",
+            "test:seo": "node scripts/test-seo.mjs",
             "test:master": "bash scripts/test-master.sh",
             "test:watch": "jest --watch",
             "test:coverage": "jest --coverage --runInBand"

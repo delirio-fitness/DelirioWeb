@@ -7,7 +7,7 @@ import { HeroV3 } from './HeroV3';
 type HeroComposition = 'v1' | 'v2.3' | 'v3';
 
 function readRequestedComposition(): HeroComposition | null {
-  const requested = new URLSearchParams(window.location.search).get('hero');
+  const requested = new URLSearchParams(typeof window === 'undefined' ? '' : window.location.search).get('hero');
   if (requested === 'v2') return 'v2.3';
   if (requested === 'v1' || requested === 'v2.3' || requested === 'v3') return requested;
   return null;

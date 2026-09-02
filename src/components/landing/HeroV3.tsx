@@ -18,7 +18,7 @@ const content = heroText.heroTextV3;
  */
 export function HeroV3() {
   return <section className="d3-hero d3-hero--v3 d3-hero--cta-arrow-first" aria-labelledby="hero-v3-title">
-    <img className="d3-hero-image" src={heroImage} alt="" aria-hidden="true" />
+    <img className="d3-hero-image" src={heroImage} alt="" aria-hidden="true" decoding="sync" />
     <div className="d3-hero-contrast" aria-hidden="true" />
     <div className="d3-hero-content">
       <div className="d3-hero-copy">

@@ -2,13 +2,15 @@
 
 ## Netlify
 
-- Build command: `npm run build`
+- Build command: `npm run build` (Vite client build, server render, then static
+  route pre-rendering)
 - Publish directory: `build/`
 - **All redirect rules live in `public/_redirects`**, which Vite copies to `build/_redirects`.
   They do **not** live in `netlify.toml` — read "netlify.toml is not applied" below before you
   move or add any.
-- Rules are applied in file order and the first match wins, so the SPA catch-all `/*` must stay
-  last. Anything below it is unreachable.
+- Rules are applied in file order and the first match wins. The site no longer
+  has an SPA catch-all: public routes are pre-rendered into `build/`, and an
+  unknown URL must remain a genuine 404 rather than a soft-404 landing shell.
 
 ### netlify.toml is not applied
 
@@ -88,6 +90,8 @@ Vite inlines `VITE_*` variables at build time, so changes require a rebuild and 
 - On a real iPhone, confirm `/app` opens the App Store and that returning to the browser shows the
   landing page rather than a blank tab.
 - Verify `/`, `/terms-of-service`, `/privacy-policy`, and `/data-deletion`.
+- Verify `/robots.txt`, `/sitemap.xml`, and each product-guide route directly
+  on the deployed site. Confirm a made-up path returns 404.
 - Run `npm test`, `npm run typecheck`, `npm run lint`, and `npm run build`.
 - Test coach selection, text error/retry, microphone permission, voice connect/mute/end/retry, the live coach-audio waveform, FAQ deep links, and pricing.
 - Check 390×844, 820×1180, 1440×900, and 320px reflow.

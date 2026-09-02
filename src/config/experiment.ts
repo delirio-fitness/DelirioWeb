@@ -48,6 +48,7 @@ export function isLandingVariant(value: unknown): value is LandingVariant {
 }
 
 function readStoredVariant(): LandingVariant | null {
+  if (typeof window === 'undefined') return null;
   try {
     const stored = window.sessionStorage.getItem(STORAGE_KEY);
     return isLandingVariant(stored) ? stored : null;
@@ -58,6 +59,7 @@ function readStoredVariant(): LandingVariant | null {
 }
 
 function persistVariant(variant: LandingVariant): void {
+  if (typeof window === 'undefined') return;
   try {
     window.sessionStorage.setItem(STORAGE_KEY, variant);
   } catch {
@@ -70,8 +72,8 @@ function persistVariant(variant: LandingVariant): void {
  * the tab, so a visitor who reads the privacy policy and comes back to `/` stays
  * in the cell the ad sent them to instead of falling back to the default.
  */
-export function resolveLandingVariant(search: string = window.location.search): LandingVariant {
-  const requested = new URLSearchParams(search).get(LANDING_VARIANT_QUERY_PARAM);
+export function resolveLandingVariant(search?: string): LandingVariant {
+  const requested = new URLSearchParams(search ?? (typeof window === 'undefined' ? '' : window.location.search)).get(LANDING_VARIANT_QUERY_PARAM);
   if (isLandingVariant(requested)) {
     persistVariant(requested);
     return requested;
@@ -80,6 +82,7 @@ export function resolveLandingVariant(search: string = window.location.search): 
 }
 
 export function publishLandingVariant(variant: LandingVariant): void {
+  if (typeof window === 'undefined') return;
   window.delirioLandingVariant = variant;
 }
 

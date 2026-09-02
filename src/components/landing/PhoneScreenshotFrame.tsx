@@ -11,7 +11,7 @@ export function PhoneScreenshotFrame({ src, alt }: PhoneScreenshotFrameProps) {
       <span className="d3-iphone-volume is-down" aria-hidden="true" />
       <span className="d3-iphone-camera-control" aria-hidden="true" />
       <div className="d3-iphone-screen">
-        <img src={src} alt={alt} />
+        <img src={src} alt={alt} loading="lazy" decoding="async" />
       </div>
     </div>
   );

@@ -11,6 +11,8 @@ import { Logo } from '../components/logo';
 import { useLandingVariant } from '../hooks/useLandingVariant';
 import { recordPageView } from '../services/conversionEvents';
 
+const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
+
 const frictionMoments = [
   {
     icon: Activity,
@@ -166,7 +168,7 @@ export default function Landing() {
     };
   }, []);
 
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const panel = faqPanelRef.current;
     const previousHeight = previousFaqHeightRef.current;
     previousFaqHeightRef.current = null;
