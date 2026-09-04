@@ -1,4 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800;900&display=swap');
+/* Google Fonts (Exo 2) is loaded via <link> in index.html for parallelism.
+   The CSS @import was render-blocking: the browser had to download and parse
+   this stylesheet before it even discovered the font request, creating a
+   waterfall that delayed LCP. The HTML <link> loads in parallel with the CSS. */
 
 html {
   scroll-behavior: smooth;

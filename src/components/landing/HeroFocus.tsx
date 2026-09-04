@@ -14,7 +14,7 @@ const content = heroText.heroTextFocus;
 export function HeroFocus() {
   return (
     <section className="d3-hero d3-hero--focus" aria-labelledby="hero-focus-title">
-      <img className="d3-hero-image" src={heroImage} alt="" aria-hidden="true" decoding="sync" />
+      <img className="d3-hero-image" src={heroImage} alt="" aria-hidden="true" decoding="sync" fetchPriority="high" />
       <div className="d3-hero-focus-scrim" aria-hidden="true" />
       <div className="d3-hero-focus-content">
         <p className="d3-hero-focus-capabilities">{content.capabilities}</p>
