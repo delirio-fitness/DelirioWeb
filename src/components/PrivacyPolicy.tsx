@@ -129,7 +129,7 @@ export default function PrivacyPolicy() {
         <p className="mb-4">
           We record the actions you take in the app: screens you open, buttons you tap, workouts you start and finish,
           and errors you encounter. These records are linked to your account rather than anonymous, and we may keep them
-          for up to seven years.
+          for up to seven years. Your IP address is discarded on arrival and is not stored with this data.
         </p>
 
         <h3 className="text-xl font-semibold mb-2 mt-6">Screen Recording</h3>
