@@ -14,3 +14,4 @@ This folder is self-contained and can be copied to any directory or shared outsi
 | [`content-strategy.md`](./content-strategy.md) | Blog/guide topics, content gap analysis, competitor teardowns |
 | [`glp1-content-opportunity.md`](./glp1-content-opportunity.md) | GLP-1 specific keyword opportunities and content gaps |
 | [`research-sources.md`](./research-sources.md) | **Credible sources with citations, confirmed data points, and how to get real keyword volume numbers** |
+| [`google-trends-queries.md`](./google-trends-queries.md) | **7 ready-to-run Google Trends queries — copy-paste into your browser, takes 10 minutes** |
