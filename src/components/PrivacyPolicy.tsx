@@ -10,7 +10,7 @@ export default function PrivacyPolicy() {
     <LandingLegalShell>
       <div className="max-w-3xl mx-auto px-6 py-10 md:py-16 min-h-screen bg-white text-black">
         <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
-        <p className="mb-2 text-sm text-gray-500">Last updated: August 18, 2026</p>
+        <p className="mb-2 text-sm text-gray-500">Last updated: September 4, 2026</p>
         <p className="mb-4">
           Delirio (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) provides an AI-powered fitness coaching
           mobile application. This Privacy Policy explains what information we collect, how we use and share it, and the
@@ -123,7 +123,49 @@ export default function PrivacyPolicy() {
         <h3 className="text-xl font-semibold mb-2 mt-6">Usage, Analytics, and Diagnostics</h3>
         <p className="mb-4">
           We collect information about how you use the app, a user identifier, and crash and performance diagnostics to
-          operate, secure, and improve Delirio.
+          operate, secure, and improve Delirio. We use PostHog, a third-party analytics provider, and this data is
+          stored on servers in the United States.
+        </p>
+        <p className="mb-4">
+          We record the actions you take in the app: screens you open, buttons you tap, workouts you start and finish,
+          and errors you encounter. These records are linked to your account rather than anonymous, and we may keep them
+          for up to seven years.
+        </p>
+
+        <h3 className="text-xl font-semibold mb-2 mt-6">Screen Recording</h3>
+        <p className="mb-4">
+          Delirio captures periodic screenshots of its own screens while you use the app, roughly one per second, and
+          sends them to PostHog so we can see where the app is confusing or broken. These recordings are linked to your
+          account and are deleted after 30 days.
+        </p>
+        <p className="mb-4">
+          A recording shows the app&rsquo;s own interface: its menus, buttons, labels, and layout. Before any screenshot
+          leaves your device, we hide the parts that are about you:
+        </p>
+        <ul className="mb-4 list-disc pl-6">
+          <li>Your conversations with your coach, on both sides</li>
+          <li>
+            Your body and health details: your measurements, your training profile, your logged workouts, and your
+            health readings, including the charts that display them
+          </li>
+          <li>Your name, email address, and phone number</li>
+          <li>Your photos, including progress photos, and your camera</li>
+          <li>Your location and any map of where you have been</li>
+          <li>Passwords, verification codes, and payment details, which are never captured at all</li>
+        </ul>
+        <p className="mb-4">
+          We do not record at all during workouts, so your camera is never part of a recording. What remains is the app
+          around you, where you tapped, and how long you spent. It is enough to see that someone got stuck, and not
+          enough to see who they are or what they said.
+        </p>
+        <p className="mb-4">
+          Hiding is applied to each screenshot as it is captured, so in rare cases something can appear in a single
+          frame before it is hidden. The Usage Analytics description inside the app carries this same caveat.
+        </p>
+        <p className="mb-4">
+          Screen recording is on by default. You can turn it off at any time in the app, under Settings and then
+          Preferences, using the Usage Analytics toggle. Turning it off stops both the screen recording and the
+          analytics described above.
         </p>
 
         <h3 className="text-xl font-semibold mb-2 mt-6">Advertising and Attribution</h3>
@@ -218,7 +260,8 @@ export default function PrivacyPolicy() {
           </li>
           <li>
             <strong>Analytics and diagnostics providers</strong> to understand usage and diagnose crashes and
-            performance
+            performance, including PostHog (see <strong>Usage, Analytics, and Diagnostics</strong> and{' '}
+            <strong>Screen Recording</strong> above)
           </li>
           <li>
             <strong>Apple&rsquo;s App Store</strong> for subscriptions and billing
