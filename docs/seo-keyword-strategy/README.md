@@ -13,3 +13,4 @@ This folder is self-contained and can be copied to any directory or shared outsi
 | [`app-store-aso.md`](./app-store-aso.md) | App Store title, subtitle, keyword field optimization |
 | [`content-strategy.md`](./content-strategy.md) | Blog/guide topics, content gap analysis, competitor teardowns |
 | [`glp1-content-opportunity.md`](./glp1-content-opportunity.md) | GLP-1 specific keyword opportunities and content gaps |
+| [`research-sources.md`](./research-sources.md) | **Credible sources with citations, confirmed data points, and how to get real keyword volume numbers** |
