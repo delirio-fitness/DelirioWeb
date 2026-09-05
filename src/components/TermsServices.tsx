@@ -1,6 +1,11 @@
 import { useEffect } from "react";
 import { LandingLegalShell } from "./LandingLegalShell";
-import { MONTHLY_PRICE_USD, YEARLY_MONTHLY_EQUIVALENT_USD, YEARLY_PRICE_USD } from "../config/product";
+import {
+  FOUNDING_MONTHLY_PRICE_USD,
+  FOUNDING_YEARLY_PRICE_USD,
+  LIST_MONTHLY_PRICE_USD,
+  LIST_YEARLY_PRICE_USD,
+} from "../config/product";
 
 export default function TermsServices() {
   useEffect(() => {
@@ -11,7 +16,7 @@ export default function TermsServices() {
     <LandingLegalShell>
       <div id="terms-of-service" className="max-w-3xl mx-auto px-6 py-10 md:py-16">
         <h1 className="text-4xl font-bold mb-8">Terms of Service</h1>
-          <p className="mb-2 text-sm text-gray-500">Last updated: August 16, 2026</p>
+          <p className="mb-2 text-sm text-gray-500">Last updated: September 5, 2026</p>
 
           <h2 className="text-2xl font-semibold mb-4 mt-8">Agreement to Terms</h2>
           <p className="mb-4">
@@ -92,8 +97,18 @@ export default function TermsServices() {
           <h2 className="text-2xl font-semibold mb-4 mt-8">Subscriptions and Billing</h2>
           <p className="mb-4">
             Some features of the Service require a paid subscription. Delirio Plus is an auto-renewable subscription
-            offered as a monthly plan ($29.99 per month) or an annual plan ($179.99 per year). Prices are shown in the
-            app at the point of purchase and may vary by region and currency.
+            offered as a monthly plan or an annual plan. The standard rate is ${LIST_MONTHLY_PRICE_USD} per month or $
+            {LIST_YEARLY_PRICE_USD} per year.
+          </p>
+          <p className="mb-4">
+            New subscribers are currently offered the founding rate: ${FOUNDING_MONTHLY_PRICE_USD} per month or $
+            {FOUNDING_YEARLY_PRICE_USD} per year. The founding rate is a separate subscription at its own price, not a
+            discount that expires. It renews at the same rate for as long as your subscription stays active. The app
+            shows the standard rate beside the founding rate so you can see what you are saving. If you cancel and later
+            subscribe again, the rate then offered to new subscribers applies.
+          </p>
+          <p className="mb-4">
+            Prices are shown in the app at the point of purchase and may vary by region and currency.
           </p>
 
           <h3 className="text-xl font-semibold mb-3 mt-6">Free Trial</h3>
