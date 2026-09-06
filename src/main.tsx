@@ -4,6 +4,7 @@
   import { initAdTracking } from "./services/conversionEvents";
   import { tagAcquisitionChannel } from "./services/organicMeasurement";
   import { initClarity } from "./modules/clarity";
+  import { initGoogleAnalytics } from "./modules/googleAnalytics";
   import "./index.css";
   import "./styles/design3.css";
 
@@ -29,6 +30,7 @@
   // Alternative: set VITE_CLARITY_PROJECT_ID in .env.local or hosting dashboard.
   //
   initClarity();
+  initGoogleAnalytics();
   tagAcquisitionChannel();
 
   createRoot(document.getElementById("root")!).render(<App />);

@@ -4,6 +4,8 @@ interface ImportMetaEnv {
   readonly VITE_APP_STORE_URL?: string;
   /** Microsoft Clarity project ID (free service, no subscription required). */
   readonly VITE_CLARITY_PROJECT_ID?: string;
+  /** Optional override for the public GA4 web-stream Measurement ID. */
+  readonly VITE_GA4_MEASUREMENT_ID?: string;
 }
 
 interface ImportMeta {

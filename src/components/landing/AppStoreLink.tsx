@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { appStoreCampaignToken } from '../../config/appStoreCampaigns';
 import { APP_STORE_URL } from '../../config/product';
+import { recordAppStoreHandoff } from '../../modules/googleAnalytics';
 import { recordQualifiedAction } from '../../services/conversionEvents';
 import { recordOrganicSearchStoreHandoff } from '../../services/organicMeasurement';
 import { resolveAttribution } from '../../utils/attribution';
@@ -71,6 +72,7 @@ export function AppStoreLink({
         // This is a separate Clarity-only organic measurement. It never flows
         // into the Meta conversion request fired immediately below.
         recordOrganicSearchStoreHandoff();
+        recordAppStoreHandoff(resolveAttribution());
         recordQualifiedAction('store_click');
       }}
       rel="noopener noreferrer"

@@ -10,7 +10,7 @@ export default function PrivacyPolicy() {
     <LandingLegalShell>
       <div className="max-w-3xl mx-auto px-6 py-10 md:py-16 min-h-screen bg-white text-black">
         <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
-        <p className="mb-2 text-sm text-gray-500">Last updated: September 4, 2026</p>
+        <p className="mb-2 text-sm text-gray-500">Last updated: September 6, 2026</p>
         <p className="mb-4">
           Delirio (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) provides an AI-powered fitness coaching
           mobile application. This Privacy Policy explains what information we collect, how we use and share it, and the
@@ -288,18 +288,20 @@ export default function PrivacyPolicy() {
         </p>
         <p className="mb-4">
           <strong>This website.</strong> Separately from the app, we measure how our ads perform on delirio.fit.{' '}
-          <strong>There is no Meta pixel or other advertising script on this site.</strong> No advertising
-          company&rsquo;s code runs in your browser here, and no advertising company can see the pages you visit, what
-          those pages say, or what you type into them.
+          <strong>There is no Meta pixel on this site.</strong> Google Analytics runs in the browser to measure page
+          visits and when someone chooses an App Store link. It receives standard browser and device information and,
+          when present in an ad link, campaign identifiers such as UTM parameters and Google&rsquo;s click identifier.
+          The website has no form or text box, so we do not send Google Analytics a name, email address, health data,
+          payment information, or answers about you.
         </p>
         <p className="mb-4">
-          Instead, two actions are reported from our own servers: arriving on the home page, and choosing a link that
-          takes you to the App Store. What we send is the name of that action, the campaign parameters in the link you
-          arrived from, which version of the page you saw, your IP address, and your browser&rsquo;s user-agent string.
-          That is the complete list. <strong>We do not send Meta your email address in any form</strong>, hashed or
-          otherwise &mdash; the website never asks you for one. We also do not send the page you were on, its title, or
-          where you came from. Only the home page is reported this way &mdash; visiting this policy, or any other page
-          here, sends nothing.
+          Separately, two actions are reported from our own servers to Meta: arriving on the home page, and choosing a
+          link that takes you to the App Store. What we send is the name of that action, the campaign parameters in the
+          link you arrived from, which version of the page you saw, your IP address, and your browser&rsquo;s user-agent
+          string. That is the complete list. <strong>We do not send Meta your email address in any form</strong>, hashed
+          or otherwise &mdash; the website never asks you for one. We also do not send Meta the page you were on, its
+          title, or where you came from. Only the home page is reported this way &mdash; visiting this policy, or any
+          other page here, sends nothing.
         </p>
         <p className="mb-4">
           <strong>Analytics on this website.</strong> We use Microsoft Clarity to understand how people use delirio.fit
@@ -311,7 +313,9 @@ export default function PrivacyPolicy() {
           <a href="https://privacy.microsoft.com/privacystatement" className="text-blue-600 underline">
             https://privacy.microsoft.com/privacystatement
           </a>
-          .
+          . We use Google Analytics to measure website traffic and the App Store handoff event described above. Google
+          Analytics is not configured here for Google Signals, ad personalization, website remarketing, or audience
+          building.
         </p>
         <p className="mb-4">
           Your browser tells our own server that the action happened, and our server is what contacts Meta. Because that
