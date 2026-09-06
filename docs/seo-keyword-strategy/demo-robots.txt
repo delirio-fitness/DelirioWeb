@@ -1,0 +1,31 @@
+# ---------------------------------------------------------
+# robots.txt — Delirio (delirio.fit)
+# ---------------------------------------------------------
+# This file tells search engine crawlers (Googlebot, Bingbot,
+# etc.) which parts of the site they can and cannot access.
+# It is always located at the root: https://delirio.fit/robots.txt
+# ---------------------------------------------------------
+
+# Allow all crawlers to access everything
+User-agent: *
+Allow: /
+
+# Block crawlers from internal/admin paths
+Disallow: /api/
+Disallow: /admin/
+Disallow: /internal/
+
+# Block the App Store interstitial (not a real content page)
+Disallow: /app
+
+# Block search result and filter pages (duplicate content)
+Disallow: /*?ref=
+Disallow: /*?utm_
+
+# Crawl rate: don't hit the server too fast
+Crawl-delay: 1
+
+# ---------------------------------------------------------
+# Sitemaps: tell every crawler where the page map lives
+# ---------------------------------------------------------
+Sitemap: https://delirio.fit/sitemap.xml
