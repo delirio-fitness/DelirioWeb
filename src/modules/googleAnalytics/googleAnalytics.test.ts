@@ -17,14 +17,14 @@ describe('Google Analytics App Store handoff', () => {
   afterEach(resetAppStoreHandoff);
 
   it('loads the configured Google tag without Google Signals or ad personalization', () => {
-    expect(initGoogleAnalytics()).toBe(true);
+    expect(initGoogleAnalytics('G-TESTMEASUREMENT')).toBe(true);
 
     expect(document.head.querySelector('script[data-delirio-ga4]')).toHaveAttribute(
       'src',
-      expect.stringContaining('G-HJ752JWYKT'),
+      expect.stringContaining('G-TESTMEASUREMENT'),
     );
     expect(window.dataLayer).toEqual(
-      expect.arrayContaining([expect.arrayContaining(['config', 'G-HJ752JWYKT'])]),
+      expect.arrayContaining([expect.arrayContaining(['config', 'G-TESTMEASUREMENT'])]),
     );
     expect(window.dataLayer).toEqual(
       expect.arrayContaining([
@@ -39,7 +39,7 @@ describe('Google Analytics App Store handoff', () => {
   });
 
   it('records one privacy-safe App Store handoff with first-touch campaign context', () => {
-    initGoogleAnalytics();
+    initGoogleAnalytics('G-TESTMEASUREMENT');
 
     expect(
       recordAppStoreHandoff({

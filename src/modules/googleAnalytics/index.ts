@@ -1,4 +1,4 @@
-export { ga4MeasurementId, GA4_MEASUREMENT_ID } from './config';
+export { ga4MeasurementId } from './config';
 export {
   initGoogleAnalytics,
   recordAppStoreHandoff,

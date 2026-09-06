@@ -56,15 +56,14 @@ function injectScript(measurementId: string): void {
  * personalization remain disabled; this integration is for measurement, not
  * website remarketing or audience building.
  */
-export function initGoogleAnalytics(): boolean {
+export function initGoogleAnalytics(explicitMeasurementId?: string): boolean {
   if (!isBrowser()) return false;
+  if (configuredMeasurementId) return true;
 
-  const measurementId = ga4MeasurementId();
+  const measurementId = ga4MeasurementId(explicitMeasurementId);
   if (!measurementId) return false;
 
   const gtag = ensureGtag();
-  if (configuredMeasurementId === measurementId) return true;
-
   injectScript(measurementId);
   gtag('js', new Date());
   gtag('config', measurementId, {
