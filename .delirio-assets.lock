@@ -1,9 +1,9 @@
 {
   "assets": {
-    "coach-iris_head-effect-idle-return_v1": {
-      "version": 1,
-      "checksum": "sha256:c98d1cc8473987161c20c6d6ab189cc24506b32bdef31137aa35164a0ad168dd",
-      "fetched": "2026-07-31",
+    "coach-iris_head-effect-idle-return_v2": {
+      "version": 2,
+      "checksum": "sha256:d4876d4540d75b69f3368ee5b036042678c73984b4db05899d95bc5b5fb6204f",
+      "fetched": "2026-09-06",
       "copies": [
         {
           "path": "src/images/emojis/Iris/Iris_idle_return.png",
@@ -11,10 +11,10 @@
         }
       ]
     },
-    "coach-reed_head-effect-idle-return_v1": {
-      "version": 1,
-      "checksum": "sha256:bdd7db292c4cc716c1ba00cabf7b09d62f866b5ef02f97c52e4a02d7304686c2",
-      "fetched": "2026-07-31",
+    "coach-reed_head-effect-idle-return_v2": {
+      "version": 2,
+      "checksum": "sha256:681c9073fcf27245571c9a9834f1bca9a56d285b473927dfac189bdd6aa17441",
+      "fetched": "2026-09-06",
       "copies": [
         {
           "path": "src/images/emojis/Reed/Reed_idle_return.png",
@@ -45,8 +45,8 @@
     },
     "skill:delirio-assets": {
       "version": 0,
-      "checksum": "sha256:skill:5457b035d958a11ad264d016c8913b9bdfd29829b6f6fe993318f428e3c448ce",
-      "fetched": "2026-08-24",
+      "checksum": "sha256:skill:8424302b25a907da3e1a3063602ca96f08ce75e5fe14f7075d5c425cd7f1c37d",
+      "fetched": "2026-09-06",
       "copies": [
         {
           "path": ".agents/skills/delirio-assets"

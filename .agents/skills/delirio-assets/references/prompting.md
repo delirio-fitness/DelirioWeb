@@ -175,6 +175,42 @@ Without the indexing the model will usually blend the two references instead of
 transferring a feature from one to the other, which is a plausible-looking result
 that is not what you asked for.
 
+### The character you want to KEEP goes first. Indexing is not enough.
+
+Order is not just how the indices are assigned — it decides which reference the
+model treats as the subject and which as the instruction. **Put the character
+whose identity must survive in `--ref` position one**, and let the second
+reference supply the pose.
+
+Measured on `grok-imagine-image-2.0`, re-deriving the head-effect set with a
+pose exemplar from `coach-base_head-effect-*` and the coach's own head:
+
+| `--ref` order | result |
+| --- | --- |
+| base first, coach second | identity **destroyed** on 12 of 12 renders |
+| coach first, base second | identity intact on 12 of 12, pose transferred |
+
+With the base head first, Reed's dark olive flat-crown cap came back as a
+baseball cap in four different colours across six renders, and Iris — blonde
+braided crown, loose temple strands — came back as a short-haired man. **The
+prompt indexed both references correctly in every one of those runs.** Naming
+"the character in image #2 (the one in the cap)" did not stop the model from
+treating image #1 as the thing it was drawing.
+
+Two consequences worth carrying:
+
+- **The pose reference still earns its place — second.** Dropping to a single
+  reference also preserves identity, but the model then invents the prop: asked
+  for a phone, it drew a screen full of app icons, where the set's convention
+  (and the base reference) is the phone's black back. First position protects
+  the character; second position pins the prop.
+- **`docs/coach-creation-prompts.txt` reads the other way, and it is not a
+  reliable guide here.** Its examples say "the character in image #2 (the one
+  with the dreads and mustache)" while listing the coach's file *first* — the
+  prompt text and the upload order contradict each other, so only one of them
+  can describe what was actually sent. Follow the table above, which was
+  measured, not the doc, which was reconstructed.
+
 ## One instruction per generation — then refine
 
 The catalog's own assets were built in steps, not in one shot:
