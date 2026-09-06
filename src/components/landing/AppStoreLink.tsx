@@ -1,7 +1,9 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { appStoreCampaignToken } from '../../config/appStoreCampaigns';
 import { APP_STORE_URL } from '../../config/product';
 import { recordQualifiedAction } from '../../services/conversionEvents';
 import { recordOrganicSearchStoreHandoff } from '../../services/organicMeasurement';
+import { resolveAttribution } from '../../utils/attribution';
 
 /**
  * Every route to the App Store on this site, and the only one there should be.
@@ -22,6 +24,11 @@ import { recordOrganicSearchStoreHandoff } from '../../services/organicMeasureme
  * off to the App Store, and sends the tab back to `/` if iOS intercepts the
  * navigation. `target="_blank"` so the landing page survives the handoff on
  * desktop, where no such interception happens.
+ *
+ * Google Ads' `utm_campaign` is captured as first-touch attribution. A valid
+ * campaign key becomes the final `/app/<token>` path segment, without a
+ * website code change for each new Google Ads campaign. Every missing or
+ * malformed campaign keeps the existing bare `/app` handoff.
  */
 export function AppStoreLink({
   children,
@@ -37,13 +44,29 @@ export function AppStoreLink({
   tabIndex?: number;
   'aria-hidden'?: boolean;
 }) {
+  // The landing is prerendered without a browser URL. Resolve the first-touch
+  // campaign after hydration so server markup remains deterministic and the
+  // browser still upgrades every CTA before an interactive click can occur.
+  const [campaignToken, setCampaignToken] = useState<string>();
+
+  useEffect(() => {
+    setCampaignToken(appStoreCampaignToken(resolveAttribution().campaign));
+  }, []);
+
+  // A deploy may intentionally replace the site-relative handoff with another
+  // destination. Never append a campaign path to an unknown override.
+  const handoffURL =
+    campaignToken && APP_STORE_URL === '/app'
+      ? `${APP_STORE_URL}/${encodeURIComponent(campaignToken)}`
+      : APP_STORE_URL;
+
   return (
     <a
       aria-hidden={ariaHidden}
       aria-label={label}
       className={className || undefined}
       data-cta="store"
-      href={APP_STORE_URL}
+      href={handoffURL}
       onClick={() => {
         // This is a separate Clarity-only organic measurement. It never flows
         // into the Meta conversion request fired immediately below.
