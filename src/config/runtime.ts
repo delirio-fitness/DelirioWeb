@@ -1,5 +1,9 @@
 export const IS_DEV = import.meta.env.DEV;
 
+/** Optional GA4 override; `ga4MeasurementId` falls back to the Firebase config's measurementId. */
+export const GA4_MEASUREMENT_ID_OVERRIDE = (import.meta.env as Record<string, string | undefined>)
+  .VITE_GA4_MEASUREMENT_ID;
+
 /**
  * Ad configuration is deliberately absent from this file.
  *

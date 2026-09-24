@@ -5,11 +5,11 @@
  * web configuration's `measurementId`. Do not duplicate it in source: Netlify
  * correctly treats the build variable as protected and rejects that copy.
  */
+import { GA4_MEASUREMENT_ID_OVERRIDE } from '../../config/runtime';
+
 /** Returns the measurement ID only when it has the expected public GA4 form. */
 export function ga4MeasurementId(explicitId?: string): string | null {
-  const fromEnvironment = (
-    import.meta.env as Record<string, string | undefined>
-  ).VITE_GA4_MEASUREMENT_ID?.trim();
+  const fromEnvironment = GA4_MEASUREMENT_ID_OVERRIDE?.trim();
   const fromFirebaseConfig =
     typeof __FIREBASE_WEB_CONFIG__ === 'undefined'
       ? undefined
