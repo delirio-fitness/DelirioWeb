@@ -10,7 +10,7 @@ export default function PrivacyPolicy() {
     <LandingLegalShell>
       <div className="max-w-3xl mx-auto px-6 py-10 md:py-16 min-h-screen bg-white text-black">
         <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
-        <p className="mb-2 text-sm text-gray-500">Last updated: September 6, 2026</p>
+        <p className="mb-2 text-sm text-gray-500">Last updated: October 21, 2026</p>
         <p className="mb-4">
           Delirio (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) provides an AI-powered fitness coaching
           mobile application. This Privacy Policy explains what information we collect, how we use and share it, and the
@@ -113,6 +113,37 @@ export default function PrivacyPolicy() {
           device settings; without it, outdoor route tracking will not work.
         </p>
 
+        <h3 className="text-xl font-semibold mb-2 mt-6">Notifications</h3>
+        <p className="mb-4">
+          Delirio can send you notifications. To deliver them, the app registers each installation on your device and
+          stores with your account a notification token issued by Google Firebase Cloud Messaging through Apple&rsquo;s
+          Push Notification service, whether you have allowed notifications in iOS, the platform, the app version and
+          build, and when that record was created and last updated. The app keeps this record whether or not you allow
+          notifications, so that we know not to send any when you have not. We also store whether you have turned
+          notifications on or off in the app.
+        </p>
+        <p className="mb-4">
+          We use notifications to deliver your coach&rsquo;s messages, your workout and check-in reminders, and your
+          coach&rsquo;s replies. We do not use them for advertising or marketing, and we do not use the notification
+          token to track you across other companies&rsquo; apps or websites.
+        </p>
+        <p className="mb-4">
+          A notification&rsquo;s text is your coach&rsquo;s message or reminder, and it passes through Google and Apple
+          on its way to your device. Medication reminders are worded so that they do not name the medication, because a
+          notification can appear on your lock screen.
+        </p>
+        <p className="mb-4">
+          The app records whether each notification was delivered and whether you opened it, using an identifier for
+          that notification, along with changes to your notification settings. These records go to PostHog and are
+          handled like the other app analytics described under <strong>Usage, Analytics, and Diagnostics</strong>{" "}
+          below, including the Usage Analytics toggle. Our servers also record that a notification was sent, which we
+          use to operate and troubleshoot delivery.
+        </p>
+        <p className="mb-4">
+          You can turn notifications off at any time in the app under <strong>Settings → Notifications</strong>, or in
+          iOS Settings. Turning them off stops notifications from being delivered to you.
+        </p>
+
         <h3 className="text-xl font-semibold mb-2 mt-6">Purchases and Subscriptions</h3>
         <p className="mb-4">
           If you subscribe through Apple&rsquo;s App Store, we receive information about your subscription, such as its
@@ -203,6 +234,7 @@ export default function PrivacyPolicy() {
           <li>Track your workouts, activities, and progress over time</li>
           <li>Enable our AI coaches to remember your preferences and goals</li>
           <li>Communicate with you about your fitness journey and account</li>
+          <li>Deliver your coach&rsquo;s messages, reminders, and replies as notifications, if you allow them</li>
           <li>Process your subscription and payments</li>
           <li>Secure the app, prevent abuse, and diagnose problems</li>
           <li>Improve our app and services</li>
@@ -265,6 +297,10 @@ export default function PrivacyPolicy() {
           </li>
           <li>
             <strong>Apple&rsquo;s App Store</strong> for subscriptions and billing
+          </li>
+          <li>
+            <strong>Notification delivery services</strong>, Google Firebase Cloud Messaging and Apple&rsquo;s Push
+            Notification service, to deliver notifications to your device (see <strong>Notifications</strong> above)
           </li>
           <li>
             <strong>Messaging providers</strong> for SMS and WhatsApp communication
@@ -409,6 +445,12 @@ export default function PrivacyPolicy() {
           as needed to provide the app. You can delete your account and associated data at any time, as described below.
         </p>
         <p className="mb-4">
+          <strong>Notification records.</strong> The notification record for an installation of the app is deleted when
+          you sign out of the app on that device, when you use Fresh Start to reset your account, when you delete your
+          account, or when Google or Apple reports that its token is no longer valid. Otherwise we keep it while your
+          account is active.
+        </p>
+        <p className="mb-4">
           <strong>Our website.</strong> The site collects nothing from you, so there is nothing new to retain. If you
           joined the waitlist during the period it existed, we may still hold the record it created; you can have it
           deleted at any time by emailing us, and you do not need to give a reason.
@@ -458,7 +500,10 @@ export default function PrivacyPolicy() {
             Opt out of tracking and advertising sharing (iOS Settings → Privacy &amp; Security → Tracking, plus
             Meta&rsquo;s ad-preference tools), as described under Advertising, Attribution, and Tracking
           </li>
-          <li>Control camera, microphone, location, health, and photo permissions in your device settings</li>
+          <li>
+            Control camera, microphone, location, health, photo, and notification permissions in your device settings,
+            and turn notifications off in the app (Settings → Notifications)
+          </li>
           <li>Ask questions about our data practices</li>
         </ul>
         <p className="mb-4">
