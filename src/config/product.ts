@@ -16,6 +16,6 @@ export const LIST_MONTHLY_PRICE_USD = 29.99;
 export const LIST_YEARLY_PRICE_USD = 179.99;
 
 // The landing page's plan cards still render the list rate; see the Terms for the founding rate.
-export const MONTHLY_PRICE_USD = 30;
-export const YEARLY_PRICE_USD = 180;
-export const YEARLY_MONTHLY_EQUIVALENT_USD = 15;
+export const MONTHLY_PRICE_USD = 5;
+export const YEARLY_PRICE_USD = 30;
+export const YEARLY_MONTHLY_EQUIVALENT_USD = 2.5;
