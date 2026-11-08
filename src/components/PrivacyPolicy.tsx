@@ -10,7 +10,7 @@ export default function PrivacyPolicy() {
     <LandingLegalShell>
       <div className="max-w-3xl mx-auto px-6 py-10 md:py-16 min-h-screen bg-white text-black">
         <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
-        <p className="mb-2 text-sm text-gray-500">Last updated: October 21, 2026</p>
+        <p className="mb-2 text-sm text-gray-500">Last updated: November 8, 2026</p>
         <p className="mb-4">
           Delirio (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) provides an AI-powered fitness coaching
           mobile application. This Privacy Policy explains what information we collect, how we use and share it, and the
@@ -64,7 +64,9 @@ export default function PrivacyPolicy() {
         <p className="mb-4">
           We also collect the workout and activity data you record in Delirio, such as sets, reps, weights, effort,
           duration, calories, form scores, streaks, and personal records, as well as health-related details you share
-          with your coach (for example injuries or medication information relevant to your training).
+          with your coach (for example injuries or medication information relevant to your training). What you write to
+          your coach, and what your coach writes back, is also sent to our analytics provider, as described under{" "}
+          <strong>Usage, Analytics, and Diagnostics</strong> below.
         </p>
 
         <h3 className="text-xl font-semibold mb-2 mt-6">Camera and Workout Form Analysis</h3>
@@ -96,7 +98,9 @@ export default function PrivacyPolicy() {
         </ul>
         <p className="mb-4">
           This lets your coach remember your context and provide personalized guidance across sessions. Conversations
-          are processed by our cloud AI services to generate responses.
+          are processed by our cloud AI services to generate responses. The text of your conversations is also sent to
+          our analytics provider so we can monitor the quality of your coach&rsquo;s responses (see{" "}
+          <strong>Usage, Analytics, and Diagnostics</strong> below).
         </p>
 
         <h3 className="text-xl font-semibold mb-2 mt-6">Photos</h3>
@@ -162,6 +166,18 @@ export default function PrivacyPolicy() {
           and errors you encounter. These records are linked to your account rather than anonymous, and we may keep them
           for up to seven years. Your IP address is discarded on arrival and is not stored with this data.
         </p>
+        <p className="mb-4">
+          <strong>Coach conversations.</strong> To monitor and improve the quality of our AI coaches, our servers send
+          the content of your conversations with your coach to PostHog: what you write to your coach and what your coach
+          writes back, in text and in voice sessions. Because you may tell your coach about your health, this content
+          can include health details you share, such as injuries or medication. It is linked to your account, is stored
+          with the other analytics records described above, and may be kept for up to seven years. We use it to review
+          and improve our coaches&rsquo; responses; we do not use it for advertising and we do not share it with Meta.
+          This is sent from our servers rather than from your device, so it is not part of Screen Recording and is not
+          stopped by the Usage Analytics toggle described below. To ask us to delete it, see{" "}
+          <strong>Deleting Your Account</strong> below or email us at{" "}
+          <a href="mailto:contact@delirio.fit" className="text-blue-600 underline">contact@delirio.fit</a>.
+        </p>
 
         <h3 className="text-xl font-semibold mb-2 mt-6">Screen Recording</h3>
         <p className="mb-4">
@@ -174,7 +190,11 @@ export default function PrivacyPolicy() {
           leaves your device, we hide the parts that are about you:
         </p>
         <ul className="mb-4 list-disc pl-6">
-          <li>Your conversations with your coach, on both sides</li>
+          <li>
+            Your conversations with your coach, on both sides, and what your coach writes about you elsewhere, such as
+            the notes on your plan. The plan itself (its days, exercises, sets, and reps) is part of the app around you
+            and is recorded.
+          </li>
           <li>
             Your body and health details: your measurements, your training profile, your logged workouts, and your
             health readings, including the charts that display them
@@ -185,9 +205,13 @@ export default function PrivacyPolicy() {
           <li>Passwords, verification codes, and payment details, which are never captured at all</li>
         </ul>
         <p className="mb-4">
-          We do not record at all during workouts, so your camera is never part of a recording. What remains is the app
-          around you, where you tapped, and how long you spent. It is enough to see that someone got stuck, and not
-          enough to see who they are or what they said.
+          Workouts are recorded too. Your camera is hidden from every screenshot, so it is never part of a recording,
+          and so are the weights and reps you log. What remains is the app around you, where you tapped, and how long you
+          spent. It is enough to see that someone got stuck, and not enough to see who they are or what they said.
+        </p>
+        <p className="mb-4">
+          This hiding applies to screenshots only. It does not apply to the coach-conversation content our servers send
+          to PostHog, described under <strong>Usage, Analytics, and Diagnostics</strong> above.
         </p>
         <p className="mb-4">
           Hiding is applied to each screenshot as it is captured, so in rare cases something can appear in a single
@@ -196,7 +220,7 @@ export default function PrivacyPolicy() {
         <p className="mb-4">
           Screen recording is on by default. You can turn it off at any time in the app, under Settings and then
           Preferences, using the Usage Analytics toggle. Turning it off stops both the screen recording and the
-          analytics described above.
+          in-app analytics described above. It does not stop the coach-conversation content described above.
         </p>
 
         <h3 className="text-xl font-semibold mb-2 mt-6">Advertising and Attribution</h3>
@@ -238,6 +262,7 @@ export default function PrivacyPolicy() {
           <li>Process your subscription and payments</li>
           <li>Secure the app, prevent abuse, and diagnose problems</li>
           <li>Improve our app and services</li>
+          <li>Monitor and improve the quality of our AI coaches&rsquo; responses</li>
           <li>Review product feedback you submit</li>
           <li>Measure how our advertising performs and, with your permission, show you more relevant ads</li>
         </ul>
@@ -269,6 +294,11 @@ export default function PrivacyPolicy() {
           providers, we will update this policy and the in-app disclosure before the change takes effect.
         </p>
         <p className="mb-4">
+          Separately, our analytics provider, <strong>PostHog</strong>, receives the content of your conversations with
+          your coach so we can monitor the quality of your coach&rsquo;s responses. PostHog does not generate your
+          coach&rsquo;s responses. See <strong>Usage, Analytics, and Diagnostics</strong> above.
+        </p>
+        <p className="mb-4">
           You can review what is shared and withdraw or re-grant your consent at any time in the app under{" "}
           <strong>Settings → Data &amp; AI</strong>. Withdrawing consent turns off camera form feedback.
         </p>
@@ -292,7 +322,8 @@ export default function PrivacyPolicy() {
           </li>
           <li>
             <strong>Analytics and diagnostics providers</strong> to understand usage and diagnose crashes and
-            performance, including PostHog (see <strong>Usage, Analytics, and Diagnostics</strong> and{' '}
+            performance, and to monitor the quality of coach responses, including PostHog, which receives the content of
+            your coach conversations (see <strong>Usage, Analytics, and Diagnostics</strong> and{' '}
             <strong>Screen Recording</strong> above)
           </li>
           <li>
@@ -436,7 +467,8 @@ export default function PrivacyPolicy() {
           processed on your device and cached locally to personalize your experience; we do not upload your Apple Health
           data to our servers. Your camera video segments and derived pose data, your voice during coaching, your
           conversations, and the workout, activity, photo, and profile data you record are processed and stored on our
-          cloud servers as described above.
+          cloud servers as described above. The content of your conversations is also copied to our analytics provider,
+          PostHog, in the United States, as described under <strong>Usage, Analytics, and Diagnostics</strong>.
         </p>
 
         <h2 className="text-2xl font-semibold mb-4 mt-8">Data Retention</h2>
