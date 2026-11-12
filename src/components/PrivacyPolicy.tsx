@@ -77,16 +77,6 @@ export default function PrivacyPolicy() {
           is off until you consent to it, and you can turn it off at any time (see{" "}
           <strong>AI Features and Your Consent</strong> below).
         </p>
-        <p className="mb-4">
-          Versions of the app before 2.0.0 also recorded body-position (&ldquo;pose&rdquo;) data derived from the camera
-          during your sets and stored it on our servers. The app no longer records pose data. We still hold the pose
-          data those earlier versions recorded. Deleting your account in the app does not remove it automatically; to
-          have yours deleted, email us at{" "}
-          <a href="mailto:contact@delirio.fit" className="text-blue-600 underline">
-            contact@delirio.fit
-          </a>
-          .
-        </p>
 
         <h3 className="text-xl font-semibold mb-2 mt-6">Voice and Audio</h3>
         <p className="mb-4">
@@ -504,11 +494,6 @@ export default function PrivacyPolicy() {
           photos, and other data associated with your account from our systems, and we direct our service providers to
           delete it as well. This cannot be undone. For your security, you may be asked to sign in again before deletion
           completes.
-        </p>
-        <p className="mb-4">
-          One exception: pose data recorded by versions of the app before 2.0.0, described under{" "}
-          <strong>Camera and Workout Form Analysis</strong> above, is not removed by deleting your account in the app.
-          Email us and we will delete it.
         </p>
         <p className="mb-4">
           If you cannot access the app, you can also request deletion by emailing us at{" "}
