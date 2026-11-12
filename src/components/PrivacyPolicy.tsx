@@ -10,7 +10,7 @@ export default function PrivacyPolicy() {
     <LandingLegalShell>
       <div className="max-w-3xl mx-auto px-6 py-10 md:py-16 min-h-screen bg-white text-black">
         <h1 className="text-4xl font-bold mb-8">Privacy Policy</h1>
-        <p className="mb-2 text-sm text-gray-500">Last updated: November 8, 2026</p>
+        <p className="mb-2 text-sm text-gray-500">Last updated: November 12, 2026</p>
         <p className="mb-4">
           Delirio (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) provides an AI-powered fitness coaching
           mobile application. This Privacy Policy explains what information we collect, how we use and share it, and the
@@ -73,13 +73,9 @@ export default function PrivacyPolicy() {
         <p className="mb-4">
           During a workout, if you have enabled AI form feedback, Delirio captures short video segments (roughly five
           seconds each) from your device camera and sends them to our cloud-based AI form-analysis service to generate
-          real-time feedback on your technique. We also record body-position (&ldquo;pose&rdquo;) data derived from the
-          camera during your sets and store it on our servers to power that feedback and keep a record of your workout.
-        </p>
-        <p className="mb-4">
-          Some processing, including 3D body-position detection, runs on your device; the video segments and pose data
-          described above are processed and stored in the cloud. This feature is off until you consent to it, and you
-          can turn it off at any time (see <strong>AI Features and Your Consent</strong> below).
+          real-time feedback on your technique. The video segments are processed and stored in the cloud. This feature
+          is off until you consent to it, and you can turn it off at any time (see{" "}
+          <strong>AI Features and Your Consent</strong> below).
         </p>
 
         <h3 className="text-xl font-semibold mb-2 mt-6">Voice and Audio</h3>
@@ -270,8 +266,8 @@ export default function PrivacyPolicy() {
         <h2 className="text-2xl font-semibold mb-4 mt-8">AI Features and Your Consent</h2>
         <p className="mb-4">
           Delirio&rsquo;s real-time voice coaching and camera-based form feedback rely on third-party AI services. This
-          means some of your data &mdash; your voice during coaching sessions, and short video segments and pose data
-          during workouts &mdash; is sent to those services to make these features work. Before these features are first
+          means some of your data &mdash; your voice during coaching sessions, and short video segments during
+          workouts &mdash; is sent to those services to make these features work. Before these features are first
           used, we ask for your consent.
         </p>
         <p className="mb-4">We currently use the following AI providers:</p>
@@ -465,7 +461,7 @@ export default function PrivacyPolicy() {
         <p className="mb-4">
           Some processing happens on your device, and some happens in the cloud. Data read from Apple Health is
           processed on your device and cached locally to personalize your experience; we do not upload your Apple Health
-          data to our servers. Your camera video segments and derived pose data, your voice during coaching, your
+          data to our servers. Your camera video segments, your voice during coaching, your
           conversations, and the workout, activity, photo, and profile data you record are processed and stored on our
           cloud servers as described above. The content of your conversations is also copied to our analytics provider,
           PostHog, in the United States, as described under <strong>Usage, Analytics, and Diagnostics</strong>.
