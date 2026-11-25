@@ -36,7 +36,7 @@ export default function PrivacyPolicy() {
         <p className="mb-4">
           You can sign in using Apple, Google, email and password, or your phone number. We use your phone number to
           deliver your coach&rsquo;s messages when you text with your coach: by iMessage, through our messaging
-          provider Blooio, and by SMS, through Twilio, if iMessage cannot be used. We will not share, sell, or rent
+          provider Blooio. We may use SMS, through Twilio, as a backup. We will not share, sell, or rent
           your mobile phone number or your texting opt-in data to third parties for marketing purposes.
         </p>
 
@@ -99,7 +99,7 @@ export default function PrivacyPolicy() {
         <h3 className="text-xl font-semibold mb-2 mt-6">Coach Phone Calls</h3>
         <p className="mb-4">
           You can call your coach from the app, and your coach can call you: for example after a missed workout and an
-          unanswered follow-up, between 9am and 8pm your local time. A call from your coach arrives as a call-style
+          unanswered follow-up, usually between 9am and 8pm your time. A call from your coach arrives as a call-style
           notification from Apple&rsquo;s push service that rings your phone&rsquo;s call screen, even when the app is
           closed. To make this work, the app stores with your account a call-notification token from Apple, whether
           you have allowed the microphone, and the outcome of each ring (answered, missed, declined), alongside the
@@ -110,7 +110,7 @@ export default function PrivacyPolicy() {
         </p>
 
         <h3 className="text-xl font-semibold mb-2 mt-6">Conversations With Your AI Coach</h3>
-        <p className="mb-4">When you interact with our AI coaches in the app, by iMessage or SMS, or by voice, we store:</p>
+        <p className="mb-4">When you interact with our AI coaches in the app, by iMessage (or SMS, if we use it), or by voice, we store:</p>
         <ul className="mb-4 list-disc pl-6">
           <li>Your recent messages</li>
           <li>AI-generated summaries of your conversations</li>
@@ -122,7 +122,7 @@ export default function PrivacyPolicy() {
           are processed by our cloud AI services to generate responses. The text of your conversations is also sent to
           our analytics provider so we can monitor the quality of your coach&rsquo;s responses (see{" "}
           <strong>Usage, Analytics, and Diagnostics</strong> below). When you text with your coach, the messages also
-          pass through our messaging provider, Blooio for iMessage and Twilio for SMS, which carry your phone number and
+          pass through our messaging provider, Blooio for iMessage and, if we use it, Twilio for SMS, which carry your phone number and
           the message text and keep their own records under their own policies.
         </p>
 
@@ -414,7 +414,7 @@ export default function PrivacyPolicy() {
             Notification service, to deliver notifications to your device (see <strong>Notifications</strong> above)
           </li>
           <li>
-            <strong>Messaging providers</strong> for texting with your coach: Blooio for iMessage and Twilio for SMS
+            <strong>Messaging providers</strong> for texting with your coach: Blooio for iMessage and, if we use it, Twilio for SMS
             (see <strong>Conversations With Your AI Coach</strong> above)
           </li>
           <li>

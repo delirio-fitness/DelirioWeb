@@ -37,9 +37,9 @@ export default function Support() {
 
         <h2 className="text-2xl font-semibold mb-4 mt-8">Your Account and Data</h2>
         <p className="mb-4">
-          You can permanently delete your account and all associated data in the app under{" "}
+          You can permanently delete your account and the data in it in the app under{" "}
           <strong>Settings &rarr; Account &amp; Profile &rarr; Delete Account</strong>. If you cannot access the app,
-          see our <Link to="/data-deletion" className="text-blue-600 underline">Data Deletion</Link> page.
+          see our <Link to="/data-deletion" className="text-blue-600 underline">Data Deletion</Link> page, which also lists what deletion does not remove.
         </p>
 
         <h2 className="text-2xl font-semibold mb-4 mt-8">Legal</h2>
