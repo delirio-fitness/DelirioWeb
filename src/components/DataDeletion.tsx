@@ -21,8 +21,14 @@ export default function DataDeletion() {
 
         <h2 className="text-2xl font-semibold mb-4 mt-8">App accounts</h2>
         <p className="mb-4">
-          If you have a Delirio account, you can delete it and all associated data yourself, at any time, in the app
-          under <strong>Settings → Account &amp; Profile → Delete Account</strong>. You do not need to email us.
+          If you have a Delirio account, you can delete it yourself, at any time, in the app under{" "}
+          <strong>Settings → Account &amp; Profile → Delete Account</strong>. This erases your profile, workout and
+          activity history, conversations, your coach&rsquo;s notes, photos, and notification records from our systems.
+          A few things are not removed this way, and the{" "}
+          <a href="/privacy-policy" className="text-blue-600 underline">Privacy Policy</a> lists them under{" "}
+          <strong>Deleting Your Account</strong>: the analytics records held by PostHog, a one-way coded version of your
+          email address that keeps the free week to one per person, and copies held by other companies. To have the
+          analytics records deleted, email us at the address above.
         </p>
 
         <h2 className="text-2xl font-semibold mb-4 mt-8">This website</h2>

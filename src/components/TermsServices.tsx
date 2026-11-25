@@ -38,7 +38,7 @@ export default function TermsServices() {
           <p className="mb-4">Delirio is an AI-powered fitness coaching application that provides:</p>
           <ul className="mb-4 list-disc pl-6">
             <li>Real-time exercise form feedback using your device's camera</li>
-            <li>AI coaching through voice, text, SMS, and WhatsApp</li>
+            <li>AI coaching through voice, text, and iMessage</li>
             <li>Workout tracking and progress analytics</li>
             <li>Personalized exercise guidance and recommendations</li>
           </ul>
@@ -171,8 +171,8 @@ export default function TermsServices() {
 
           <h2 className="text-2xl font-semibold mb-4 mt-8">Messaging Consent</h2>
           <p className="mb-4">
-            By providing your phone number during account creation, you consent to receive messages from us via SMS
-            and/or WhatsApp. These messages may include:
+            By providing your phone number during account creation, you consent to receive messages from us via iMessage
+            or SMS. These messages may include:
           </p>
                 <ul className="mb-4 list-disc pl-6">
             <li>Coaching conversations with AI trainers</li>
