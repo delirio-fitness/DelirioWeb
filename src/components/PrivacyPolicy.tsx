@@ -355,9 +355,8 @@ export default function PrivacyPolicy() {
             coach&rsquo;s feedback.
           </li>
           <li>
-            <strong>Anthropic</strong> &mdash; receives your check-in answers and your coach&rsquo;s notes to write your
-            journey notes after a check-in, and receives your conversations if we switch your coach to it as a backup
-            when OpenAI is unavailable.
+            <strong>Anthropic</strong> &mdash; can reply to you in place of OpenAI when OpenAI is unavailable, in which
+            case it receives your conversations, and may process your conversations to write notes your coach keeps.
           </li>
         </ul>
         <p className="mb-4">
